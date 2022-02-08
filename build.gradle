@@ -52,7 +52,7 @@ public String jarClasspath() {
     int pos = jar.lastIndexOf(fsep)
     jar = jar.substring(pos)
     sb.append(sep).append("lib").append(jar)
-    Sep = " "
+    sep = " "
   }
   return sb.toString()
 }
