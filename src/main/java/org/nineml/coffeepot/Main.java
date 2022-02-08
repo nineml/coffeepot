@@ -6,9 +6,9 @@ import org.nineml.coffeefilter.InvisibleXml;
 import org.nineml.coffeefilter.InvisibleXmlDocument;
 import org.nineml.coffeefilter.InvisibleXmlParser;
 import org.nineml.coffeefilter.ParserOptions;
+import org.nineml.coffeepot.utils.ParserOptionsLoader;
 import org.xml.sax.InputSource;
 import org.nineml.coffeefilter.exceptions.IxmlException;
-import org.nineml.coffeefilter.utils.ParserOptionsLoader;
 import org.nineml.coffeegrinder.parser.EarleyResult;
 import org.nineml.coffeegrinder.parser.ParseTree;
 
