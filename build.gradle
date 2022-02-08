@@ -1,0 +1,92 @@
+plugins {
+  id "java"
+  id "maven-publish"
+  id "signing"
+  id 'com.github.gmazzo.buildconfig' version "3.0.3"
+}
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+  maven { url "https://dev.saxonica.com/maven" }
+}
+
+configurations {
+  app.extendsFrom implementation
+}
+
+dependencies {
+  implementation (
+    [group: 'org.nineml', name: grinderName, version: grinderVersion],
+    [group: 'org.nineml', name: filterName, version: filterVersion],
+    [group: 'com.beust', name: 'jcommander', version: '1.81' ],
+    [group: 'net.sf.saxon', name: 'Saxon-HE', version: '11.1.1'],
+  )
+  testImplementation (
+    [group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.4.2'],
+    [group: 'org.junit.platform', name: 'junit-platform-console-standalone', version: '1.7.1'],
+  )
+  testRuntimeOnly (
+    [group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.4.2'],
+    [group: 'org.junit.vintage', name: 'junit-vintage-engine', version: '5.4.2'],
+    [group: 'org.junit.platform', name: 'junit-platform-runner', version: '1.8.2']
+  )
+}
+
+buildConfig {
+  packageName('org.nineml.coffeepot')
+  buildConfigField('String', 'TITLE', "\"${potTitle}\"")
+  buildConfigField('String', 'VERSION', "\"${potVersion}\"")
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs << '-Xlint:deprecation'
+}
+
+public String jarClasspath() {
+  StringBuilder sb = new StringBuilder()
+  String fsep = System.getProperty("file.separator")
+  String sep = ""
+  configurations.app.collect { dep ->
+    String jar = dep.toString()
+    int pos = jar.lastIndexOf(fsep)
+    jar = jar.substring(pos)
+    sb.append(sep).append("lib").append(jar)
+    Sep = " "
+  }
+  return sb.toString()
+}
+
+jar {
+  setDuplicatesStrategy(DuplicatesStrategy.WARN)
+  manifest {
+    attributes "Project-Name": "${potTitle}"
+    attributes 'Built-By': 'Norman Walsh'
+    attributes 'Implementation-Vendor': 'Norman Walsh'
+    attributes 'Implementation-Title': potTitle
+    attributes 'Implementation-Version': potVersion
+    attributes "Main-Class": "org.nineml.coffeepot.Main"
+    attributes "Class-Path": jarClasspath()
+  }
+  archiveBaseName = "${potName}-${potVersion}"
+}
+
+task copyRuntimeLibraries() {
+  doLast {
+    configurations.app.collect { dep ->
+      copy {
+        into "${buildDir}/libs/lib"
+        from dep
+      }
+    }
+  }
+}
+jar.finalizedBy(copyRuntimeLibraries)
+
+// ============================================================
+
+task helloWorld() {
+  doLast {
+    println('Hello, world.')
+  }
+}
