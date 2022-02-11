@@ -284,28 +284,32 @@ class Main {
 
             // Transform the graph into dot
             InputStream stylesheet = getClass().getResourceAsStream(resource);
-            XsltCompiler compiler = processor.newXsltCompiler();
-            compiler.setSchemaAware(false);
-            XsltExecutable exec = compiler.compile(new SAXSource(new InputSource(stylesheet)));
-            XsltTransformer transformer = exec.load();
-            transformer.setInitialContextNode(document);
-            XdmDestination destination = new XdmDestination();
-            transformer.setDestination(destination);
-            transformer.transform();
+            if (stylesheet == null) {
+                System.err.println("Failed to load stylesheet: " + resource);
+            } else {
+                XsltCompiler compiler = processor.newXsltCompiler();
+                compiler.setSchemaAware(false);
+                XsltExecutable exec = compiler.compile(new SAXSource(new InputSource(stylesheet)));
+                XsltTransformer transformer = exec.load();
+                transformer.setInitialContextNode(document);
+                XdmDestination destination = new XdmDestination();
+                transformer.setDestination(destination);
+                transformer.transform();
 
-            // Store the dot file somewhere
-            File temp = File.createTempFile("jixp", ".dot");
-            temp.deleteOnExit();
-            PrintWriter dot = new PrintWriter(new FileOutputStream(temp));
-            dot.println(destination.getXdmNode().getStringValue());
-            dot.close();
+                // Store the dot file somewhere
+                File temp = File.createTempFile("jixp", ".dot");
+                temp.deleteOnExit();
+                PrintWriter dot = new PrintWriter(new FileOutputStream(temp));
+                dot.println(destination.getXdmNode().getStringValue());
+                dot.close();
 
-            String[] args = new String[] { options.graphviz, "-Tsvg", temp.getAbsolutePath(), "-o", output};
-            Process proc = Runtime.getRuntime().exec(args);
-            proc.waitFor();
-            temp.delete();
+                String[] args = new String[] { options.graphviz, "-Tsvg", temp.getAbsolutePath(), "-o", output};
+                Process proc = Runtime.getRuntime().exec(args);
+                proc.waitFor();
+                temp.delete();
 
-            info.detail("Wrote SVG: %s", output);
+                info.detail("Wrote SVG: %s", output);
+            }
         } catch (Exception ex) {
             System.err.println("Failed to write SVG: " + ex.getMessage());
         }
