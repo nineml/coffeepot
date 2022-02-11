@@ -5,6 +5,8 @@ import org.nineml.coffeefilter.ParserOptions;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.Properties;
 
 public class ParserOptionsLoader {
@@ -23,6 +25,16 @@ public class ParserOptionsLoader {
                 options.prettyPrint = "true".equals(getProperty("pretty-print", "false"));
                 options.ignoreTrailingWhitespace = "true".equals(getProperty("ignore-trailing-whitespace", "false"));
                 options.graphviz = getProperty("graphviz", null);
+/*
+            } else {
+                System.err.println("Failed to find nineml.properties on classpath");
+                ClassLoader loader = ClassLoader.getSystemClassLoader();
+                URL[] urls = ((URLClassLoader) loader).getURLs();
+                for (URL url : urls) {
+                    System.err.println("\t" + url);
+                }
+                options.graphviz = "/usr/local/bin/dot";
+ */
             }
         } catch (IOException ex) {
             // nevermind
