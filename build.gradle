@@ -232,6 +232,16 @@ task copyJarResources() {
 }
 
 task copyStaticResources() {
+  inputs.files fileTree(dir: "${projectDir}/src/main/resources")
+  inputs.files fileTree(dir: "${projectDir}/src/main/xml/images")
+  inputs.files fileTree(dir: "${projectDir}/src/main/xml/examples")
+  inputs.files fileTree(dir: "${projectDir}/src/main/xml/images")
+  outputs.files fileTree(dir: "${buildDir}/website/images")
+  outputs.files fileTree(dir: "${buildDir}/website/examples")
+  outputs.files fileTree(dir: "${buildDir}/website/css")
+  outputs.files fileTree(dir: "${buildDir}/website/js")
+  outputs.files fileTree(dir: "${buildDir}/aug")
+
   doLast {
     copy {
       into "${buildDir}/website"
