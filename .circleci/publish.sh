@@ -17,7 +17,6 @@ fi
 
 if [ -z "$GIT_EMAIL" -o -z "$GIT_USER" ]; then
     echo "No identity configured with GIT_USER/GIT_EMAIL"
-    exit
 fi
 
 git config --global user.email $GIT_EMAIL
@@ -25,6 +24,10 @@ git config --global user.name $GIT_USER
 
 # Save the website files
 pushd build/website > /dev/null
+
+echo "Files"
+ls -lA
+
 tar cf - . | gzip > /tmp/dist.$$.tar.gz
 popd > /dev/null
 
@@ -34,9 +37,15 @@ git checkout --track origin/gh-pages
 # Delete the cruft not related to gh-pages
 git clean -d -f
 
+echo "Tar"
+tar zvtf /tmp/dist.$$.tar.gz
+
 # Unpack the website files
 tar zxf /tmp/dist.$$.tar.gz
 rm /tmp/dist.$$.tar.gz
+
+echo "Here"
+ls -lA
 
 git add --verbose .
 git commit -m "Successful CircleCI build $CIRCLE_BUILD_NUM"
