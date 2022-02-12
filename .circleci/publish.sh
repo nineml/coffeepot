@@ -17,6 +17,7 @@ fi
 
 if [ -z "$GIT_EMAIL" -o -z "$GIT_USER" ]; then
     echo "No identity configured with GIT_USER/GIT_EMAIL"
+    exit
 fi
 
 git config --global user.email $GIT_EMAIL
