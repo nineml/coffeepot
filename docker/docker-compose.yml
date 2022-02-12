@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+    coffeepot_server:
+      image: httpd:2.4
+      container_name: coffeepot
+      ports:
+        - 8282:80
+      working_dir: /src
+      volumes:
+        - ../build/website:/usr/local/apache2/htdocs
+      stdin_open: true
+      tty: true
+      networks:
+        - external_coffeepot
+
+networks:
+  external_coffeepot: {}

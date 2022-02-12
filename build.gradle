@@ -1,9 +1,39 @@
+buildscript {
+  repositories {
+    mavenLocal()
+    mavenCentral()
+    maven { url "https://dev.saxonica.com/maven" }
+  }
+
+  configurations.all {
+    resolutionStrategy {
+      force 'xml-apis:xml-apis:1.4.01',
+        "${saxonGroup}:${saxonEdition}:${saxonVersion}",
+        "org.xmlresolver:xmlresolver:${xmlresolverVersion}"
+    }
+  }
+
+  dependencies {
+    classpath group: saxonGroup, name: saxonEdition, version: saxonVersion
+    classpath group: 'org.docbook', name: 'schemas-docbook', version: docbookVersion
+    classpath group: 'org.docbook', name: 'docbook-xslTNG', version: xslTNGversion
+  }
+}
+
 plugins {
   id "java"
   id "maven-publish"
   id "signing"
   id 'com.github.gmazzo.buildconfig' version "3.0.3"
+  id 'com.nwalsh.gradle.saxon.saxon-gradle' version '0.9.3'
+  id 'com.nwalsh.gradle.relaxng.validate' version '0.0.8'
+  id 'com.nwalsh.gradle.docker.container' version '0.0.3'
 }
+
+import com.nwalsh.gradle.saxon.SaxonXsltTask
+import com.nwalsh.gradle.relaxng.validate.RelaxNGValidateTask
+import com.nwalsh.gradle.relaxng.translate.RelaxNGTranslateTask
+import com.nwalsh.gradle.docker.DockerContainer
 
 repositories {
   mavenLocal()
@@ -11,7 +41,16 @@ repositories {
   maven { url "https://dev.saxonica.com/maven" }
 }
 
+configurations.all {
+  resolutionStrategy {
+    force 'xml-apis:xml-apis:1.4.01',
+      "${saxonGroup}:${saxonEdition}:${saxonVersion}",
+      "org.xmlresolver:xmlresolver:${xmlresolverVersion}"
+  }
+}
+
 configurations {
+  transform.extendsFrom documentation
   app.extendsFrom implementation
 }
 
@@ -22,6 +61,11 @@ dependencies {
     [group: 'com.beust', name: 'jcommander', version: '1.81' ],
     [group: 'net.sf.saxon', name: 'Saxon-HE', version: '11.1.1'],
   )
+  documentation (
+    [group: saxonGroup, name: saxonEdition, version: saxonVersion],
+    [group: 'org.docbook', name: 'schemas-docbook', version: '5.2b10-SNAPSHOT'],
+    [group: 'org.docbook', name: 'docbook-xslTNG', version: xslTNGversion]
+  )
 }
 
 buildConfig {
@@ -30,6 +74,21 @@ buildConfig {
   buildConfigField('String', 'VERSION', "\"${potVersion}\"")
 }
 
+ext {
+  c_coffeepot = "coffeepot"
+}
+
+saxon.configure {
+  classpath configurations.transform
+  initializer 'org.docbook.xsltng.extensions.Register'
+}
+
+docker_container.configure {
+  workingDir = "docker"
+}
+
+// ============================================================
+
 tasks.withType(JavaCompile) {
     options.compilerArgs << '-Xlint:deprecation'
 }
@@ -37,13 +96,12 @@ tasks.withType(JavaCompile) {
 public String jarClasspath() {
   StringBuilder sb = new StringBuilder()
   String fsep = System.getProperty("file.separator")
-  String sep = ""
+  sb.append("lib")
   configurations.app.collect { dep ->
     String jar = dep.toString()
     int pos = jar.lastIndexOf(fsep)
     jar = jar.substring(pos)
-    sb.append(sep).append("lib").append(jar)
-    sep = " "
+    sb.append(" ").append("lib").append(jar)
   }
   return sb.toString()
 }
@@ -99,6 +157,132 @@ task zipDist(type: Zip) {
   archiveFileName = "${potName}-${potVersion}.zip"
 }
 dist.finalizedBy zipDist
+
+// ============================================================
+
+task manual_xinclude(type: SaxonXsltTask, dependsOn: ["copyResources"]) {
+  inputs.files fileTree(dir: "${projectDir}/src/main/xml")
+  inputs.file "${projectDir}/tools/xinclude.xsl"
+
+  input "${projectDir}/src/main/xml/coffeepot.xml"
+  stylesheet "${projectDir}/tools/xinclude.xsl"
+  output "${buildDir}/tmp/coffeepot.xml"
+}
+
+task manual_validate(type: RelaxNGValidateTask, dependsOn: ["manual_xinclude"]) {
+  input manual_xinclude.outputs.files.singleFile
+  output "${buildDir}/xml/coffeepot.xml"
+  schema "${projectDir}/tools/docbook.rnc"
+  compact true
+}
+
+task manual_augment(type: SaxonXsltTask, dependsOn: ["manual_validate"]) {
+  input manual_validate.outputs.files.singleFile
+  output "${buildDir}/aug/coffeepot.xml"
+  stylesheet "${projectDir}/tools/augment.xsl"
+}
+
+task manual_html(type: SaxonXsltTask, dependsOn: ["manual_augment"]) {
+  inputs.file "${projectDir}/tools/docbook.xsl"
+  outputs.files fileTree(dir: "${buildDir}/website")
+
+  input manual_augment.outputs.files.singleFile
+  output "${buildDir}/website/index.html"
+  stylesheet "${projectDir}/tools/docbook.xsl"
+  initializer 'org.docbook.xsltng.extensions.Register'
+  parameters (
+    'mediaobject-input-base-uri': "file:${buildDir}/aug/",
+    'mediaobject-output-base-uri': "/",
+    'chunk': 'index.html',
+    'chunk-output-base-uri': "${projectDir}/build/website/"
+  )
+}
+
+task copyResources() {
+  def dbjar = null
+  configurations.transform.each { path ->
+    if (path.toString().contains("docbook-xslTNG")) {
+      dbjar = path
+    }
+  }
+
+  doFirst {
+    copy {
+      into "${buildDir}/website"
+      from ("${projectDir}/src/main/resources") {
+        exclude ".htaccess" // no longer relevant?
+      }
+    }
+  }
+
+  doLast {
+    if (dbjar == null) {
+      throw new GradleException("Failed to locate DocBook xslTNG jar file")
+    }
+    copy {
+      into "${buildDir}/website"
+      from ({ zipTree(dbjar.toString()) }) {
+        include "org/docbook/xsltng/resources/**"
+      }
+      eachFile { fileCopyDetails ->
+        def originalPath = fileCopyDetails.path
+        fileCopyDetails.path = originalPath.replace('org/docbook/xsltng/resources/', '')
+      }
+    }
+  }
+
+  doLast {
+    delete "${buildDir}/website/org"
+  }
+
+  doLast {
+    copy {
+      from "${projectDir}/src/main/xml/images"
+      into "${buildDir}/website/images"
+    }
+  }
+
+  // FIXME: Grotesque hack. 
+  doLast {
+    copy {
+      from "${projectDir}/src/main/xml/images"
+      into "${buildDir}/aug/images"
+    }
+  }
+
+
+  doLast {
+    copy {
+      from "${projectDir}/src/main/xml/examples"
+      into "${buildDir}/website/examples"
+    }
+  }
+}
+
+// ======================================================================
+
+task dockerup() {
+  doLast {
+    if (!DockerContainer.running(c_coffeepot)) {
+      DockerContainer.compose {
+        command = "up"
+        options = ["-p", "coffeepot"]
+        args = ["-d"]
+      }
+    }
+  }
+}
+
+task dockerdown() {
+  doLast {
+    if (DockerContainer.running(c_coffeepot)) {
+      DockerContainer.compose {
+        command = "down"
+        options = ["-p", "coffeepot"]
+      }
+    }
+  }
+}
 
 // ============================================================
 
