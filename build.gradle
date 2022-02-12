@@ -63,7 +63,7 @@ dependencies {
   )
   documentation (
     [group: saxonGroup, name: saxonEdition, version: saxonVersion],
-    [group: 'org.docbook', name: 'schemas-docbook', version: '5.2b10-SNAPSHOT'],
+    [group: 'org.docbook', name: 'schemas-docbook', version: docbookVersion],
     [group: 'org.docbook', name: 'docbook-xslTNG', version: xslTNGversion]
   )
 }
