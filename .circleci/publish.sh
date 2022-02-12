@@ -27,6 +27,7 @@ pushd build/website > /dev/null
 
 echo "Files"
 ls -lA
+ls -lA css
 
 tar cf - . | gzip > /tmp/dist.$$.tar.gz
 popd > /dev/null
