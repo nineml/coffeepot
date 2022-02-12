@@ -33,7 +33,7 @@ jobs:
 
       - run: ./gradlew dist website
 
-      - run: /bin/ls -laR build/website
+      - run: /bin/ls -laR .
 
       - persist_to_workspace:
           root: build

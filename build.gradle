@@ -209,9 +209,7 @@ task copyResources() {
   doFirst {
     copy {
       into "${buildDir}/website"
-      from ("${projectDir}/src/main/resources") {
-        exclude ".htaccess" // no longer relevant?
-      }
+      from "${projectDir}/src/main/resources"
     }
   }
 
@@ -226,7 +224,6 @@ task copyResources() {
       }
       eachFile { fileCopyDetails ->
         def originalPath = fileCopyDetails.path
-        println("COPY: ${originalPath}")
         fileCopyDetails.path = originalPath.replace('org/docbook/xsltng/resources/', '')
       }
     }
