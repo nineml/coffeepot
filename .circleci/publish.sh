@@ -15,9 +15,9 @@ if [ `git branch -r | grep "origin/gh-pages" | wc -l` = 0 ]; then
     exit
 fi
 
-if [ `set | grep GIT_EMAIL | wc -l` = 0 -o `set | grep GIT_USER | wc -l` = 0 ]; then
+if [ -z "$GIT_EMAIL" -o -z "$GIT_USER" ]; then
     echo "No identity configured with GIT_USER/GIT_EMAIL"
-    exit
+    exit 0
 fi
 
 git config --global user.email $GIT_EMAIL
