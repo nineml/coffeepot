@@ -33,10 +33,14 @@ jobs:
 
       - run: ./gradlew dist website
 
+      - run: /bin/ls -laR build/website
+
       - persist_to_workspace:
           root: build
           paths:
             - distributions
+
+      - run: /bin/ls -laR build/website
 
       - run: ./.circleci/publish.sh
 
