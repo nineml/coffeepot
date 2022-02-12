@@ -6,11 +6,10 @@ import org.nineml.coffeefilter.InvisibleXml;
 import org.nineml.coffeefilter.InvisibleXmlDocument;
 import org.nineml.coffeefilter.InvisibleXmlParser;
 import org.nineml.coffeefilter.ParserOptions;
+import org.nineml.coffeefilter.exceptions.IxmlException;
+import org.nineml.coffeegrinder.parser.*;
 import org.nineml.coffeepot.utils.ParserOptionsLoader;
 import org.xml.sax.InputSource;
-import org.nineml.coffeefilter.exceptions.IxmlException;
-import org.nineml.coffeegrinder.parser.EarleyResult;
-import org.nineml.coffeegrinder.parser.ParseTree;
 
 import javax.xml.transform.sax.SAXSource;
 import java.io.*;
@@ -57,7 +56,7 @@ class Main {
         int parseCount = 0;
         boolean allparses = false;
 
-        ParserOptionsLoader loader = new ParserOptionsLoader();
+        ParserOptionsLoader loader = new ParserOptionsLoader(cmain.verbose);
         ParserOptions options = loader.loadOptions();
 
         options.verbose = options.verbose || cmain.verbose;
@@ -138,7 +137,7 @@ class Main {
             System.err.println("Invalid URI: " + cmain.grammar);
             return 2;
         } catch (IxmlException ex) {
-            System.err.println("Failed to parse grammar: " + cmain.grammar);
+            System.err.println(ex.getMessage());
             return 2;
         }
 
@@ -189,13 +188,30 @@ class Main {
         }
 
         if (parseCount == 0 && !allparses) {
-            if (doc.numberOfParses() > 1) {
-                System.out.println("There are " + doc.exactNumberOfParses() + " possible parses.");
+            if (doc.getNumberOfParses() > 1) {
+                System.out.println("There are " + doc.getExactNumberOfParses() + " possible parses.");
+                if (cmain.describeAmbiguity) {
+                    Ambiguity ambiguity = doc.getEarleyResult().getForest().getAmbiguity();
+                    if (ambiguity.getInfinitelyAmbiguous()) {
+                        System.out.println("Infinite ambiguity:");
+                    } else {
+                        System.out.println("Ambiguity:");
+                    }
+                    if (ambiguity.getRoots().size() > 1) {
+                        System.out.printf("Graph has %d roots.%n", ambiguity.getRoots().size());
+                    }
+                    for (ForestNode node : ambiguity.getChoices().keySet()) {
+                        System.out.println(node);
+                        for (Family family : ambiguity.getChoices().get(node)) {
+                            System.out.println("\t" + family);
+                        }
+                    }
+                }
             }
         }
 
-        if (doc.numberOfParses() > 0 && parseCount > doc.numberOfParses()) {
-            System.out.println("There are only " + doc.exactNumberOfParses() + " possible parses.");
+        if (doc.getNumberOfParses() > 0 && parseCount > doc.getNumberOfParses()) {
+            System.out.println("There are only " + doc.getExactNumberOfParses() + " possible parses.");
             return 1;
         }
 
@@ -207,10 +223,10 @@ class Main {
         if (parseCount > 0 || allparses) {
             long max = parseCount;
             if (allparses) {
-                max = doc.numberOfParses();
+                max = doc.getNumberOfParses();
             }
 
-            output.printf("<ixml parses='%d' totalParses='%s'>%n", max, doc.exactNumberOfParses());
+            output.printf("<ixml parses='%d' totalParses='%s'>%n", max, doc.getExactNumberOfParses());
             for (int pos = 0; pos < max; pos++) {
                 doc.getTree(output);
                 doc.nextTree();
@@ -371,6 +387,9 @@ class Main {
 
         @Parameter(names = {"-v", "--verbose"}, description = "Verbose output")
         public boolean verbose = false;
+
+        @Parameter(names = {"-D", "--describe-ambiguity"}, description = "Verbose output")
+        public boolean describeAmbiguity = false;
 
         @Parameter(description = "The input")
         public List<String> inputText = new ArrayList<>();
