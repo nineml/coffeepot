@@ -182,7 +182,7 @@ task manual_augment(type: SaxonXsltTask, dependsOn: ["manual_validate"]) {
   stylesheet "${projectDir}/tools/augment.xsl"
 }
 
-task manual_html(type: SaxonXsltTask, dependsOn: ["manual_augment"]) {
+task website(type: SaxonXsltTask, dependsOn: ["manual_augment"]) {
   inputs.file "${projectDir}/tools/docbook.xsl"
   outputs.files fileTree(dir: "${buildDir}/website")
 
