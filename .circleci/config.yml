@@ -33,12 +33,12 @@ jobs:
 
       - run: ./gradlew dist website
 
-      - run: ./.circleci/publish.sh
-
       - persist_to_workspace:
           root: build
           paths:
             - distributions
+
+      - run: ./.circleci/publish.sh
 
   publish-github-release:
     docker:
