@@ -198,18 +198,15 @@ task website(type: SaxonXsltTask, dependsOn: ["manual_augment"]) {
   )
 }
 
-task copyResources() {
+task copyResources(dependsOn: ["copyJarResources", "copyStaticResources"]) {
+  // nop
+}
+
+task copyJarResources() {
   def dbjar = null
   configurations.transform.each { path ->
     if (path.toString().contains("docbook-xslTNG")) {
       dbjar = path
-    }
-  }
-
-  doFirst {
-    copy {
-      into "${buildDir}/website"
-      from "${projectDir}/src/main/resources"
     }
   }
 
@@ -232,6 +229,15 @@ task copyResources() {
   doLast {
     delete "${buildDir}/website/org"
   }
+}
+
+task copyStaticResources() {
+  doLast {
+    copy {
+      into "${buildDir}/website"
+      from "${projectDir}/src/main/resources"
+    }
+  }
 
   doLast {
     copy {
@@ -247,7 +253,6 @@ task copyResources() {
       into "${buildDir}/aug/images"
     }
   }
-
 
   doLast {
     copy {
