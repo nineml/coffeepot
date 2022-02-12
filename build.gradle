@@ -226,6 +226,7 @@ task copyResources() {
       }
       eachFile { fileCopyDetails ->
         def originalPath = fileCopyDetails.path
+        println("COPY: ${originalPath}")
         fileCopyDetails.path = originalPath.replace('org/docbook/xsltng/resources/', '')
       }
     }
