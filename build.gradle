@@ -203,6 +203,8 @@ task copyResources(dependsOn: ["copyJarResources", "copyStaticResources"]) {
 }
 
 task copyJarResources() {
+  outputs.files fileTree(dir: "${buildDir}/website")
+
   def dbjar = null
   configurations.transform.each { path ->
     if (path.toString().contains("docbook-xslTNG")) {
@@ -233,13 +235,8 @@ task copyJarResources() {
 
 task copyStaticResources() {
   inputs.files fileTree(dir: "${projectDir}/src/main/resources")
-  inputs.files fileTree(dir: "${projectDir}/src/main/xml/images")
-  inputs.files fileTree(dir: "${projectDir}/src/main/xml/examples")
-  inputs.files fileTree(dir: "${projectDir}/src/main/xml/images")
-  outputs.files fileTree(dir: "${buildDir}/website/images")
-  outputs.files fileTree(dir: "${buildDir}/website/examples")
-  outputs.files fileTree(dir: "${buildDir}/website/css")
-  outputs.files fileTree(dir: "${buildDir}/website/js")
+  inputs.files fileTree(dir: "${projectDir}/src/main/xml")
+  outputs.files fileTree(dir: "${buildDir}/website")
   outputs.files fileTree(dir: "${buildDir}/aug")
 
   doLast {
