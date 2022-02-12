@@ -26,8 +26,7 @@ git config --global user.name $GIT_USER
 pushd build/website > /dev/null
 
 echo "Files"
-ls -lA
-ls -lA css
+ls -lAR
 
 tar cf - . | gzip > /tmp/dist.$$.tar.gz
 popd > /dev/null
