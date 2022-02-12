@@ -31,12 +31,14 @@ jobs:
             - ~/.gradle
           key: v1-dependencies-{{ checksum "build.gradle" }}
 
-      - run: ./gradlew dist
+      - run: ./gradlew dist website
 
       - persist_to_workspace:
           root: build
           paths:
             - distributions
+
+      - run: ./.circleci/publish.sh
 
   publish-github-release:
     docker:

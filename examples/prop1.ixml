@@ -1,0 +1,9 @@
+property-file: line+ .
+-line: comment ; name-value .
+
+comment: s, -["#!"], char*, NL .
+name-value: char*, NL .
+
+-NL: -#a ; -#d, -#a .
+-char: ~[#a] .
+-s: (-[Zs]; -#9; -#d)* .

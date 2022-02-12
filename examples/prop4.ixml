@@ -1,0 +1,29 @@
+property-file: line+ .
+-line: blank ; comment ; name-value .
+
+blank: s, NL .
+comment: s, -["#!"], char*, NL .
+
+name-value: s, name, s, -[":="], s, value .
+value: simple-value ; extended-value .
+-simple-value: atomic-value, NL .
+-extended-value: atomic-value, -"\", NL, s, -value .
+-atomic-value: ~[Zs; #9; #d], char* .
+
+name: namestart, namefollower* .
+
+-namestart: ["_"; L] .
+-namefollower: namestart; ["-.·‿⁀"; Nd; Mn] .
+
+-NL: -#a ; -#d, -#a .
+-s: (-[Zs]; -#9; -#d)* .
+
+-char: ~["\";#a] ; tab; cr ; nl ; bs ; uref .
+
+tab: -"\t" .
+cr: -"\r" .
+nl: -"\n" .
+-bs: "\", -"\" .
+
+uref: -"\u", digit, digit, digit, digit .
+-digit: ["0"-"9"; "a"-"f"; "A"-"F"] .
