@@ -180,6 +180,11 @@ task manual_augment(type: SaxonXsltTask, dependsOn: ["manual_validate"]) {
   input manual_validate.outputs.files.singleFile
   output "${buildDir}/aug/coffeepot.xml"
   stylesheet "${projectDir}/tools/augment.xsl"
+  parameters (
+    'version': potVersion,
+    'coffeegrinder-version': grinderVersion,
+    'coffeefilter-version': filterVersion
+  )
 }
 
 task website(type: SaxonXsltTask, dependsOn: ["manual_augment"]) {
