@@ -1,0 +1,172 @@
+<chapter xmlns="http://docbook.org/ns/docbook"
+         xmlns:xi='http://www.w3.org/2001/XInclude'
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xml:id="debugging"
+         version="5.2">
+<title>Finding errors</title>
+
+<para>On a good day, your grammars are all valid and your inputs all parse.
+On a day that ends in “y”, not so much.</para>
+
+<para>If <application>coffeepot</application> fails to parse your
+grammar, it will attempt to identify where the error occurs. Consider
+this grammar, <link xlink:href="examples/err01.ixml">err01.ixml</link>:
+</para>
+
+<example xml:id="err01">
+<title>Sequences of short words (invalid)</title>
+<programlisting
+  ><xi:include parse="text" href="examples/err01.ixml"/>
+</programlisting>
+</example>
+
+<para>In principle, this is a grammar matching comma-separated
+sequences of short words matching the pattern
+“consonant-vowel-consonant” or “consonent-vowel-vowel”. In practice,
+it’s not:</para>
+
+<programlisting linenumbering="unnumbered"
+><![CDATA[$ coffeepot -pp -g:examples/err01.ixml cat,sat,hat
+Failed to parse grammar: could not match '-' at line 3, column 1]]></programlisting>
+
+<para>In typical “error messages from computer programs” fashion, this doesn’t
+actually tell you what’s wrong. It tells you the first thing the parser
+didn’t understand, the “-” at the start of line 3. There’s nothing wrong with
+that hyphen, but if you look just before it, you will see that the preceding
+rule is missing the terminating “.”.</para>
+
+<para>With that addition, we get
+<link xlink:href="examples/err02.ixml">err02.ixml</link>:
+</para>
+
+<example xml:id="err02">
+<title>Sequences of short words</title>
+<programlisting
+  ><xi:include parse="text" href="examples/err02.ixml"/>
+</programlisting>
+</example>
+
+<para>Which does work:</para>
+
+<programlisting linenumbering="unnumbered"
+><![CDATA[$ coffeepot -pp -g:examples/err02.ixml cat,sat,hat
+<list>
+   <word>cat</word>
+   <word>sat</word>
+   <word>hat</word>
+</list>]]></programlisting>
+
+<para>Once your grammar works, you can start feeding inputs to it. Some of
+those won’t work.</para>
+
+<programlisting linenumbering="unnumbered"
+><![CDATA[$ coffeepot -pp -g:examples/err02.ixml frog,sat,log
+<parse-failed xmlns:ixml="http://invisiblexml.org/NS" ixml:state="failed">
+   <last-token line="1" column="3" token-count="2">'r'</last-token>
+</parse-failed>]]></programlisting>
+
+<para>There is no universally correct answer to the question: is your
+grammar incorrect or is your input incorrect? In fact, if what you
+wanted to demonstrate was that a paricular input <emphasis>was
+not</emphasis> a sentence in the grammar, then
+<emphasis>neither</emphasis> may be incorrect.</para>
+
+<para>If you have reasonable confidence in your grammar and you did
+expect the input to match, the next question to answer is, why didn’t
+it?</para>
+
+<para>The “parse-failed” document attempts to identify where the error
+occurred. As before, what we see in the error is where the parser was
+when it couldn’t continue. In this case, note that it read as far as
+the third character, but in fact had failed at the second, the “r”.
+</para>
+
+<para>Why aren’t the numbers more accurate? The short answer is: because the parser
+can’t know that it won’t succeed until it’s “run out” of possible matches. That almost
+always means reading at least one character past the error, but sometimes several.
+</para>
+
+<para>With this simple grammar, it’s not too hard to look at the input
+and work out that “frog” is neither “consonant-vowel-consonant” nor
+“consonent-vowel-vowel”. It’s four letters long, if nothing else!</para>
+
+<para>But suppose it hadn’t been so easy to spot. We can ask the parser for more 
+details, but beware, you sometimes get <emphasis>a lot</emphasis> of detail!
+The <option>--show-chart</option> option tells <application>coffeepot</application> to
+print the state chart that was current at the moment of failure.</para>
+
+<programlisting linenumbering="unnumbered"
+><![CDATA[$ coffeepot -pp -g:examples/err02.ixml --show-chart frog,sat,log
+<parse-failed xmlns:ixml="http://invisiblexml.org/NS" ixml:state="failed">
+   <last-token line="1" column="3" token-count="2">'r'</last-token>
+   <chart>
+      <row n="0">
+         <item>$$ ⇒ • list / 0 / null</item>
+         <item>list ⇒ • $1 / 0 / null</item>
+         <item>$1 ⇒ • word $2ⁿ / 0 / null</item>
+         <item>word ⇒ • c v c / 0 / null</item>
+         <item>word ⇒ • c v v / 0 / null</item>
+      </row>
+      <row n="1">
+         <item>c ⇒ ["bcdfghjklmnpqrstvwxyz"] • / 0 / c, 0, 1</item>
+         <item>word ⇒ c • v c / 0 / c, 0, 1</item>
+         <item>word ⇒ c • v v / 0 / c, 0, 1</item>
+      </row>
+   </chart>
+</parse-failed>]]></programlisting>
+
+<para>To understand the state chart, it will be useful to know something about how
+an <link xlink:href="https://en.wikipedia.org/wiki/Earley_parser">Earley parser</link>
+works, and understand the <link linkend="how">rewriting rules</link> that are applied
+to your Invisible XML grammar.</para>
+
+<para>Roughly speaking, each row in the chart represents the state of the parser when
+that input token is or was processed. Row 0 represents what the parser predicted before
+the first character. Row 1 represents what it matched and predicted for the first character,
+etc. The last row in a failed parse represents what it was hoping to match when it failed.
+</para>
+
+<para>Each item in the chart has three parts. It starts with the rule
+being considered. The “•” indicates how much of each rule has been
+successfully matched. The second part indicates where this item came from (on what row
+of the chart did we begin predicting this as a possible matching rule?). The last
+part is the forest node under construction for this item. That’s part of the machinery
+for constructing a graph that contains all of the possible parses.</para>
+
+<para>Looking at the last row, we can see that the parser
+was trying to match <code>word</code>, it had a couple of ways to do so, in each case, it
+had matched the first consonant (because • is after “c” in each case), and failed to find
+the next match, a vowel in both cases. Not surprising since “r” isn’t a vowel!</para>
+
+<para>Let’s look at another unsuccessful attempt:</para>
+
+<programlisting linenumbering="unnumbered"
+><![CDATA[$ coffeepot -pp -g:examples/err02.ixml  cat,ate,rat
+<parse-failed xmlns:ixml="http://invisiblexml.org/NS" ixml:state="failed">
+   <last-token line="1" column="6" token-count="5">'a'</last-token>
+</parse-failed>]]></programlisting>
+
+<para>The state chart isn’t the only tool we have to understand what went wrong.
+We can also look at what was in the parse forest with the <option>--graph-svg</option>
+option (if you <link linkend="configuration">have configured</link> GraphViz).</para>
+
+<figure xml:id="err02-forest-cat.svg">
+<title>The parse forest for an unsuccessful match of cat,ate,rat</title>
+<mediaobject>
+<imageobject>
+<imagedata fileref="images/err02-forest-cat.svg"/>
+</imageobject>
+</mediaobject>
+</figure>
+
+<para>Looking at the leaves, we can see that “cat” was connected into the graph, but
+“,” and “a” are unconnected. That’s a clue about what wasn’t matched. For non-trivial
+examples, the graphs can get very large, sometimes too large for GraphViz to even compute.
+But they can still be valuable aids to understanding the parse.</para>
+
+<para>One thing worth noting: on a successful parse, when the final
+graph is constructed, an “unreachable” nodes are pruned away. A graph
+produced mid-parse can’t be pruned, so there are often extra “root”
+nodes.</para>
+
+</chapter>

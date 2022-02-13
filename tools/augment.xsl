@@ -8,6 +8,19 @@
 
 <xsl:output method="xml" encoding="utf-8" indent="no"/>
 
+<xsl:param name="version" required="yes" as="xs:string"/>
+<xsl:param name="coffeegrinder-version" required="yes" as="xs:string"/>
+<xsl:param name="coffeefilter-version" required="yes" as="xs:string"/>
+
 <xsl:mode on-no-match="shallow-copy"/>
+
+<xsl:template match="db:info/db:productnumber/text()">
+  <xsl:sequence select="replace(., '@@VERSION@@', $version)"/>
+</xsl:template>
+
+<xsl:template match="db:info/db:bibliomisc/text()">
+  <xsl:sequence select="replace(., '@@GRINDERVERSION@@', $coffeegrinder-version)
+                       => replace('@@FILTERVERSION@@', $coffeefilter-version)"/>
+</xsl:template>
 
 </xsl:stylesheet>

@@ -1,0 +1,19 @@
+<chapter xmlns="http://docbook.org/ns/docbook"
+         xmlns:xi='http://www.w3.org/2001/XInclude'
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xml:id="configuration"
+         version="5.2">
+<title>Configuration</title>
+
+<para>Example <filename>nineml.properties</filename> file:</para>
+
+<programlisting>verbose=true
+pretty-print=false
+ignore-trailing-whitespace=true
+graphviz=/usr/local/bin/dot</programlisting>
+
+<para>Read from <filename>.nineml.properties</filename> in the current directory,
+or <filename>nineml.properties</filename> in the same directory as the CoffeePot
+jar file, or from the classpath.</para>
+
+</chapter>

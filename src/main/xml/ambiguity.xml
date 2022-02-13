@@ -1,0 +1,145 @@
+<chapter xmlns="http://docbook.org/ns/docbook"
+         xmlns:xi='http://www.w3.org/2001/XInclude'
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xml:id="ambiguity"
+         version="5.2">
+<title>Ambiguity</title>
+
+<para>Ambiguity is not an error. The fact that Invisible XML grammars
+allow ambiguity is a feature. It’s also generally observed as the
+combination of a grammar and an input. Consider this grammar:</para>
+
+<example xml:id="ambig01">
+<title>SNL™ Shimmer Sketch</title>
+<programlisting linenumbering="unnumbered"
+  ><xi:include parse="text" href="examples/ambig01.ixml"/>
+</programlisting>
+</example>
+
+<para>(If you aren’t familiar with the Saturday Night Live “Shimmer
+Floor Wax” sketch, now would be the time to go search the web.)</para>
+
+<para>Parsed against the input “custard”, it says dessert topping:</para>
+
+<programlisting linenumbering="unnumbered"
+><![CDATA[$ coffeepot -pp -g:examples/ambig01.ixml custard
+<product>
+   <dessert-topping>custard</dessert-topping>
+</product>]]></programlisting>
+
+<para>Parsed against the input “paste-wax”, it says floor wax:</para>
+
+<programlisting linenumbering="unnumbered"
+><![CDATA[$ coffeepot -pp -g:examples/ambig01.ixml paste-wax
+<product>
+   <floor-wax>paste-wax</floor-wax>
+</product>]]></programlisting>
+
+<para>Parsed against “Shimmer”, it says:</para>
+
+<programlisting linenumbering="unnumbered"
+><![CDATA[$ coffeepot -pp -g:examples/ambig01.ixml Shimmer
+There are 2 possible parses.
+<product xmlns:ixml="http://invisiblexml.org/NS" ixml:state="ambiguous">
+   <floor-wax>Shimmer</floor-wax>
+</product>]]></programlisting>
+
+<para>This is an example of an essential ambiguity; you can’t “fix”
+this grammar. But let’s dig a little deeper anyway. For a small number
+of parses, one way to investigate the ambiguity is to simply list them
+all with <option>-p:all</option>:</para>
+
+<programlisting linenumbering="unnumbered"
+><![CDATA[$ coffeepot -pp -g:examples/ambig01.ixml -p:all Shimmer
+<ixml parses='2' totalParses='2'>
+<product xmlns:ixml="http://invisiblexml.org/NS" ixml:state="ambiguous">
+   <floor-wax>Shimmer</floor-wax>
+</product><product xmlns:ixml="http://invisiblexml.org/NS" ixml:state="ambiguous">
+   <dessert-topping>Shimmer</dessert-topping>
+</product></ixml>]]></programlisting>
+
+<para>Alternatively, we can ask the parser to describe the ambiguity with
+<option>--describe-ambiguity</option>:</para>
+
+<programlisting linenumbering="unnumbered"
+><![CDATA[$ coffeepot -pp -g:examples/ambig01.ixml --describe-ambiguity --no-output Shimmer
+There are 2 possible parses.
+Ambiguity:
+$$, 0, 7
+        product, 0, 7
+        product, 0, 7]]></programlisting>
+
+<para>This indicates that the characters from 0 to 7 in the input can be matched
+as “product” in two different ways. This is another case where the forest graph
+can be useful.</para>
+
+<figure xml:id="ambig01-shimmer.svg">
+<title>The parse forest for “Shimmer”</title>
+<mediaobject>
+<imageobject>
+<imagedata fileref="images/ambig01-shimmer.svg"/>
+</imageobject>
+</mediaobject>
+</figure>
+
+<para>It is possible for grammars to be infinitely ambigous. Consider
+this trivial grammar:</para>
+
+<example xml:id="ambig02">
+<title>An infinitely ambiguous grammar</title>
+<programlisting linenumbering="unnumbered"
+  >expr: expr ; 'a'</programlisting>
+</example>
+
+<para>There’s no practical way for <application>coffeepot</application> to enumerate
+infinitely many parses, so it essentially ignores those edges in the graph.
+Parsing “a” yields:</para>
+
+<programlisting linenumbering="unnumbered"
+><![CDATA[$ coffeepot -pp -g:examples/ambig02.ixml a
+There are 2 possible parses.
+<expr xmlns:ixml="http://invisiblexml.org/NS" ixml:state="ambiguous">
+   <expr>a</expr>
+</expr>]]></programlisting>
+
+<para>There are 2 parses because that’s what can be rendered. A description of
+the ambiguity, reveals that there are infinitely many parses:</para>
+
+<programlisting linenumbering="unnumbered"
+><![CDATA[$ coffeepot -pp -g:examples/ambig02.ixml --describe-ambiguity --no-output a
+There are 2 possible parses.
+Infinite ambiguity:
+$$, 0, 1
+        expr, 0, 1
+        expr, 0, 1]]></programlisting>
+
+<para>This is also evident in the graph:</para>
+
+<figure xml:id="ambig02.svg">
+<title>The forest for an infinitely ambiguous parse</title>
+<mediaobject>
+<imageobject>
+<imagedata fileref="images/ambig02.svg"/>
+</imageobject>
+</mediaobject>
+</figure>
+
+<para>That loop is the source of infinite ambiguity. The parses that
+<application>coffeepot</application> will enumerate are:</para>
+
+<programlisting linenumbering="unnumbered"
+><![CDATA[$ coffeepot -pp -g:examples/ambig02.ixml -p:all a
+<ixml parses='2' totalParses='2'>
+<expr xmlns:ixml="http://invisiblexml.org/NS" ixml:state="ambiguous">
+   <expr>a</expr>
+</expr>
+<expr xmlns:ixml="http://invisiblexml.org/NS" ixml:state="ambiguous">a</expr>
+</ixml>]]></programlisting>
+
+<para>If you’re trying to eliminate ambiguity from a grammar that you think
+should be unambiguous, look for multiple ways to match “nothing”. For example,
+if you have a nonterminal that matches zero or more whitespace characters,
+make sure it isn’t possible for it to match in two different places.
+</para>
+
+</chapter>

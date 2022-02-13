@@ -1,0 +1,53 @@
+<chapter xmlns="http://docbook.org/ns/docbook"
+         xmlns:xi='http://www.w3.org/2001/XInclude'
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xml:id="cli"
+         version="5.2">
+<title>The command line</title>
+
+<programlisting linenumbering="unnumbered"
+><![CDATA[$ coffeepot --help
+Usage: coffeepot [options] The input
+  Options:
+    -c, --compiled-grammar
+      Save the compiled grammar
+    -D, --describe-ambiguity
+      Describe why a parse is ambiguous
+      Default: false
+    -g, --grammar
+      The input grammar
+    -G, --graph-svg
+      Output an SVG graph of the forest
+    --graph-xml
+      Output an XML description of the forest
+    -help, -h, --help
+      Display help
+    -i, --input
+      The input
+    --no-output
+      Don't print the output
+      Default: false
+    -o, --output
+      The output, or stdout
+    -p, --parse
+      Select a parse, or all parses
+    -pp, --pretty-print
+      Pretty-print (indent) the output
+      Default: false
+    --show-chart
+      Show the underlying Earley chart
+      Default: false
+    --show-grammar
+      Show the underlying Earley grammar
+      Default: false
+    -t, --time
+      Display timing information
+      Default: false
+    -T, --tree-svg
+      Output an SVG graph of the parse tree
+    --tree-xml
+      Output an XML description of the parse tree
+    -v, --verbose
+      Verbose output
+      Default: false]]></programlisting>
+</chapter>
