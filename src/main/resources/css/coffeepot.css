@@ -1,0 +1,29 @@
+.book {
+    padding-bottom: 1in;
+}
+
+.book header {
+    text-align: center;
+}
+
+.book header .author,
+.book header .copyright {
+    display: none;
+}
+
+.book header .versions div p {
+    text-align: center;
+}
+
+.versions {
+    margin-top: 1in;
+    color: #7f7f7f;
+}
+
+.versions .app {
+    margin-bottom: 0.25em;
+}
+
+.versions .lib {
+    margin-top: 0.25em;
+}

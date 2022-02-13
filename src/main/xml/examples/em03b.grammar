@@ -1,0 +1,5 @@
+$$ ⇒ s
+s ⇒ a, $1_option?
+a ⇒ 'a'
+b ⇒ 'b'
+$1_option ⇒ b, a
