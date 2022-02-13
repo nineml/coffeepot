@@ -39,7 +39,7 @@ class Main {
         CommandMain cmain = new CommandMain();
         JCommander jc = JCommander.newBuilder().addObject(cmain).build();
 
-        jc.setProgramName("IxmlParser");
+        jc.setProgramName("coffeepot");
 
         try {
             jc.parse(args);
@@ -61,6 +61,7 @@ class Main {
 
         options.verbose = options.verbose || cmain.verbose;
         options.prettyPrint = options.prettyPrint || cmain.prettyPrint;
+        options.showChart = cmain.showChart;
 
         if (cmain.graphSvg != null) {
             if (options.graphviz == null) {
@@ -102,12 +103,16 @@ class Main {
             input = sb.toString();
         }
 
-        if (cmain.inputFile == null && input == null) {
+        if (cmain.inputFile == null && input == null && !cmain.showGrammar && cmain.compiledGrammar == null) {
             usage(jc, true);
         }
 
         if (cmain.inputFile != null && input != null) {
             usage(jc, false, "Input cannot come from both a file and the command line.");
+        }
+
+        if (cmain.outputFile != null && cmain.suppressOutput) {
+            usage(jc, false, "You cannot simultaneously specify an output file and suppress output.");
         }
 
         InvisibleXmlParser parser;
@@ -141,11 +146,25 @@ class Main {
             return 2;
         }
 
+        parser.setOptions(options);
+
         if (!parser.constructed()) {
             InvisibleXmlDocument doc = parser.getFailedParse();
             System.err.printf("Failed to parse grammar: could not match %s at line %d, column %d%n",
                     doc.getEarleyResult().getLastToken(), doc.getLineNumber(), doc.getColumnNumber());
+
+            if (cmain.showChart) {
+                System.out.println(doc.getTree());
+            }
+
             return 2;
+        }
+
+        if (cmain.showGrammar) {
+            System.out.println("The Earley grammar:");
+            for (Rule rule : parser.getGrammar().getRules()) {
+                System.out.println(rule);
+            }
         }
 
         if (cmain.compiledGrammar != null) {
@@ -158,12 +177,8 @@ class Main {
             }
         }
 
-        parser.setOptions(options);
-
-        if (!parser.constructed()) {
-            InvisibleXmlDocument fail = parser.getFailedParse();
-            System.out.println(fail.getTree());
-            return 2;
+        if (cmain.inputFile == null && input == null) {
+            return 0;
         }
 
         InvisibleXmlDocument doc;
@@ -215,32 +230,34 @@ class Main {
             return 1;
         }
 
-        PrintStream output = System.out;
-        if (cmain.outputFile != null) {
-            output = new PrintStream(new FileOutputStream(cmain.outputFile));
-        }
-
-        if (parseCount > 0 || allparses) {
-            long max = parseCount;
-            if (allparses) {
-                max = doc.getNumberOfParses();
+        if (!cmain.suppressOutput) {
+            PrintStream output = System.out;
+            if (cmain.outputFile != null) {
+                output = new PrintStream(new FileOutputStream(cmain.outputFile));
             }
 
-            output.printf("<ixml parses='%d' totalParses='%s'>%n", max, doc.getExactNumberOfParses());
-            for (int pos = 0; pos < max; pos++) {
+            if (parseCount > 0 || allparses) {
+                long max = parseCount;
+                if (allparses) {
+                    max = doc.getNumberOfParses();
+                }
+
+                output.printf("<ixml parses='%d' totalParses='%s'>%n", max, doc.getExactNumberOfParses());
+                for (int pos = 0; pos < max; pos++) {
+                    doc.getTree(output);
+                    doc.nextTree();
+                }
+                output.println("</ixml>");
+            } else {
                 doc.getTree(output);
-                doc.nextTree();
-            }
-            output.println("</ixml>");
-        } else {
-            doc.getTree(output);
 
-            if (cmain.treeXml != null) {
-                doc.getParseTree().serialize(cmain.treeXml);
-            }
+                if (cmain.treeXml != null) {
+                    doc.getParseTree().serialize(cmain.treeXml);
+                }
 
-            if (cmain.treeSvg != null) {
-                graphTree(doc.getParseTree(), options, cmain.treeSvg);
+                if (cmain.treeSvg != null) {
+                    graphTree(doc.getParseTree(), options, cmain.treeSvg);
+                }
             }
         }
 
@@ -252,15 +269,17 @@ class Main {
     }
 
     private void usage(JCommander jc, boolean help, String message) {
-        if (jc != null) {
+        if (message != null) {
+            System.err.println("\n" + message);
+        }
+
+        if (message == null && jc != null) {
             DefaultUsageFormatter formatter = new DefaultUsageFormatter(jc);
             StringBuilder sb = new StringBuilder();
             formatter.usage(sb);
             System.err.println(sb);
-            if (message != null) {
-                System.err.println("\n" + message);
-            }
         }
+
         if (help) {
             System.exit(0);
         } else {
@@ -373,6 +392,9 @@ class Main {
         @Parameter(names = {"-o", "--output"}, description = "The output, or stdout")
         public String outputFile = null;
 
+        @Parameter(names = {"--no-output"}, description = "Don't print the output")
+        public boolean suppressOutput = false;
+
         @Parameter(names = {"-c", "--compiled-grammar"}, description = "Save the compiled grammar")
         public String compiledGrammar = null;
 
@@ -388,8 +410,14 @@ class Main {
         @Parameter(names = {"-v", "--verbose"}, description = "Verbose output")
         public boolean verbose = false;
 
-        @Parameter(names = {"-D", "--describe-ambiguity"}, description = "Verbose output")
+        @Parameter(names = {"-D", "--describe-ambiguity"}, description = "Describe why a parse is ambiguous")
         public boolean describeAmbiguity = false;
+
+        @Parameter(names = {"--show-grammar"}, description = "Show the underlying Earley grammar")
+        public boolean showGrammar = false;
+
+        @Parameter(names = {"--show-chart"}, description = "Show the underlying Earley chart")
+        public boolean showChart = false;
 
         @Parameter(description = "The input")
         public List<String> inputText = new ArrayList<>();
