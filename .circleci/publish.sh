@@ -32,6 +32,7 @@ popd > /dev/null
 git checkout --track origin/gh-pages
 
 # Delete the cruft not related to gh-pages
+rm -rf website
 git clean -d -f
 
 # Unpack the website files
