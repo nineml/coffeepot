@@ -161,18 +161,18 @@ dist.finalizedBy zipDist
 // ============================================================
 
 task manual_xinclude(type: SaxonXsltTask, dependsOn: ["copyResources"]) {
-  inputs.files fileTree(dir: "${projectDir}/src/main/xml")
-  inputs.file "${projectDir}/tools/xinclude.xsl"
+  inputs.files fileTree(dir: "${projectDir}/src/website/xml")
+  inputs.file "${projectDir}/website/xinclude.xsl"
 
-  input "${projectDir}/src/main/xml/coffeepot.xml"
-  stylesheet "${projectDir}/tools/xinclude.xsl"
+  input "${projectDir}/src/website/xml/coffeepot.xml"
+  stylesheet "${projectDir}/website/xinclude.xsl"
   output "${buildDir}/tmp/coffeepot.xml"
 }
 
 task manual_validate(type: RelaxNGValidateTask, dependsOn: ["manual_xinclude"]) {
   input manual_xinclude.outputs.files.singleFile
   output "${buildDir}/xml/coffeepot.xml"
-  schema "${projectDir}/tools/docbook.rnc"
+  schema "${projectDir}/website/docbook.rnc"
   compact true
 }
 
@@ -189,6 +189,7 @@ task manual_augment(type: SaxonXsltTask, dependsOn: ["manual_validate"]) {
 
 task website(type: SaxonXsltTask, dependsOn: ["manual_augment"]) {
   inputs.file "${projectDir}/tools/docbook.xsl"
+  inputs.file "${projectDir}/website/docbook.xsl"
   outputs.files fileTree(dir: "${buildDir}/website")
 
   input manual_augment.outputs.files.singleFile
@@ -239,21 +240,29 @@ task copyJarResources() {
 }
 
 task copyStaticResources() {
-  inputs.files fileTree(dir: "${projectDir}/src/main/resources")
-  inputs.files fileTree(dir: "${projectDir}/src/main/xml")
+  inputs.files fileTree(dir: "${projectDir}/src/website/resources")
+  inputs.files fileTree(dir: "${projectDir}/website/resources")
+  inputs.files fileTree(dir: "${projectDir}/src/website/xml")
   outputs.files fileTree(dir: "${buildDir}/website")
   outputs.files fileTree(dir: "${buildDir}/aug")
 
   doLast {
     copy {
       into "${buildDir}/website"
-      from "${projectDir}/src/main/resources"
+      from "${projectDir}/src/website/resources"
     }
   }
 
   doLast {
     copy {
-      from "${projectDir}/src/main/xml/images"
+      into "${buildDir}/website"
+      from "${projectDir}/website/resources"
+    }
+  }
+
+  doLast {
+    copy {
+      from "${projectDir}/src/website/xml/images"
       into "${buildDir}/website/images"
     }
   }
@@ -261,14 +270,14 @@ task copyStaticResources() {
   // FIXME: Grotesque hack. 
   doLast {
     copy {
-      from "${projectDir}/src/main/xml/images"
+      from "${projectDir}/src/website/xml/images"
       into "${buildDir}/aug/images"
     }
   }
 
   doLast {
     copy {
-      from "${projectDir}/src/main/xml/examples"
+      from "${projectDir}/src/website/xml/examples"
       into "${buildDir}/website/examples"
     }
   }

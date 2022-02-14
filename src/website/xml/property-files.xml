@@ -34,11 +34,11 @@ it is a comment.</para>
 
 <programlistingco>
   <areaspec>
-    <area xml:id="p1l1" coords="1"/>
-    <area xml:id="p1l2" coords="2"/>
-    <area xml:id="p1l4" coords="4"/>
-    <area xml:id="p1l5" coords="5"/>
-    <area xml:id="p1l7" coords="7"/>
+    <area xml:id="p1l1" coords="1 50"/>
+    <area xml:id="p1l2" coords="2 50"/>
+    <area xml:id="p1l4" coords="4 50"/>
+    <area xml:id="p1l5" coords="5 50"/>
+    <area xml:id="p1l7" coords="7 50"/>
   </areaspec>
   <programlisting
     ><xi:include href="examples/prop1.ixml"
@@ -205,13 +205,13 @@ in <link xlink:href="examples/prop3.ixml">prop3.ixml</link>:</para>
 
 <programlistingco>
 <areaspec>
-    <area xml:id="p2l1" coords="1"/>
-    <area xml:id="p2l3" coords="3"/>
-    <area xml:id="p2l7" coords="7"/>
-    <area xml:id="p2l8" coords="8"/>
-    <area xml:id="p2l9" coords="9"/>
-    <area xml:id="p2l10" coords="10"/>
-    <area xml:id="p2l11" coords="11"/>
+    <area xml:id="p2l1" coords="1 50"/>
+    <area xml:id="p2l3" coords="3 50"/>
+    <area xml:id="p2l7" coords="7 50"/>
+    <area xml:id="p2l8" coords="8 50"/>
+    <area xml:id="p2l9" coords="9 55"/>
+    <area xml:id="p2l10" coords="10 50"/>
+    <area xml:id="p2l11" coords="11 50"/>
 </areaspec>
 <programlisting startinglinenumber="2"
   ><xi:include href="examples/prop3.ixml"
