@@ -275,6 +275,14 @@ task copyStaticResources() {
     }
   }
 
+  // FIXME: Grotesque hack. 
+  doLast {
+    copy {
+      from "${projectDir}/src/website/resources/images"
+      into "${buildDir}/aug/images"
+    }
+  }
+
   doLast {
     copy {
       from "${projectDir}/src/website/xml/examples"
