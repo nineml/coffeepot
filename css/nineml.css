@@ -11,7 +11,7 @@
     --body-family: "Noto Serif", serif, var(--symbol-fonts);
     --title-family: "Oxygen", sans-serif, var(--symbol-fonts);
     --mono-family: "B612 Mono", monospace, var(--symbol-fonts);
-    --theme-background: #613613;
+    --theme-background: #899DAA;
     max-width: inherit;
 }
 
@@ -87,10 +87,13 @@ html {
     margin-top: 0.25em;
 }
 
-header img {
-    border: 1px solid black;
-    border-radius: 4px;
-    margin-right: 1rem;
+.book header img {
+    float: left;
+    height: 350px;
+}
+
+.book header h1 {
+    padding-top: 0.5em;
 }
 
 main {
@@ -98,6 +101,7 @@ main {
     margin-left: auto;
     margin-right: auto;
     padding-left: 1rem;
+    padding-top: 0;
 }
 
 .footnotes {
