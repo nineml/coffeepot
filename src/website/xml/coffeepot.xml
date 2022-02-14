@@ -3,6 +3,11 @@
       xmlns:xlink="http://www.w3.org/1999/xlink"
       version="5.2">
 <info>
+<mediaobject role="cover">
+  <imageobject>
+    <imagedata fileref="images/CoffeePot.svg"/>
+  </imageobject>
+</mediaobject>
 <title>CoffeePot</title>
 <subtitle>An Invisible XML processor</subtitle>
 <author>
