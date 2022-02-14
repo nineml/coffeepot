@@ -23,7 +23,28 @@
 <preface>
 <title>Introduction</title>
 
-<para>Hello world.</para>
+<para>The <application>coffeepot</application> application is a small wrapper
+around the underlying <package>CoffeeFilter</package> library which is, in turn,
+a wrapper around the underlying <package>CoffeeGrinder</package> parser.</para>
+
+<itemizedlist>
+<listitem>
+<para><package>CoffeePot</package> is the command line interface.
+</para>
+</listitem>
+<listitem>
+<para><package>CoffeeFilter</package> is the Invisible XML library.
+</para>
+</listitem>
+<listitem>
+<para><package>CoffeeGrinder</package> is the Earley parser.
+</para>
+</listitem>
+</itemizedlist>
+
+<para><package>CoffeePot</package> marshals the grammar and inputs specified
+into requests against the underlying libraries.</para>
+
 </preface>
 
 <xi:include href="cli.xml"/>
