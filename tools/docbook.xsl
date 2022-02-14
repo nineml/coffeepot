@@ -34,4 +34,9 @@
   </div>
 </xsl:template>
 
+<xsl:template match="*" mode="m:html-head-links">
+  <xsl:next-match/>
+  <link rel="shortcut icon" href="icon/CoffeePot.png"/>
+</xsl:template>
+
 </xsl:stylesheet>
