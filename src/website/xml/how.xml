@@ -5,33 +5,13 @@
          version="5.2">
 <title>How it works</title>
 
-<para>The <application>coffeepot</application> application is a small wrapper
-around the underlying <package>CoffeeFilter</package> library which is, in turn,
-a wrappar around the underlying <package>CoffeeGrinder</package> parser.</para>
-
-<itemizedlist>
-<listitem>
-<para><package>CoffeePot</package> is the command line interface.
-</para>
-</listitem>
-<listitem>
-<para><package>CoffeeFilter</package> is the Invisible XML library.
-</para>
-</listitem>
-<listitem>
-<para><package>CoffeeGrinder</package> is the Earley parser.
-</para>
-</listitem>
-</itemizedlist>
-
-<para><package>CoffeePot</package> marshals the grammar and inputs specified
-into requests against the underlying libraries.</para>
-
-<para>At the end of the day, parsing an input against an Invisible XML grammar 
-is really parsing that input against an Earley grammar constructed to recognize the same
-set of inputs (sometimes called “sentences”). When everything works, this is completely
-concealed. Unfortunately, when things go wrong, <application>coffeepot</application> can
-do little but show you the underlying grammar.</para>
+<para>At the end of the day, parsing an input against an Invisible XML
+grammar is really parsing that input against an Earley grammar
+constructed to recognize the same set of inputs (sometimes called
+“sentences”). When everything works, this is completely concealed.
+Unfortunately, when things go wrong,
+<application>coffeepot</application> can do little but show you the
+underlying grammar.</para>
 
 <para>You can peek at this directly, even on a successful parse, with the
 <option>--show-grammar</option> option.</para>
