@@ -7,13 +7,14 @@ import org.nineml.coffeefilter.InvisibleXmlDocument;
 import org.nineml.coffeefilter.InvisibleXmlParser;
 import org.nineml.coffeefilter.ParserOptions;
 import org.nineml.coffeefilter.exceptions.IxmlException;
+import org.nineml.coffeefilter.utils.URIUtils;
 import org.nineml.coffeegrinder.parser.*;
 import org.nineml.coffeepot.utils.ParserOptionsLoader;
 import org.xml.sax.InputSource;
 
 import javax.xml.transform.sax.SAXSource;
 import java.io.*;
-import java.net.URISyntaxException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -119,18 +120,11 @@ class Main {
         try {
             if (cmain.grammar == null) {
                 info.detail("Parsing input with the ixml specification grammar.");
-                parser = InvisibleXml.invisibleXmlParser();
+                parser = InvisibleXml.getParser();
             } else  {
-                if (cmain.grammar.endsWith(".xml")) {
-                    info.detail("Loading vxml grammar: " + cmain.grammar);
-                    parser = InvisibleXml.parserFromVxml(cmain.grammar);
-                } else if (cmain.grammar.endsWith(".cxml")) {
-                    info.detail("Loading compiled grammar: " + cmain.grammar);
-                    parser = InvisibleXmlParser.loadCompiledGrammar(new File(cmain.grammar));
-                } else {
-                    info.detail("Loading ixml grammar: " + cmain.grammar);
-                    parser = InvisibleXml.parserFromFile(cmain.grammar);
-                }
+                URI grammarURI = URIUtils.resolve(URIUtils.cwd(), cmain.grammar);
+                info.detail("Loading grammar: " + grammarURI);
+                parser = InvisibleXml.getParser(grammarURI);
                 if (cmain.timing) {
                     showTime(parser.getParseTime(), cmain.grammar);
                 }
@@ -138,9 +132,6 @@ class Main {
         } catch (IOException ex) {
             System.err.println("Cannot read " + cmain.grammar);
             return 1;
-        } catch (URISyntaxException ex) {
-            System.err.println("Invalid URI: " + cmain.grammar);
-            return 2;
         } catch (IxmlException ex) {
             System.err.println(ex.getMessage());
             return 2;
@@ -183,8 +174,9 @@ class Main {
 
         InvisibleXmlDocument doc;
         if (cmain.inputFile != null) {
-            info.detail("Loading input from " + cmain.inputFile);
-            doc = parser.parseFromFile(cmain.inputFile);
+            URI inputURI = URIUtils.resolve(URIUtils.cwd(), cmain.inputFile);
+            info.detail("Loading input from " + inputURI);
+            doc = parser.parse(inputURI);
         } else {
             info.detail("Input: " + input);
             doc = parser.parse(input);
