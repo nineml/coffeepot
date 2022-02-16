@@ -7,6 +7,7 @@ import org.nineml.coffeefilter.InvisibleXmlDocument;
 import org.nineml.coffeefilter.InvisibleXmlParser;
 import org.nineml.coffeefilter.ParserOptions;
 import org.nineml.coffeefilter.exceptions.IxmlException;
+import org.nineml.coffeefilter.trees.DataTreeBuilder;
 import org.nineml.coffeefilter.utils.URIUtils;
 import org.nineml.coffeegrinder.parser.*;
 import org.nineml.coffeepot.utils.ParserOptionsLoader;
@@ -186,6 +187,26 @@ class Main {
             showTime(doc.parseTime());
         }
 
+        boolean suppressAmbiguous = false;
+        boolean suppressPrefix = false;
+        if (cmain.suppress != null) {
+            String[] states = cmain.suppress.split("[\\s,:]+");
+            for (String state : states) {
+                switch (state) {
+                    case "prefix":
+                        doc.getOptions().suppressIxmlPrefix = true;
+                        suppressPrefix = true;
+                        break;
+                    case "ambiguous":
+                        doc.getOptions().suppressIxmlAmbiguous = true;
+                        suppressAmbiguous = true;
+                        break;
+                    default:
+                        System.err.println("Ignoring request to suppress unknown state: "+ state);
+                }
+            }
+        }
+
         if (cmain.graphXml != null) {
             doc.getEarleyResult().getForest().serialize(cmain.graphXml);
         }
@@ -196,7 +217,9 @@ class Main {
 
         if (parseCount == 0 && !allparses) {
             if (doc.getNumberOfParses() > 1) {
-                System.out.println("There are " + doc.getExactNumberOfParses() + " possible parses.");
+                if (!suppressAmbiguous) {
+                    System.out.println("There are " + doc.getExactNumberOfParses() + " possible parses.");
+                }
                 if (cmain.describeAmbiguity) {
                     Ambiguity ambiguity = doc.getEarleyResult().getForest().getAmbiguity();
                     if (ambiguity.getInfinitelyAmbiguous()) {
@@ -234,14 +257,50 @@ class Main {
                     max = doc.getNumberOfParses();
                 }
 
-                output.printf("<ixml parses='%d' totalParses='%s'>%n", max, doc.getExactNumberOfParses());
+                String state = "";
+                if (!doc.getOptions().suppressIxmlAmbiguous) {
+                    state = "ambiguous";
+                }
+                if (doc.getEarleyResult().prefixSucceeded() && !doc.getOptions().suppressIxmlPrefix) {
+                    if ("".equals(state)) {
+                        state = "prefix";
+                    } else {
+                        state += " prefix";
+                    }
+                }
+
+                doc.getOptions().suppressIxmlPrefix = true;
+                doc.getOptions().suppressIxmlAmbiguous = true;
+
+                if (cmain.outputJSON) {
+                    output.printf("{\"ixml\":{\"parses\":%d, \"totalParses\":%d,%n", max, doc.getExactNumberOfParses());
+                    if (!"".equals(state)) {
+                        output.printf("\"ixml:state\": \"%s\",%n", state);
+                    }
+                    output.println("\"trees\":[");
+                } else {
+                    output.print("<ixml ");
+                    if (!"".equals(state)) {
+                        output.printf(" xmlns:ixml='http://invisiblexml.org/NS' ixml:state='%s' ", state);
+                    }
+                    output.printf("parses='%d' totalParses='%s'>%n", max, doc.getExactNumberOfParses());
+                }
+
                 for (int pos = 0; pos < max; pos++) {
-                    doc.getTree(output);
+                    if (cmain.outputJSON && pos > 0) {
+                        output.println(",");
+                    }
+                    serialize(output, doc, cmain.outputJSON);
                     doc.nextTree();
                 }
-                output.println("</ixml>");
+
+                if (cmain.outputJSON) {
+                    output.println("]}}");
+                } else {
+                    output.println("</ixml>");
+                }
             } else {
-                doc.getTree(output);
+                serialize(output, doc, cmain.outputJSON);
 
                 if (cmain.treeXml != null) {
                     doc.getParseTree().serialize(cmain.treeXml);
@@ -254,6 +313,17 @@ class Main {
         }
 
         return 0;
+    }
+
+    private void serialize(PrintStream output, InvisibleXmlDocument doc, boolean asJSON) {
+        if (!asJSON) {
+            doc.getTree(output);
+            return;
+        }
+
+        DataTreeBuilder builder = new DataTreeBuilder();
+        doc.getTree(builder);
+        output.print(builder.getTree().asJSON());
     }
 
     private void usage(JCommander jc, boolean help) {
@@ -410,6 +480,12 @@ class Main {
 
         @Parameter(names = {"--show-chart"}, description = "Show the underlying Earley chart")
         public boolean showChart = false;
+
+        @Parameter(names = {"--json"}, description = "Serialize the tree as JSON")
+        public boolean outputJSON = false;
+
+        @Parameter(names = {"--suppress"}, description = "States to ignore in the output")
+        public String suppress = null;
 
         @Parameter(description = "The input")
         public List<String> inputText = new ArrayList<>();
