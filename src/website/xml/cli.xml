@@ -5,6 +5,32 @@
          version="5.2">
 <title>The command line</title>
 
+<cmdsynopsis>
+<command>coffeepot</command>
+<arg>--compiled-grammar:<replaceable>file</replaceable></arg>
+<arg>--describe-ambiguity</arg>
+<arg>--grammar:<replaceable>file</replaceable></arg>
+<arg>--graph-svg:<replaceable>file</replaceable></arg>
+<arg>--graph-xml:<replaceable>file</replaceable></arg>
+<arg>--help</arg>
+<arg>--json</arg>
+<arg>--no-output</arg>
+<arg>--output:<replaceable>file</replaceable></arg>
+<arg>--parse:<replaceable>number</replaceable>|all</arg>
+<arg>--pretty-print</arg>
+<arg>--show-chart</arg>
+<arg>--show-grammar</arg>
+<arg>--suppress:<replaceable>state:state:…</replaceable></arg>
+<arg>--time</arg>
+<arg>--tree-svg:<replaceable>file</replaceable></arg>
+<arg>--tree-xml:<replaceable>file</replaceable></arg>
+<arg>--verbose</arg>
+<group>
+  <arg>--input:<replaceable>file</replaceable></arg>
+  <arg rep="repeat" choice="plain"><replaceable>input</replaceable></arg>
+</group>
+</cmdsynopsis>
+
 <programlisting linenumbering="unnumbered"
 ><![CDATA[$ coffeepot --help
 Usage: coffeepot [options] The input
@@ -24,6 +50,9 @@ Usage: coffeepot [options] The input
       Display help
     -i, --input
       The input
+    --json
+      Serialize the tree as JSON
+      Default: false
     --no-output
       Don't print the output
       Default: false
@@ -40,6 +69,8 @@ Usage: coffeepot [options] The input
     --show-grammar
       Show the underlying Earley grammar
       Default: false
+    --suppress
+      States to ignore in the output
     -t, --time
       Display timing information
       Default: false
