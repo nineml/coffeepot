@@ -23,4 +23,16 @@
                        => replace('@@FILTERVERSION@@', $coffeefilter-version)"/>
 </xsl:template>
 
+<xsl:template match="processing-instruction('version')">
+  <xsl:sequence select="$version"/>
+</xsl:template>
+
+<xsl:template match="processing-instruction('grinder-version')">
+  <xsl:sequence select="$coffeegrinder-version"/>
+</xsl:template>
+
+<xsl:template match="processing-instruction('filter-version')">
+  <xsl:sequence select="$coffeefilter-version"/>
+</xsl:template>
+
 </xsl:stylesheet>
