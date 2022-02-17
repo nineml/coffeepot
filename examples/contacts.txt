@@ -1,4 +1,4 @@
-Johh Doe
+John Doe
 john@example.com
 555-1234
 
