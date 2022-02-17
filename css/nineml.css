@@ -242,6 +242,18 @@ div.copyrightfooter {
 
 /* ============================================================ */
 
+.nineml-float {
+    position: absolute;
+    top: 25px;
+    left: 25px;
+}
+
+.nineml-float {
+    width: 48px;
+}
+
+/* ============================================================ */
+
 @media screen and (max-width: 374px) {
     .book header h1 {
         font-size: 2rem;
@@ -295,6 +307,10 @@ div.copyrightfooter {
 }
 
 @media screen and (max-width: 767px) {
+    .nineml-float {
+        display: none;
+    }
+
     nav.top .nav {
         margin-left: 1rem;
     }
