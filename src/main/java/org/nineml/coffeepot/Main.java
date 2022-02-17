@@ -7,7 +7,7 @@ import org.nineml.coffeefilter.InvisibleXmlDocument;
 import org.nineml.coffeefilter.InvisibleXmlParser;
 import org.nineml.coffeefilter.ParserOptions;
 import org.nineml.coffeefilter.exceptions.IxmlException;
-import org.nineml.coffeefilter.trees.DataTreeBuilder;
+import org.nineml.coffeefilter.trees.*;
 import org.nineml.coffeefilter.utils.URIUtils;
 import org.nineml.coffeegrinder.parser.*;
 import org.nineml.coffeepot.utils.ParserOptionsLoader;
@@ -24,6 +24,7 @@ import java.util.List;
  * A command-line Invisible XML parser.
  */
 class Main {
+    enum OutputFormat { XML, JSON_DATA, JSON_TREE, CSV };
     Info info;
 
     public static void main(String[] args) throws IOException {
@@ -64,6 +65,27 @@ class Main {
         options.verbose = options.verbose || cmain.verbose;
         options.prettyPrint = options.prettyPrint || cmain.prettyPrint;
         options.showChart = cmain.showChart;
+
+        OutputFormat outputFormat = OutputFormat.XML;
+        if (cmain.outputFormat != null) {
+            switch (cmain.outputFormat) {
+                case "xml":
+                    break;
+                case "json":
+                case "json-data":
+                    outputFormat = OutputFormat.JSON_DATA;
+                    break;
+                case "json-tree":
+                    outputFormat = OutputFormat.JSON_TREE;
+                    break;
+                case "csv":
+                    outputFormat = OutputFormat.CSV;
+                    break;
+                default:
+                    System.err.println("Unrecognized output format: " + cmain.outputFormat);
+                    return 2;
+            }
+        }
 
         if (cmain.graphSvg != null) {
             if (options.graphviz == null) {
@@ -252,16 +274,21 @@ class Main {
             }
 
             if (parseCount > 0 || allparses) {
+                if (outputFormat == OutputFormat.CSV) {
+                    System.err.println("Cannot output multiple parses as CSV");
+                    return 1;
+                }
+
                 long max = parseCount;
                 if (allparses) {
                     max = doc.getNumberOfParses();
                 }
 
                 String state = "";
-                if (!doc.getOptions().suppressIxmlAmbiguous) {
+                if (suppressAmbiguous) {
                     state = "ambiguous";
                 }
-                if (doc.getEarleyResult().prefixSucceeded() && !doc.getOptions().suppressIxmlPrefix) {
+                if (doc.getEarleyResult().prefixSucceeded() && !suppressPrefix) {
                     if ("".equals(state)) {
                         state = "prefix";
                     } else {
@@ -272,7 +299,7 @@ class Main {
                 doc.getOptions().suppressIxmlPrefix = true;
                 doc.getOptions().suppressIxmlAmbiguous = true;
 
-                if (cmain.outputJSON) {
+                if (outputFormat == OutputFormat.JSON_DATA || outputFormat == OutputFormat.JSON_TREE) {
                     output.printf("{\"ixml\":{\"parses\":%d, \"totalParses\":%d,%n", max, doc.getExactNumberOfParses());
                     if (!"".equals(state)) {
                         output.printf("\"ixml:state\": \"%s\",%n", state);
@@ -287,20 +314,21 @@ class Main {
                 }
 
                 for (int pos = 0; pos < max; pos++) {
-                    if (cmain.outputJSON && pos > 0) {
+                    if ((outputFormat == OutputFormat.JSON_DATA || outputFormat == OutputFormat.JSON_TREE)
+                         && pos > 0) {
                         output.println(",");
                     }
-                    serialize(output, doc, cmain.outputJSON);
+                    serialize(output, doc, outputFormat);
                     doc.nextTree();
                 }
 
-                if (cmain.outputJSON) {
+                if (outputFormat == OutputFormat.JSON_DATA || outputFormat == OutputFormat.JSON_TREE) {
                     output.println("]}}");
                 } else {
                     output.println("</ixml>");
                 }
             } else {
-                serialize(output, doc, cmain.outputJSON);
+                serialize(output, doc, outputFormat);
 
                 if (cmain.treeXml != null) {
                     doc.getParseTree().serialize(cmain.treeXml);
@@ -315,15 +343,39 @@ class Main {
         return 0;
     }
 
-    private void serialize(PrintStream output, InvisibleXmlDocument doc, boolean asJSON) {
-        if (!asJSON) {
-            doc.getTree(output);
-            return;
-        }
+    private void serialize(PrintStream output, InvisibleXmlDocument doc, OutputFormat outputFormat) {
+        DataTreeBuilder dataBuilder;
+        SimpleTreeBuilder simpleBuilder;
+        DataTree dataTree;
+        SimpleTree simpleTree;
 
-        DataTreeBuilder builder = new DataTreeBuilder();
-        doc.getTree(builder);
-        output.print(builder.getTree().asJSON());
+        switch (outputFormat) {
+            case CSV:
+                dataBuilder = new DataTreeBuilder();
+                doc.getTree(dataBuilder);
+                dataTree = dataBuilder.getTree();
+                List<CsvColumn> columns = dataTree.prepareCsv();
+                if (columns == null) {
+                    System.err.println("Result cannot be serialized as CSV");
+                    return;
+                }
+                output.print(dataTree.asCSV(columns));
+                break;
+            case JSON_DATA:
+                dataBuilder = new DataTreeBuilder();
+                doc.getTree(dataBuilder);
+                dataTree = dataBuilder.getTree();
+                output.print(dataTree.asJSON());
+                break;
+            case JSON_TREE:
+                simpleBuilder = new SimpleTreeBuilder();
+                doc.getTree(simpleBuilder);
+                simpleTree = simpleBuilder.getTree();
+                output.print(simpleTree.asJSON());
+                break;
+            default:
+                doc.getTree(output);
+        }
     }
 
     private void usage(JCommander jc, boolean help) {
@@ -481,8 +533,8 @@ class Main {
         @Parameter(names = {"--show-chart"}, description = "Show the underlying Earley chart")
         public boolean showChart = false;
 
-        @Parameter(names = {"--json"}, description = "Serialize the tree as JSON")
-        public boolean outputJSON = false;
+        @Parameter(names = {"--format"}, description = "Output format (xml, json-data, json-tree, or csv")
+        public String outputFormat = null;
 
         @Parameter(names = {"--suppress"}, description = "States to ignore in the output")
         public String suppress = null;
