@@ -76,6 +76,7 @@ class Main {
                     outputFormat = OutputFormat.JSON_DATA;
                     break;
                 case "json-tree":
+                case "json-text":
                     outputFormat = OutputFormat.JSON_TREE;
                     break;
                 case "csv":

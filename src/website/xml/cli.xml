@@ -113,8 +113,8 @@ This option only applies to ambiguous parses.
 <term><option>--format:<replaceable>type</replaceable></option></term>
 <listitem>
 <para>Requests a specific format type. Available types are <code>xml</code>,
-the default, <code>json</code> or <code>json-data</code>, <code>json-tree</code>,
-or <code>csv</code>.</para>
+the default, <code>json</code> or <code>json-data</code>, <code>json-tree</code>
+or <code>json-text</code>, or <code>csv</code>.</para>
 <para>The <code>json-data</code> format is only possible for result
 trees that contain no mixed content.</para>
 <para>The <code>csv</code> format is only possible for result trees that have a
