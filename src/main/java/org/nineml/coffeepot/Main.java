@@ -26,6 +26,7 @@ import java.util.List;
 class Main {
     enum OutputFormat { XML, JSON_DATA, JSON_TREE, CSV };
     Info info;
+    ParserOptions options;
 
     public static void main(String[] args) throws IOException {
         Main driver = new Main();
@@ -60,7 +61,7 @@ class Main {
         boolean allparses = false;
 
         ParserOptionsLoader loader = new ParserOptionsLoader(cmain.verbose);
-        ParserOptions options = loader.loadOptions();
+        options = loader.loadOptions();
 
         options.verbose = options.verbose || cmain.verbose;
         options.prettyPrint = options.prettyPrint || cmain.prettyPrint;
@@ -350,9 +351,12 @@ class Main {
         DataTree dataTree;
         SimpleTree simpleTree;
 
+        ParserOptions nonXmlOptions = new ParserOptions(options);
+        nonXmlOptions.assertValidXmlNames = false;
+
         switch (outputFormat) {
             case CSV:
-                dataBuilder = new DataTreeBuilder();
+                dataBuilder = new DataTreeBuilder(nonXmlOptions);
                 doc.getTree(dataBuilder);
                 dataTree = dataBuilder.getTree();
                 List<CsvColumn> columns = dataTree.prepareCsv();
@@ -363,13 +367,13 @@ class Main {
                 output.print(dataTree.asCSV(columns));
                 break;
             case JSON_DATA:
-                dataBuilder = new DataTreeBuilder();
+                dataBuilder = new DataTreeBuilder(nonXmlOptions);
                 doc.getTree(dataBuilder);
                 dataTree = dataBuilder.getTree();
                 output.print(dataTree.asJSON());
                 break;
             case JSON_TREE:
-                simpleBuilder = new SimpleTreeBuilder();
+                simpleBuilder = new SimpleTreeBuilder(nonXmlOptions);
                 doc.getTree(simpleBuilder);
                 simpleTree = simpleBuilder.getTree();
                 output.print(simpleTree.asJSON());
