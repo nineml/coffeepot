@@ -293,6 +293,61 @@ task copyStaticResources() {
   }
 }
 
+// ============================================================
+
+signing {
+  sign publishing.publications
+}
+
+publishing {
+  publications {
+    mavenJava(MavenPublication) {
+      pom {
+        name = potTitle
+        packaging = 'jar'
+        description = 'An Invisible XML processor'
+        url = 'https://github.com/nineml/coffeepot'
+
+        scm {
+          url = 'scm:git@github.com:nineml/coffeepot.git'
+          connection = 'scm:git@github.com:nineml/coffeepot.git'
+          developerConnection = 'scm:git@github.com:nineml/coffeepot.git'
+        }
+
+        licenses {
+          license {
+            name = 'Mozilla Public License Version 2.0'
+            url = 'http://www.mozilla.org/MPL/2.0/'
+            distribution = 'repo'
+          }
+        }
+
+        developers {
+          developer {
+            id = 'ndw'
+            name = 'Norman Walsh'
+          }
+        }
+      }
+
+      groupId = "org.nineml"
+      artifactId = potName
+      version = potVersion
+      from components.java
+    }
+  }
+
+  repositories {
+    maven {
+      url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+      credentials {
+        username = project.findProperty("sonatypeUsername") ?: "NOUSER"
+        password = project.findProperty("sonatypePassword") ?: "NOPASS"
+      }
+    }
+  }
+}
+
 // ======================================================================
 
 task dockerup() {
