@@ -24,8 +24,9 @@ import java.util.List;
  * A command-line Invisible XML parser.
  */
 class Main {
+    public static final String logcategory = "CoffeePot";
     enum OutputFormat { XML, JSON_DATA, JSON_TREE, CSV };
-    Info info;
+    ParserOptions options;
 
     public static void main(String[] args) throws IOException {
         Main driver = new Main();
@@ -54,15 +55,16 @@ class Main {
             usage(pe.getJCommander(), false);
         }
 
-        info = new Info(cmain.verbose);
-
         int parseCount = 0;
         boolean allparses = false;
 
-        ParserOptionsLoader loader = new ParserOptionsLoader(cmain.verbose);
-        ParserOptions options = loader.loadOptions();
+        if (cmain.defaultLogLevel == null) {
+            cmain.defaultLogLevel = "warning";
+        }
 
-        options.verbose = options.verbose || cmain.verbose;
+        ParserOptionsLoader loader = new ParserOptionsLoader(cmain.defaultLogLevel);
+        options = loader.loadOptions();
+
         options.prettyPrint = options.prettyPrint || cmain.prettyPrint;
         options.showChart = cmain.showChart;
 
@@ -143,11 +145,11 @@ class Main {
         InvisibleXmlParser parser;
         try {
             if (cmain.grammar == null) {
-                info.detail("Parsing input with the ixml specification grammar.");
+                options.logger.trace(logcategory, "Parsing input with the ixml specification grammar.");
                 parser = InvisibleXml.getParser();
             } else  {
                 URI grammarURI = URIUtils.resolve(URIUtils.cwd(), cmain.grammar);
-                info.detail("Loading grammar: " + grammarURI);
+                options.logger.trace(logcategory, "Loading grammar: " + grammarURI);
                 parser = InvisibleXml.getParser(grammarURI);
                 if (cmain.timing) {
                     showTime(parser.getParseTime(), cmain.grammar);
@@ -199,10 +201,10 @@ class Main {
         InvisibleXmlDocument doc;
         if (cmain.inputFile != null) {
             URI inputURI = URIUtils.resolve(URIUtils.cwd(), cmain.inputFile);
-            info.detail("Loading input from " + inputURI);
+            options.logger.trace(logcategory, "Loading input from %s", inputURI);
             doc = parser.parse(inputURI);
         } else {
-            info.detail("Input: " + input);
+            options.logger.trace(logcategory, "Input: %s", input);
             doc = parser.parse(input);
         }
 
@@ -350,9 +352,12 @@ class Main {
         DataTree dataTree;
         SimpleTree simpleTree;
 
+        ParserOptions nonXmlOptions = new ParserOptions(options);
+        nonXmlOptions.assertValidXmlNames = false;
+
         switch (outputFormat) {
             case CSV:
-                dataBuilder = new DataTreeBuilder();
+                dataBuilder = new DataTreeBuilder(nonXmlOptions);
                 doc.getTree(dataBuilder);
                 dataTree = dataBuilder.getTree();
                 List<CsvColumn> columns = dataTree.prepareCsv();
@@ -363,13 +368,13 @@ class Main {
                 output.print(dataTree.asCSV(columns));
                 break;
             case JSON_DATA:
-                dataBuilder = new DataTreeBuilder();
+                dataBuilder = new DataTreeBuilder(nonXmlOptions);
                 doc.getTree(dataBuilder);
                 dataTree = dataBuilder.getTree();
                 output.print(dataTree.asJSON());
                 break;
             case JSON_TREE:
-                simpleBuilder = new SimpleTreeBuilder();
+                simpleBuilder = new SimpleTreeBuilder(nonXmlOptions);
                 doc.getTree(simpleBuilder);
                 simpleTree = simpleBuilder.getTree();
                 output.print(simpleTree.asJSON());
@@ -458,7 +463,7 @@ class Main {
                 proc.waitFor();
                 temp.delete();
 
-                info.detail("Wrote SVG: %s", output);
+                options.logger.trace(logcategory, "Wrote SVG: %s", output);
             }
         } catch (Exception ex) {
             System.err.println("Failed to write SVG: " + ex.getMessage());
@@ -522,8 +527,8 @@ class Main {
         @Parameter(names = {"-pp", "--pretty-print"}, description = "Pretty-print (indent) the output")
         public boolean prettyPrint = false;
 
-        @Parameter(names = {"-v", "--verbose"}, description = "Verbose output")
-        public boolean verbose = false;
+        @Parameter(names = {"--log"}, description = "Default log level (silent, error, warning, info, debug, trace)")
+        public String defaultLogLevel = null;
 
         @Parameter(names = {"-D", "--describe-ambiguity"}, description = "Describe why a parse is ambiguous")
         public boolean describeAmbiguity = false;
@@ -542,22 +547,5 @@ class Main {
 
         @Parameter(description = "The input")
         public List<String> inputText = new ArrayList<>();
-    }
-
-    private static class Info {
-        private final boolean verbose;
-        public Info(boolean verbose) {
-            this.verbose = verbose;
-        }
-
-        public void detail(String message, Object... params) {
-            if (verbose) {
-                System.out.printf(message+"%n", params);
-            }
-        }
-
-        public void info(String message, Object... params) {
-            System.out.printf(message+"%n", params);
-        }
     }
 }
