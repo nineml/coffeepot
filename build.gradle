@@ -160,6 +160,16 @@ task zipDist(type: Zip) {
 }
 dist.finalizedBy zipDist
 
+task javadocJar(type: Jar, dependsOn: javadoc) {
+  classifier = 'javadoc'
+  from javadoc.destinationDir
+}
+
+task sourcesJar(type: Jar, dependsOn: ['generateBuildConfig']) {
+  classifier = 'sources'
+  from sourceSets.main.allSource
+}
+
 // ============================================================
 
 task manual_xinclude(type: SaxonXsltTask, dependsOn: ["copyResources"]) {
@@ -334,6 +344,8 @@ publishing {
       artifactId = potName
       version = potVersion
       from components.java
+      artifact javadocJar
+      artifact sourcesJar
     }
   }
 
