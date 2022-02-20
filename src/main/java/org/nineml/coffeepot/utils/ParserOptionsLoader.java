@@ -6,17 +6,18 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Properties;
 
 public class ParserOptionsLoader {
     private static final String propfn = "nineml.properties";
+    private final ParserOptions options = new ParserOptions();
     private Properties prop = null;
-    private final boolean verbose;
 
-    public ParserOptionsLoader(boolean verbose) {
-        this.verbose = verbose;
+    public ParserOptionsLoader(String level) {
+        options.logger.setDefaultLogLevel(level);
     }
 
     public ParserOptions loadOptions() {
@@ -32,15 +33,15 @@ public class ParserOptionsLoader {
             File propfile = new File(fn);
             //System.err.println("FN1:" + fn);
             if (propfile.exists() && propfile.canRead()) {
-                if (verbose) {
-                    System.err.println("Loading properties: " + fn);
-                }
+                options.logger.debug("CoffeePot", "Loading properties: %s", fn);
                 return loadFromFile(propfile);
             }
 
             ClassLoader loader = ClassLoader.getSystemClassLoader();
             InputStream stream = loader.getResourceAsStream(propfn);
             if (stream != null) {
+                URL resource = loader.getResource(propfn);
+                options.logger.debug("CoffeePot", "Loading properties: %s", resource);
                 return loadFromStream(stream);
             }
 
@@ -56,20 +57,14 @@ public class ParserOptionsLoader {
                 propfile = new File(fn);
                 //System.err.println("FN2:" + fn);
                 if (propfile.exists() && propfile.canRead()) {
-                    if (verbose) {
-                        System.err.println("Loading properties: " + fn);
-                    }
+                    options.logger.debug("CoffeePot", "Loading properties: %s", fn);
                     return loadFromFile(propfile);
                 }
             }
 
-            if (verbose) {
-                System.err.println("Failed to find nineml.properties");
-            }
+            options.logger.debug("CofeePot", "Failed to find nineml.properties");
         } catch (IOException ex) {
-            if (verbose) {
-                System.err.println("Failed to load nineml.properties: " + ex.getMessage());
-            }
+            options.logger.debug("CofeePot", "Failed to load nineml.properties: %s", ex.getMessage());
         }
 
         return new ParserOptions();
@@ -89,6 +84,17 @@ public class ParserOptionsLoader {
         options.prettyPrint = "true".equals(getProperty("pretty-print", "false"));
         options.ignoreTrailingWhitespace = "true".equals(getProperty("ignore-trailing-whitespace", "false"));
         options.graphviz = getProperty("graphviz", null);
+
+        String value = getProperty("default-log-level", null);
+        if (value != null) {
+            options.logger.setDefaultLogLevel(value);
+        }
+
+        value = getProperty("log-levels", null);
+        if (value != null) {
+            options.logger.setLogLevels(value);
+        }
+
         return options;
     }
 
