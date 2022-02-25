@@ -67,7 +67,7 @@ public class ParserOptionsLoader {
             options.logger.debug("CofeePot", "Failed to load nineml.properties: %s", ex.getMessage());
         }
 
-        return new ParserOptions();
+        return options;
     }
 
     private ParserOptions loadFromFile(File pfile) throws IOException {
@@ -76,7 +76,6 @@ public class ParserOptionsLoader {
     }
 
     private ParserOptions loadFromStream(InputStream stream) throws IOException {
-        ParserOptions options = new ParserOptions();
         prop = new Properties();
         prop.load(stream);
 
