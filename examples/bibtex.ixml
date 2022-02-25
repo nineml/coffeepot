@@ -5,7 +5,7 @@ itemsep: s+ .
 
 comment: -"%", cchar* .
 
-entry: -"@", @type, s*, -'{', s*, @citekey, fields?, s* -'}' .
+entry: -"@", @type, s*, -'{', s*, @citekey, fields?, s*, -'}' .
 
 type: -name .
 citekey: -name .
