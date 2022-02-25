@@ -1,11 +1,12 @@
 contacts: (contact, NL*)+ .
 contact: name, NL, (email, NL)?, (phone, NL)? .
 
-name: namestart, ~[#a; "@"]* .
-email: namestart, namefollower*, "@", namestart, namefollower* .
+name: letter, ~[#a; "@"]* .
+email: username, "@", domainname .
 phone: ["+0123456789()- "]+ .
 
--namestart: ["_"; L] .
--namefollower: namestart; ["-.·‿⁀"; Nd; Mn] .
--s: (-[Zs]; -#9; -#d)* .
+-username: (letter; ["+-."])+ .
+-domainname: (letter; ["+-."])+ .
+
+-letter: [L] .
 -NL: -#a ; -#d, -#a .
