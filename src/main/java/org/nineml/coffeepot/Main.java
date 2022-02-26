@@ -74,14 +74,18 @@ class Main {
         int parseCount = 0;
         boolean allparses = false;
 
-        if (cmain.defaultLogLevel == null) {
-            cmain.defaultLogLevel = "warning";
-        }
-
-        ParserOptionsLoader loader = new ParserOptionsLoader(cmain.defaultLogLevel);
+        ParserOptionsLoader loader = new ParserOptionsLoader("warning");
         options = loader.loadOptions();
 
         InvisibleXml.setOptions(options);
+
+        if (cmain.logLevels != null) {
+            if (cmain.logLevels.contains(":")) {
+                options.logger.setLogLevels(cmain.logLevels);
+            } else {
+                options.logger.setLogLevels("*:" + cmain.logLevels);
+            }
+        }
 
         options.prettyPrint = options.prettyPrint || cmain.prettyPrint;
         options.showChart = cmain.showChart;
@@ -569,8 +573,8 @@ class Main {
         @Parameter(names = {"-pp", "--pretty-print"}, description = "Pretty-print (indent) the output")
         public boolean prettyPrint = false;
 
-        @Parameter(names = {"--log"}, description = "Default log level (silent, error, warning, info, debug, trace)")
-        public String defaultLogLevel = null;
+        @Parameter(names = {"--log"}, description = "Specify log levels (silent, error, warning, info, debug, trace)")
+        public String logLevels = null;
 
         @Parameter(names = {"-D", "--describe-ambiguity"}, description = "Describe why a parse is ambiguous")
         public boolean describeAmbiguity = false;
