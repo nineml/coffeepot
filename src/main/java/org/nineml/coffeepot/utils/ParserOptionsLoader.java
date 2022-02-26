@@ -79,7 +79,6 @@ public class ParserOptionsLoader {
         prop = new Properties();
         prop.load(stream);
 
-        options.verbose = "true".equals(getProperty("verbose", "false"));
         options.prettyPrint = "true".equals(getProperty("pretty-print", "false"));
         options.ignoreTrailingWhitespace = "true".equals(getProperty("ignore-trailing-whitespace", "false"));
         options.graphviz = getProperty("graphviz", null);
