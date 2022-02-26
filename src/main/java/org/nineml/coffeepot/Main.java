@@ -25,10 +25,10 @@ import java.util.List;
  */
 class Main {
     public static final String logcategory = "CoffeePot";
-    enum OutputFormat { XML, JSON_DATA, JSON_TREE, CSV };
+    enum OutputFormat { XML, JSON_DATA, JSON_TREE, CSV }
     ParserOptions options;
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         Main driver = new Main();
         try {
             int rc = driver.run(args);
@@ -76,8 +76,6 @@ class Main {
 
         ParserOptionsLoader loader = new ParserOptionsLoader("warning");
         options = loader.loadOptions();
-
-        InvisibleXml.setOptions(options);
 
         if (cmain.logLevels != null) {
             if (cmain.logLevels.contains(":")) {
@@ -179,15 +177,16 @@ class Main {
             usage(jc, false, "You cannot simultaneously specify an output file and suppress output.");
         }
 
+        InvisibleXml invisibleXml = new InvisibleXml(options);
         InvisibleXmlParser parser;
         try {
             if (cmain.grammar == null) {
                 options.logger.trace(logcategory, "Parsing input with the ixml specification grammar.");
-                parser = InvisibleXml.getParser();
+                parser = invisibleXml.getParser();
             } else  {
                 URI grammarURI = URIUtils.resolve(URIUtils.cwd(), cmain.grammar);
                 options.logger.trace(logcategory, "Loading grammar: " + grammarURI);
-                parser = InvisibleXml.getParser(grammarURI);
+                parser = invisibleXml.getParser(grammarURI);
                 if (cmain.timing) {
                     showTime(parser.getParseTime(), cmain.grammar);
                 }
@@ -203,7 +202,7 @@ class Main {
         parser.setOptions(options);
 
         if (parser.constructed()) {
-            HygieneReport report = parser.getHygieneReport();
+            parser.getHygieneReport();
         } else {
             InvisibleXmlDocument doc = parser.getFailedParse();
             System.err.printf("Failed to parse grammar: could not match %s at line %d, column %d%n",
@@ -370,19 +369,14 @@ class Main {
                     output.println("</ixml>");
                 }
             } else {
-                ParseTree tree = doc.getParseTree();
-                if (false && tree == null) {
-                    options.logger.error(logcategory, "Parse produced no output.");
-                } else {
-                    serialize(output, doc, outputFormat);
+                serialize(output, doc, outputFormat);
 
-                    if (cmain.treeXml != null) {
-                        doc.getParseTree().serialize(cmain.treeXml);
-                    }
+                if (cmain.treeXml != null) {
+                    doc.getParseTree().serialize(cmain.treeXml);
+                }
 
-                    if (cmain.treeSvg != null) {
-                        graphTree(doc.getParseTree(), options, cmain.treeSvg);
-                    }
+                if (cmain.treeSvg != null) {
+                    graphTree(doc.getParseTree(), options, cmain.treeSvg);
                 }
             }
         }
@@ -507,7 +501,7 @@ class Main {
                 proc.waitFor();
                 if (!temp.delete()) {
                     options.logger.warn(logcategory, "Failed to delete temporary file: %s", temp.getAbsolutePath());
-                };
+                }
 
                 options.logger.trace(logcategory, "Wrote SVG: %s", output);
             }
