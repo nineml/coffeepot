@@ -45,6 +45,22 @@ class Main {
 
         jc.setProgramName("coffeepot");
 
+        // If '--' appears in the args, it marks the beginning of input explicitly
+        String[] explicitInput = null;
+        int argpos = 0;
+        while (argpos < args.length) {
+            if ("--".equals(args[argpos])) {
+                int rest = (args.length - argpos) - 1;
+                explicitInput = new String[rest];
+                System.arraycopy(args, argpos+1, explicitInput, 0, rest);
+                String[] newargs = new String[argpos];
+                System.arraycopy(args, 0, newargs, 0, argpos);
+                args = newargs;
+                break;
+            }
+            argpos++;
+        }
+
         try {
             jc.parse(args);
             if (cmain.help) {
@@ -58,12 +74,18 @@ class Main {
         int parseCount = 0;
         boolean allparses = false;
 
-        if (cmain.defaultLogLevel == null) {
-            cmain.defaultLogLevel = "warning";
-        }
-
-        ParserOptionsLoader loader = new ParserOptionsLoader(cmain.defaultLogLevel);
+        ParserOptionsLoader loader = new ParserOptionsLoader("warning");
         options = loader.loadOptions();
+
+        InvisibleXml.setOptions(options);
+
+        if (cmain.logLevels != null) {
+            if (cmain.logLevels.contains(":")) {
+                options.logger.setLogLevels(cmain.logLevels);
+            } else {
+                options.logger.setLogLevels("*:" + cmain.logLevels);
+            }
+        }
 
         options.prettyPrint = options.prettyPrint || cmain.prettyPrint;
         options.showChart = cmain.showChart;
@@ -92,13 +114,13 @@ class Main {
 
         if (cmain.graphSvg != null) {
             if (options.graphviz == null) {
-                System.err.println("Cannot output SVG; GraphViz is not configured.");
+                options.logger.error(logcategory, "Cannot output SVG; GraphViz is not configured.");
                 cmain.graphSvg = null;
             } else {
                 try {
                     new Processor(false);
                 } catch (Exception ex) {
-                    System.err.println("Cannot output SVG; failed to find Saxon on the classpath.");
+                    options.logger.error(logcategory, "Cannot output SVG; failed to find Saxon on the classpath.");
                     cmain.graphSvg = null;
                 }
             }
@@ -110,24 +132,39 @@ class Main {
             } else {
                 parseCount = Integer.parseInt(cmain.parse);
                 if (parseCount < 1) {
-                    System.err.println("Ignoring absurd parse number: " + parseCount);
+                    options.logger.warn(logcategory, "Ignoring absurd parse number: %d", parseCount);
                     parseCount = 0;
                 }
             }
         }
 
-        String input = null;
-        if (!cmain.inputText.isEmpty()) {
-            boolean first = true;
-            StringBuilder sb = new StringBuilder();
-            for (String token : cmain.inputText) {
-                if (!first) {
-                    sb.append(" ");
-                }
-                first = false;
-                sb.append(token);
+        String[] actualInput = null;
+        if (cmain.inputText.isEmpty()) {
+            if (explicitInput != null) {
+                actualInput = explicitInput;
             }
-            input = sb.toString();
+        } else {
+            if (explicitInput != null) {
+                options.logger.error(logcategory, "Unexpected input: %s", cmain.inputText.get(0));
+                System.exit(1);
+            } else {
+                actualInput = cmain.inputText.toArray(new String[]{});
+                for (String input : actualInput) {
+                    if (input.startsWith("-")) {
+                        options.logger.error(logcategory, "Unexpected option: %s", input);
+                        System.exit(1);
+                    }
+                }
+            }
+        }
+
+        String input = null;
+        if (actualInput != null) {
+            StringBuilder sb = new StringBuilder();
+            for (String token : actualInput) {
+                sb.append(token).append(" ");
+            }
+            input = sb.toString().trim();
         }
 
         if (cmain.inputFile == null && input == null && !cmain.showGrammar && cmain.compiledGrammar == null) {
@@ -165,7 +202,9 @@ class Main {
 
         parser.setOptions(options);
 
-        if (!parser.constructed()) {
+        if (parser.constructed()) {
+            HygieneReport report = parser.getHygieneReport();
+        } else {
             InvisibleXmlDocument doc = parser.getFailedParse();
             System.err.printf("Failed to parse grammar: could not match %s at line %d, column %d%n",
                     doc.getEarleyResult().getLastToken(), doc.getLineNumber(), doc.getColumnNumber());
@@ -331,14 +370,19 @@ class Main {
                     output.println("</ixml>");
                 }
             } else {
-                serialize(output, doc, outputFormat);
+                ParseTree tree = doc.getParseTree();
+                if (false && tree == null) {
+                    options.logger.error(logcategory, "Parse produced no output.");
+                } else {
+                    serialize(output, doc, outputFormat);
 
-                if (cmain.treeXml != null) {
-                    doc.getParseTree().serialize(cmain.treeXml);
-                }
+                    if (cmain.treeXml != null) {
+                        doc.getParseTree().serialize(cmain.treeXml);
+                    }
 
-                if (cmain.treeSvg != null) {
-                    graphTree(doc.getParseTree(), options, cmain.treeSvg);
+                    if (cmain.treeSvg != null) {
+                        graphTree(doc.getParseTree(), options, cmain.treeSvg);
+                    }
                 }
             }
         }
@@ -461,7 +505,9 @@ class Main {
                 String[] args = new String[] { options.graphviz, "-Tsvg", temp.getAbsolutePath(), "-o", output};
                 Process proc = Runtime.getRuntime().exec(args);
                 proc.waitFor();
-                temp.delete();
+                if (!temp.delete()) {
+                    options.logger.warn(logcategory, "Failed to delete temporary file: %s", temp.getAbsolutePath());
+                };
 
                 options.logger.trace(logcategory, "Wrote SVG: %s", output);
             }
@@ -527,8 +573,8 @@ class Main {
         @Parameter(names = {"-pp", "--pretty-print"}, description = "Pretty-print (indent) the output")
         public boolean prettyPrint = false;
 
-        @Parameter(names = {"--log"}, description = "Default log level (silent, error, warning, info, debug, trace)")
-        public String defaultLogLevel = null;
+        @Parameter(names = {"--log"}, description = "Specify log levels (silent, error, warning, info, debug, trace)")
+        public String logLevels = null;
 
         @Parameter(names = {"-D", "--describe-ambiguity"}, description = "Describe why a parse is ambiguous")
         public boolean describeAmbiguity = false;
