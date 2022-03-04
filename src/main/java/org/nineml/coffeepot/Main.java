@@ -5,12 +5,14 @@ import net.sf.saxon.s9api.*;
 import org.nineml.coffeefilter.InvisibleXml;
 import org.nineml.coffeefilter.InvisibleXmlDocument;
 import org.nineml.coffeefilter.InvisibleXmlParser;
-import org.nineml.coffeefilter.ParserOptions;
 import org.nineml.coffeefilter.exceptions.IxmlException;
 import org.nineml.coffeefilter.trees.*;
 import org.nineml.coffeefilter.utils.URIUtils;
 import org.nineml.coffeegrinder.parser.*;
+import org.nineml.coffeepot.utils.Cache;
+import org.nineml.coffeepot.utils.ParserOptions;
 import org.nineml.coffeepot.utils.ParserOptionsLoader;
+import org.nineml.coffeepot.utils.ProgressBar;
 import org.xml.sax.InputSource;
 
 import javax.xml.transform.sax.SAXSource;
@@ -177,16 +179,33 @@ class Main {
             usage(jc, false, "You cannot simultaneously specify an output file and suppress output.");
         }
 
+        options.cacheDir = "/home/ndw/.config/nineml.org/thermos";
+        //options.cacheDir = ".grammar-cache";
+        Cache cache = new Cache(options);
+
+        URI grammarURI;
+        URI cachedURI;
+
         InvisibleXml invisibleXml = new InvisibleXml(options);
         InvisibleXmlParser parser;
         try {
             if (cmain.grammar == null) {
                 options.logger.trace(logcategory, "Parsing input with the ixml specification grammar.");
                 parser = invisibleXml.getParser();
+                grammarURI = null;
+                cachedURI = null;
             } else  {
-                URI grammarURI = URIUtils.resolve(URIUtils.cwd(), cmain.grammar);
+                grammarURI = URIUtils.resolve(URIUtils.cwd(), cmain.grammar);
                 options.logger.trace(logcategory, "Loading grammar: " + grammarURI);
-                parser = invisibleXml.getParser(grammarURI);
+
+                cachedURI = cache.getCached(grammarURI);
+                if (cachedURI != grammarURI) {
+                    options.logger.trace(logcategory, "Cached grammar: " + cachedURI);
+                    parser = invisibleXml.getParser(cachedURI);
+                } else {
+                    parser = invisibleXml.getParser(grammarURI);
+                }
+
                 if (cmain.timing) {
                     showTime(parser.getParseTime(), cmain.grammar);
                 }
@@ -203,6 +222,9 @@ class Main {
 
         if (parser.constructed()) {
             parser.getHygieneReport();
+            if (grammarURI != null && grammarURI == cachedURI) { // it *didn't* get read from the cache...
+                cache.storeCached(grammarURI, parser.getCompiledParser());
+            }
         } else {
             InvisibleXmlDocument doc = parser.getFailedParse();
             System.err.printf("Failed to parse grammar: could not match %s at line %d, column %d%n",
@@ -236,13 +258,24 @@ class Main {
             return 0;
         }
 
+        ProgressBar progress;
         InvisibleXmlDocument doc;
         if (cmain.inputFile != null) {
+            File ifile = new File(cmain.inputFile);
+            if (ifile.exists()) {
+                progress = new ProgressBar(options, ifile.length());
+            } else {
+                progress = new ProgressBar(options ,-1);
+            }
+            parser.getOptions().monitor = progress;
+
             URI inputURI = URIUtils.resolve(URIUtils.cwd(), cmain.inputFile);
             options.logger.trace(logcategory, "Loading input from %s", inputURI);
             doc = parser.parse(inputURI);
         } else {
-            options.logger.trace(logcategory, "Input: %s", input);
+            progress = new ProgressBar(options, input.length());
+            parser.getOptions().monitor = progress;
+            options.logger.trace(logcategory, "Input text: %s", input);
             doc = parser.parse(input);
         }
 
@@ -390,12 +423,10 @@ class Main {
         DataTree dataTree;
         SimpleTree simpleTree;
 
-        ParserOptions nonXmlOptions = new ParserOptions(options);
-        nonXmlOptions.assertValidXmlNames = false;
-
         switch (outputFormat) {
             case CSV:
-                dataBuilder = new DataTreeBuilder(nonXmlOptions);
+                options.assertValidXmlNames = false;
+                dataBuilder = new DataTreeBuilder(options);
                 doc.getTree(dataBuilder);
                 dataTree = dataBuilder.getTree();
                 List<CsvColumn> columns = dataTree.prepareCsv();
@@ -406,13 +437,15 @@ class Main {
                 output.print(dataTree.asCSV(columns));
                 break;
             case JSON_DATA:
-                dataBuilder = new DataTreeBuilder(nonXmlOptions);
+                options.assertValidXmlNames = false;
+                dataBuilder = new DataTreeBuilder(options);
                 doc.getTree(dataBuilder);
                 dataTree = dataBuilder.getTree();
                 output.print(dataTree.asJSON());
                 break;
             case JSON_TREE:
-                simpleBuilder = new SimpleTreeBuilder(nonXmlOptions);
+                options.assertValidXmlNames = false;
+                simpleBuilder = new SimpleTreeBuilder(options);
                 doc.getTree(simpleBuilder);
                 simpleTree = simpleBuilder.getTree();
                 output.print(simpleTree.asJSON());

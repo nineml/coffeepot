@@ -61,7 +61,8 @@ dependencies {
     [group: 'org.nineml', name: grinderName, version: grinderVersion],
     [group: 'org.nineml', name: filterName, version: filterVersion],
     [group: 'com.beust', name: 'jcommander', version: '1.81' ],
-    [group: 'net.sf.saxon', name: 'Saxon-HE', version: '11.1.1'],
+    [group: 'org.fusesource.jansi', name: 'jansi', version: '2.4.0'],
+    [group: 'net.sf.saxon', name: 'Saxon-HE', version: '11.2'],
   )
   documentation (
     [group: saxonGroup, name: saxonEdition, version: saxonVersion],

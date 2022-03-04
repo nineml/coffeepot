@@ -54,6 +54,7 @@ into requests against the underlying libraries.</para>
 <xi:include href="configuration.xml"/>
 <xi:include href="output.xml"/>
 <xi:include href="property-files.xml"/>
+<xi:include href="caching.xml"/>
 
 </book>
 
