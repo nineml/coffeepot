@@ -1,25 +1,40 @@
 package org.nineml.coffeepot.utils;
 
-import org.nineml.coffeefilter.ParserOptions;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Properties;
 
+/**
+ * Load parser options from a properties file.
+ * <p>The loader looks for the property file in two or three places. First, it looks for
+ * <code>.nineml.properties</code> in the users home directory. If it doesn't find one there,
+ * it looks for the properties file <code>nineml.properties</code> (no leading ".") on the class path.</p>
+ * <p>(In the special case where the program is being run with <code>java -jar coffeepot...</code>,
+ * the loader will also look for <code>nineml.properties</code> (no leading "."), in the current
+ * directory.)</p>
+ * <p>To see which file was loaded, enable "debug" level logging for "CoffeePot" messages.</p>
+ */
 public class ParserOptionsLoader {
     private static final String propfn = "nineml.properties";
     private final ParserOptions options = new ParserOptions();
     private Properties prop = null;
 
+    /**
+     * Load the options, setting the initial default logging level.
+     * @param level the initial default logging level.
+     */
     public ParserOptionsLoader(String level) {
         options.logger.setDefaultLogLevel(level);
     }
 
+    /**
+     * Load the options.
+     * @return the options initialized from the properties file, if one was found.
+     */
     public ParserOptions loadOptions() {
         try {
             String fs = System.getProperty("file.separator");
@@ -45,6 +60,7 @@ public class ParserOptionsLoader {
                 return loadFromStream(stream);
             }
 
+            // The 'java -jar ...' case...
             URL[] urls = ((URLClassLoader) loader).getURLs();
             if (urls.length == 1) {
                 fn = urls[0].getPath();
@@ -82,6 +98,7 @@ public class ParserOptionsLoader {
         options.prettyPrint = "true".equals(getProperty("pretty-print", "false"));
         options.ignoreTrailingWhitespace = "true".equals(getProperty("ignore-trailing-whitespace", "false"));
         options.graphviz = getProperty("graphviz", null);
+        options.cacheDir = getProperty("cache", null);
 
         String value = getProperty("default-log-level", null);
         if (value != null) {
@@ -91,6 +108,13 @@ public class ParserOptionsLoader {
         value = getProperty("log-levels", null);
         if (value != null) {
             options.logger.setLogLevels(value);
+        }
+
+        value = getProperty("progress-bar", "false");
+        if ("true".equals(value) || "false".equals(value) || "tty".equals(value)) {
+            options.progressBar = value;
+        } else {
+            options.logger.warn("CoffeePot", "Unrecognized progress-bar option: %s", value);
         }
 
         return options;
