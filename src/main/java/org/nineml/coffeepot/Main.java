@@ -179,8 +179,6 @@ class Main {
             usage(jc, false, "You cannot simultaneously specify an output file and suppress output.");
         }
 
-        options.cacheDir = "/home/ndw/.config/nineml.org/thermos";
-        //options.cacheDir = ".grammar-cache";
         Cache cache = new Cache(options);
 
         URI grammarURI;
