@@ -401,6 +401,9 @@ class Main {
                 }
             } else {
                 serialize(output, doc, outputFormat);
+                if (options.trailingNewlineOnOutput) {
+                    output.println();
+                }
 
                 if (cmain.treeXml != null) {
                     doc.getParseTree().serialize(cmain.treeXml);
