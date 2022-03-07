@@ -27,4 +27,11 @@ public class ParserOptions extends org.nineml.coffeefilter.ParserOptions {
      * messages will be written to the redirected location.</p>
      */
     public String progressBar = "false";
+
+    /**
+     * Make sure the output ends with a newline?
+     * <p>If this option is true, a newline will be added to the end of the output.
+     * </p>
+     */
+    public boolean trailingNewlineOnOutput = true;
 }

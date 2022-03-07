@@ -97,6 +97,7 @@ public class ParserOptionsLoader {
 
         options.prettyPrint = "true".equals(getProperty("pretty-print", "false"));
         options.ignoreTrailingWhitespace = "true".equals(getProperty("ignore-trailing-whitespace", "false"));
+        options.trailingNewlineOnOutput = "true".equals(getProperty("trailing-newline-on-output", "true"));
         options.graphviz = getProperty("graphviz", null);
         options.cacheDir = getProperty("cache", null);
 

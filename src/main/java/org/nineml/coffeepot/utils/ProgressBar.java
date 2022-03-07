@@ -103,7 +103,7 @@ public class ProgressBar implements ProgressMonitor {
             return;
         }
         if (istty) {
-            System.out.printf("                                                            \r");
+            System.out.printf("                                                                      \r");
         }
     }
 }
