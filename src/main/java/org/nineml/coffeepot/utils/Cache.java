@@ -179,9 +179,9 @@ public class Cache {
             return;
         }
 
-        // It's possible to produce compiled grammars that aren't valid XML.
-        // For example, they might include references to characters that may
-        // not appear in XML, such as #0.
+        // It was once possible to produce compiled grammars that weren't valid XML.
+        // For example, they could include references to characters that may
+        // not appear in XML, such as #0. Check to make sure that hasn't happened again.
         DocumentBuilder builder = processor.newDocumentBuilder();
         ByteArrayInputStream bais = new ByteArrayInputStream(compiledGrammar.getBytes(StandardCharsets.UTF_8));
         Source source = new SAXSource(new InputSource(bais));

@@ -19,8 +19,9 @@ import javax.xml.transform.sax.SAXSource;
 import java.io.*;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * A command-line Invisible XML parser.
@@ -221,7 +222,15 @@ class Main {
         if (parser.constructed()) {
             parser.getHygieneReport();
             if (grammarURI != null && grammarURI == cachedURI) { // it *didn't* get read from the cache...
-                cache.storeCached(grammarURI, parser.getCompiledParser());
+                HashMap<String,String> properties = new HashMap<>();
+                properties.put("uri", grammarURI.toString());
+
+                TimeZone tz = TimeZone.getTimeZone("UTC");
+                DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+                df.setTimeZone(tz);
+                properties.put("date",df.format(new Date()));
+
+                cache.storeCached(grammarURI, parser.getCompiledParser(properties));
             }
         } else {
             InvisibleXmlDocument doc = parser.getFailedParse();
