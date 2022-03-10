@@ -74,8 +74,9 @@ class Main {
             usage(pe.getJCommander(), false);
         }
 
-        int parseCount = 0;
-        boolean allparses = false;
+        if (cmain.version) {
+            System.out.printf("%s version %s.", BuildConfig.TITLE, BuildConfig.VERSION);
+        }
 
         ParserOptionsLoader loader = new ParserOptionsLoader("warning");
         options = loader.loadOptions();
@@ -87,6 +88,9 @@ class Main {
                 options.logger.setLogLevels("*:" + cmain.logLevels);
             }
         }
+
+        options.logger.trace(logcategory, "%s version %s (published %s, hash: %s)",
+                BuildConfig.TITLE, BuildConfig.VERSION, BuildConfig.PUB_DATE, BuildConfig.PUB_HASH);
 
         options.prettyPrint = options.prettyPrint || cmain.prettyPrint;
         options.showChart = cmain.showChart;
@@ -127,14 +131,24 @@ class Main {
             }
         }
 
-        if (cmain.parse != null) {
-            if (cmain.parse.equals("all")) {
+        int startingParse;
+        if (cmain.parse <= 0) {
+            options.logger.warn(logcategory, "Ignoring absurd parse number: %d", cmain.parse);
+            startingParse = 1;
+        } else {
+            startingParse = cmain.parse;
+        }
+
+        long parseCount = 0;
+        boolean allparses = false;
+        if (cmain.parseCount != null) {
+            if (cmain.parseCount.equals("all")) {
                 allparses = true;
             } else {
-                parseCount = Integer.parseInt(cmain.parse);
+                parseCount = Integer.parseInt(cmain.parseCount);
                 if (parseCount < 1) {
-                    options.logger.warn(logcategory, "Ignoring absurd parse number: %d", parseCount);
-                    parseCount = 0;
+                    options.logger.warn(logcategory, "Ignoring absurd parse count: %d", parseCount);
+                    parseCount = 1;
                 }
             }
         }
@@ -169,7 +183,10 @@ class Main {
         }
 
         if (cmain.inputFile == null && input == null && !cmain.showGrammar && cmain.compiledGrammar == null) {
-            usage(jc, true);
+            if (!cmain.version) {
+                usage(jc, true);
+            }
+            return 0;
         }
 
         if (cmain.inputFile != null && input != null) {
@@ -199,8 +216,14 @@ class Main {
 
                 cachedURI = cache.getCached(grammarURI);
                 if (cachedURI != grammarURI) {
-                    options.logger.trace(logcategory, "Cached grammar: " + cachedURI);
                     parser = invisibleXml.getParser(cachedURI);
+                    String ver = parser.getGrammar().getMetadataProperty("coffeepot-version");
+                    if (!BuildConfig.VERSION.equals(ver)) {
+                        // Ignore the cached grammar...
+                        parser = invisibleXml.getParser(grammarURI);
+                    } else {
+                        options.logger.trace(logcategory, "Cached grammar: " + cachedURI);
+                    }
                 } else {
                     parser = invisibleXml.getParser(grammarURI);
                 }
@@ -222,15 +245,16 @@ class Main {
         if (parser.constructed()) {
             parser.getHygieneReport();
             if (grammarURI != null && grammarURI == cachedURI) { // it *didn't* get read from the cache...
-                HashMap<String,String> properties = new HashMap<>();
-                properties.put("uri", grammarURI.toString());
+                Grammar grammar = parser.getGrammar();
+                grammar.setMetadataProperty("uri", grammarURI.toString());
+                grammar.setMetadataProperty("coffeepot-version", BuildConfig.VERSION);
 
                 TimeZone tz = TimeZone.getTimeZone("UTC");
                 DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
                 df.setTimeZone(tz);
-                properties.put("date",df.format(new Date()));
+                grammar.setMetadataProperty("date",df.format(new Date()));
 
-                cache.storeCached(grammarURI, parser.getCompiledParser(properties));
+                cache.storeCached(grammarURI, parser.getCompiledParser());
             }
         } else {
             InvisibleXmlDocument doc = parser.getFailedParse();
@@ -318,43 +342,64 @@ class Main {
             graphForest(doc.getEarleyResult(), options, cmain.graphSvg);
         }
 
-        if (parseCount == 0 && !allparses) {
-            if (doc.getNumberOfParses() > 1) {
-                if (!suppressAmbiguous) {
-                    System.out.println("There are " + doc.getExactNumberOfParses() + " possible parses.");
-                }
-                if (cmain.describeAmbiguity) {
-                    Ambiguity ambiguity = doc.getEarleyResult().getForest().getAmbiguity();
-                    if (ambiguity.getInfinitelyAmbiguous()) {
-                        System.out.println("Infinite ambiguity:");
+        Ambiguity ambiguity;
+        boolean infambig = false;
+        if (doc.succeeded()) {
+            ambiguity = doc.getEarleyResult().getForest().getAmbiguity();
+            infambig = ambiguity.getInfinitelyAmbiguous();
+        } else {
+            ambiguity = null;
+        }
+
+        if (doc.getNumberOfParses() > 1 || infambig) {
+            assert ambiguity != null;
+
+            if (!suppressAmbiguous) {
+                if (doc.getNumberOfParses() == 1) {
+                    System.out.println("There is 1 parse, but the grammar is infinitely ambiguous");
+                } else {
+                    if (infambig) {
+                        System.out.printf("There are %s possible parses (of infinitely many).%n", doc.getExactNumberOfParses().toString());
                     } else {
-                        System.out.println("Ambiguity:");
+                        System.out.printf("There are %s possible parses.%n", doc.getExactNumberOfParses().toString());
                     }
-                    if (ambiguity.getRoots().size() > 1) {
-                        System.out.printf("Graph has %d roots.%n", ambiguity.getRoots().size());
-                    }
-                    for (ForestNode node : ambiguity.getChoices().keySet()) {
-                        System.out.println(node);
-                        for (Family family : ambiguity.getChoices().get(node)) {
-                            System.out.println("\t" + family);
-                        }
+                }
+            }
+            if (cmain.describeAmbiguity) {
+                if (ambiguity.getInfinitelyAmbiguous()) {
+                    System.out.println("Infinite ambiguity:");
+                } else {
+                    System.out.println("Ambiguity:");
+                }
+                if (ambiguity.getRoots().size() > 1) {
+                    System.out.printf("Graph has %d roots.%n", ambiguity.getRoots().size());
+                }
+                for (ForestNode node : ambiguity.getChoices().keySet()) {
+                    System.out.println(node);
+                    for (Family family : ambiguity.getChoices().get(node)) {
+                        System.out.println("\t" + family);
                     }
                 }
             }
         }
 
-        if (doc.getNumberOfParses() > 0 && parseCount > doc.getNumberOfParses()) {
+        if (doc.getNumberOfParses() > 0 && startingParse > doc.getNumberOfParses()) {
             System.out.println("There are only " + doc.getExactNumberOfParses() + " possible parses.");
             return 1;
         }
 
         if (!cmain.suppressOutput) {
+            boolean more = true;
+            for (int pos = 1; more && pos < startingParse; pos++) {
+                more = doc.nextTree();
+            }
+
             PrintStream output = System.out;
             if (cmain.outputFile != null) {
                 output = new PrintStream(new FileOutputStream(cmain.outputFile));
             }
 
-            if (parseCount > 0 || allparses) {
+            if (parseCount > 1 || allparses) {
                 if (outputFormat == OutputFormat.CSV) {
                     System.err.println("Cannot output multiple parses as CSV");
                     return 1;
@@ -366,7 +411,7 @@ class Main {
                 }
 
                 String state = "";
-                if (suppressAmbiguous) {
+                if (!suppressAmbiguous) {
                     state = "ambiguous";
                 }
                 if (doc.getEarleyResult().prefixSucceeded() && !suppressPrefix) {
@@ -387,20 +432,20 @@ class Main {
                     }
                     output.println("\"trees\":[");
                 } else {
-                    output.print("<ixml ");
+                    output.print("<ixml");
                     if (!"".equals(state)) {
-                        output.printf(" xmlns:ixml='http://invisiblexml.org/NS' ixml:state='%s' ", state);
+                        output.printf(" xmlns:ixml='http://invisiblexml.org/NS' ixml:state='%s'", state);
                     }
-                    output.printf("parses='%d' totalParses='%s'>%n", max, doc.getExactNumberOfParses());
+                    output.printf(" parses='%d' totalParses='%s'>%n", max, doc.getExactNumberOfParses());
                 }
 
-                for (int pos = 0; pos < max; pos++) {
+                for (int pos = 0; more && pos < max; pos++) {
                     if ((outputFormat == OutputFormat.JSON_DATA || outputFormat == OutputFormat.JSON_TREE)
                          && pos > 0) {
                         output.println(",");
                     }
                     serialize(output, doc, outputFormat);
-                    doc.nextTree();
+                    more = doc.nextTree();
                 }
 
                 if (outputFormat == OutputFormat.JSON_DATA || outputFormat == OutputFormat.JSON_TREE) {
@@ -604,8 +649,11 @@ class Main {
         @Parameter(names = {"-t", "--time"}, description = "Display timing information")
         public boolean timing = false;
 
-        @Parameter(names = {"-p", "--parse"}, description = "Select a parse, or all parses")
-        public String parse = null;
+        @Parameter(names = {"-p", "--parse"}, description = "Select a (starting) parse")
+        public Integer parse = 1;
+
+        @Parameter(names = {"--parse-count"}, description = "The number of parses to print")
+        public String parseCount = "1";
 
         @Parameter(names = {"-pp", "--pretty-print"}, description = "Pretty-print (indent) the output")
         public boolean prettyPrint = false;
@@ -627,6 +675,9 @@ class Main {
 
         @Parameter(names = {"--suppress"}, description = "States to ignore in the output")
         public String suppress = null;
+
+        @Parameter(names = {"--version"}, description = "Show the version")
+        public boolean version = false;
 
         @Parameter(description = "The input")
         public List<String> inputText = new ArrayList<>();
