@@ -22,8 +22,7 @@ to run it with an explicit classpath, <xref linkend="configuration"/>.</para>
 <cmdsynopsis>
 <command>coffeepot</command>
 <arg>--pretty-print</arg>
-<arg>--verbose</arg>
-<arg>--parse:<replaceable>number</replaceable>|all</arg>
+<arg>--parse:<replaceable>number</replaceable></arg>
 <arg>--grammar:<replaceable>file</replaceable></arg>
 <arg>--output:<replaceable>file</replaceable></arg>
 <group>
@@ -48,18 +47,13 @@ of mixed content.
 </listitem>
 </varlistentry>
 <varlistentry>
-<term><option>--verbose</option></term>
+<term><option>--parse:<replaceable>number</replaceable></option></term>
 <listitem>
-<para>Enables more verbose progress and processing messages.
-</para>
-</listitem>
-</varlistentry>
-<varlistentry>
-<term><option>--parse:<replaceable>number</replaceable>|all</option></term>
-<listitem>
-<para>Selects a specific parse, or all parses. If the parse was ambiguous, use
-this option to inspect alternate (or all) parses. (If the parse wasn’t ambiguous,
-there’s only one.)
+<para>Selects a specific parse. If the parse was ambiguous, use this
+option to inspect alternate parses. (If the parse wasn’t
+ambiguous, there’s only one.) You can also use
+<link linkend="o.parse-count">--parse-count</link> to display more than one
+parse.
 </para>
 </listitem>
 </varlistentry>
@@ -139,10 +133,36 @@ This is intended as the input to visualization processes, like the SVG output.
 </listitem>
 </varlistentry>
 <varlistentry>
+<term><option>--log:<replaceable>levels</replaceable></option></term>
+<listitem>
+<para>Sets the log level, one of <literal>silent</literal>,
+<literal>error</literal>, <literal>warning</literal>,
+<literal>info</literal>, <literal>debug</literal>, or
+<literal>trace</literal>. It can also set logging at finer granularities
+by specifying a list of logger:level pairs, for example:
+<literal>CoffeePot:trace,CoffeeGrinder:info,CoffeeFilter:warning</literal>.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry>
 <term><option>--no-output</option></term>
 <listitem>
 <para>Suppress output of the parse tree.
 </para>
+</listitem>
+</varlistentry>
+<varlistentry xml:id="o.parse-count">
+<term><option>--parse-count:<replaceable>number</replaceable>|all</option></term>
+<listitem>
+<para>For an ambiguous parse, you can specify a parse count greater than one
+to get several (or <literal>all</literal>) the possible parses. It is not an error
+if you get multiple parses that have the same XML structure, this simply indicates that the
+ambiguity was in some part of the result that wasn’t serialized.
+</para>
+<para>No attempt is made to enumerate the infinitely many possible
+parses that arise if the resulting parse forest contains a loop.
+Consequently, it’s possible to get an “infinitely ambiguous” result
+that has only a single parse.</para>
 </listitem>
 </varlistentry>
 <varlistentry>
@@ -190,13 +210,22 @@ This is intended as the input to visualization processes, like the SVG output.
 </para>
 </listitem>
 </varlistentry>
+<varlistentry>
+<term><option>--version</option></term>
+<listitem>
+<para>Display the <application>CoffeePot</application> version number.
+</para>
+</listitem>
+</varlistentry>
 </variablelist>
 </section>
 
 <section xml:id="buildtools">
 <title>In build tools</title>
 
-<para>T.B.D.</para>
+<para>The <link xlink:href="https://github.com/nineml/HOWTO">HOWTO</link> repository
+contains examples of using <application>CoffeePot</application> in build tools
+such as Gradle.</para>
 
 </section>
 </chapter>

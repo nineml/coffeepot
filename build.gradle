@@ -31,9 +31,10 @@ plugins {
   id 'com.nwalsh.gradle.docker.container' version '0.0.3'
 }
 
+import java.text.DateFormat
+import java.text.SimpleDateFormat
 import com.nwalsh.gradle.saxon.SaxonXsltTask
 import com.nwalsh.gradle.relaxng.validate.RelaxNGValidateTask
-import com.nwalsh.gradle.relaxng.translate.RelaxNGTranslateTask
 import com.nwalsh.gradle.docker.DockerContainer
 
 repositories {
@@ -71,12 +72,6 @@ dependencies {
   )
 }
 
-buildConfig {
-  packageName('org.nineml.coffeepot')
-  buildConfigField('String', 'TITLE', "\"${potTitle}\"")
-  buildConfigField('String', 'VERSION', "\"${potVersion}\"")
-}
-
 ext {
   c_coffeepot = "coffeepot"
 }
@@ -88,6 +83,34 @@ saxon.configure {
 
 docker_container.configure {
   workingDir = "docker"
+}
+
+public String dateTime() {
+  TimeZone tz = TimeZone.getTimeZone("UTC");
+  DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+  df.setTimeZone(tz);
+  return df.format(new Date());
+}
+
+public String gitHash() {
+  def hashout = new ByteArrayOutputStream()
+  exec {
+    commandLine "git", "log", "-1", "--format=%h"
+    standardOutput = hashout
+  }
+  return hashout.toString().trim()
+}
+
+// ============================================================
+
+buildConfig {
+  packageName('org.nineml.coffeepot')
+  buildConfigField('String', 'TITLE', "\"${potTitle}\"")
+  buildConfigField('String', 'VERSION', "\"${potVersion}\"")
+  buildConfigField('String', 'FILTER_VERSION', "\"${filterVersion}\"")
+  buildConfigField('String', 'GRINDER_VERSION', "\"${grinderVersion}\"")
+  buildConfigField('String', 'PUB_DATE', "\"${dateTime()}\"")
+  buildConfigField('String', 'PUB_HASH', "\"${gitHash()}\"")
 }
 
 // ============================================================
