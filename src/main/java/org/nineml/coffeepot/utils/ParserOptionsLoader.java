@@ -78,9 +78,9 @@ public class ParserOptionsLoader {
                 }
             }
 
-            options.logger.debug("CofeePot", "Failed to find nineml.properties");
+            options.logger.debug("CoffeePot", "Failed to find nineml.properties");
         } catch (IOException ex) {
-            options.logger.debug("CofeePot", "Failed to load nineml.properties: %s", ex.getMessage());
+            options.logger.debug("CoffeePot", "Failed to load nineml.properties: %s", ex.getMessage());
         }
 
         return options;
@@ -98,6 +98,7 @@ public class ParserOptionsLoader {
         options.prettyPrint = "true".equals(getProperty("pretty-print", "false"));
         options.ignoreTrailingWhitespace = "true".equals(getProperty("ignore-trailing-whitespace", "false"));
         options.trailingNewlineOnOutput = "true".equals(getProperty("trailing-newline-on-output", "true"));
+        options.pedantic = "true".equals(getProperty("pedantic", "false"));
         options.graphviz = getProperty("graphviz", null);
         options.cacheDir = getProperty("cache", null);
 
