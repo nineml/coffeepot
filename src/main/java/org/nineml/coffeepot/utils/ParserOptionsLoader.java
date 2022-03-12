@@ -78,9 +78,9 @@ public class ParserOptionsLoader {
                 }
             }
 
-            options.logger.debug("CofeePot", "Failed to find nineml.properties");
+            options.logger.debug("CoffeePot", "Failed to find nineml.properties");
         } catch (IOException ex) {
-            options.logger.debug("CofeePot", "Failed to load nineml.properties: %s", ex.getMessage());
+            options.logger.debug("CoffeePot", "Failed to load nineml.properties: %s", ex.getMessage());
         }
 
         return options;
