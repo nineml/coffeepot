@@ -95,7 +95,7 @@ public class ProgressBar implements ProgressMonitor {
     /**
      * Progress tracking ends.
      * <p>On a TTY, this removes the progress bar and progress details from the screen.</p>
-     * @param parser
+     * @param parser the parser
      */
     @Override
     public void finished(EarleyParser parser) {
@@ -103,7 +103,7 @@ public class ProgressBar implements ProgressMonitor {
             return;
         }
         if (istty) {
-            System.out.printf("                                                                      \r");
+            System.out.print("                                                                      \r");
         }
     }
 }
