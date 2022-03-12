@@ -74,10 +74,6 @@ class Main {
             usage(pe.getJCommander(), false);
         }
 
-        if (cmain.version) {
-            System.out.printf("%s version %s.", BuildConfig.TITLE, BuildConfig.VERSION);
-        }
-
         ParserOptionsLoader loader = new ParserOptionsLoader("warning");
         options = loader.loadOptions();
 
@@ -89,11 +85,24 @@ class Main {
             }
         }
 
-        options.logger.trace(logcategory, "%s version %s (published %s, hash: %s)",
-                BuildConfig.TITLE, BuildConfig.VERSION, BuildConfig.PUB_DATE, BuildConfig.PUB_HASH);
-
         options.prettyPrint = options.prettyPrint || cmain.prettyPrint;
+        options.pedantic = options.pedantic || cmain.pedantic;
         options.showChart = cmain.showChart;
+        if (cmain.suppressCache) {
+            options.cacheDir = null;
+        }
+
+        if (cmain.version) {
+            if (options.pedantic) {
+                System.out.printf("%s version %s (pedantic).%n", BuildConfig.TITLE, BuildConfig.VERSION);
+            } else {
+                System.out.printf("%s version %s.%n", BuildConfig.TITLE, BuildConfig.VERSION);
+            }
+        }
+
+        options.logger.trace(logcategory, "%s version %s (published %s, hash: %s%s)",
+                BuildConfig.TITLE, BuildConfig.VERSION, BuildConfig.PUB_DATE, BuildConfig.PUB_HASH,
+                options.pedantic ? "; pedantic" : "");
 
         OutputFormat outputFormat = OutputFormat.XML;
         if (cmain.outputFormat != null) {
@@ -301,12 +310,12 @@ class Main {
             parser.getOptions().monitor = progress;
 
             URI inputURI = URIUtils.resolve(URIUtils.cwd(), cmain.inputFile);
-            options.logger.trace(logcategory, "Loading input from %s", inputURI);
+            options.logger.trace(logcategory, "Loading input: %s", inputURI);
             doc = parser.parse(inputURI);
         } else {
             progress = new ProgressBar(options, input.length());
             parser.getOptions().monitor = progress;
-            options.logger.trace(logcategory, "Input text: %s", input);
+            options.logger.trace(logcategory, "Input: %s", input);
             doc = parser.parse(input);
         }
 
@@ -678,6 +687,12 @@ class Main {
 
         @Parameter(names = {"--version"}, description = "Show the version")
         public boolean version = false;
+
+        @Parameter(names = {"--pedantic"}, description = "Run in pedantic mode")
+        public boolean pedantic = false;
+
+        @Parameter(names = {"--no-cache"}, description = "Ignore the cache")
+        public boolean suppressCache = false;
 
         @Parameter(description = "The input")
         public List<String> inputText = new ArrayList<>();
