@@ -145,6 +145,14 @@ by specifying a list of logger:level pairs, for example:
 </listitem>
 </varlistentry>
 <varlistentry>
+<term><option>--no-cache</option></term>
+<listitem>
+<para>Ignore the grammar cache. With this option, cached grammars
+will neither be loaded nor stored.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry>
 <term><option>--no-output</option></term>
 <listitem>
 <para>Suppress output of the parse tree.
@@ -163,6 +171,16 @@ ambiguity was in some part of the result that wasn’t serialized.
 parses that arise if the resulting parse forest contains a loop.
 Consequently, it’s possible to get an “infinitely ambiguous” result
 that has only a single parse.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term><option>--pedantic</option></term>
+<listitem>
+<para>By default, <application>CoffeePot</application> accepts
+certain grammar extensions, such as pragmas. With this option,
+only grammars strictly conforming to the Invisible XML specification
+may be used.
+</para>
 </listitem>
 </varlistentry>
 <varlistentry>

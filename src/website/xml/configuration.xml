@@ -68,11 +68,37 @@ ignored if it isn’t successfully parsed.
 </para>
 </listitem>
 </varlistentry>
+<varlistentry>
+<term><property>pedantic</property> (boolean)</term>
+<listitem>
+<para>By default, <application>CoffeePot</application> accepts
+certain grammar extensions, such as pragmas. If <property>pedantic</property>
+is true,
+only grammars strictly conforming to the Invisible XML specification
+may be used.
+</para>
+</listitem>
+</varlistentry>
 <varlistentry><term><property>progress-bar</property> (boolean, or “tty”)</term>
 <listitem>
 <para>Setting the progress bar to true or false enables or disables it.
 Setting it to “tty” enables it only if the output is going to a “tty”, an
 interactive computer terminal.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><property>pretty-print</property> (boolean)</term>
+<listitem>
+<para>If true, line breaks and indentation will be added to the XML output
+so that it’s easier to read.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><property>trailing-newline-on-output</property> (boolean)</term>
+<listitem>
+<para>If true, a newline will be printed after the output. It’s often useful
+to have a newline at the end of the XML, after the closing tag of the document
+element.
 </para>
 </listitem>
 </varlistentry>
