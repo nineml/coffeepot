@@ -43,7 +43,7 @@ public class ProgressBar implements ProgressMonitor {
         totalSize = total;
         frequency = (total > threshold) ? slowFrequency : fastFrequency;
 
-        showProgress = "true".equals(options.progressBar) || ("tty".equals(options.progressBar) && istty);
+        showProgress = "true".equals(options.getProgressBar()) || ("tty".equals(options.getProgressBar()) && istty);
     }
 
     /**
