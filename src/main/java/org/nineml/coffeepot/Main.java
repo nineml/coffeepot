@@ -74,35 +74,37 @@ class Main {
             usage(pe.getJCommander(), false);
         }
 
-        ParserOptionsLoader loader = new ParserOptionsLoader("warning");
-        options = loader.loadOptions();
-
+        // We need temp options to parse the command line log levels parameter
+        ParserOptions tempOptions = new ParserOptions();
         if (cmain.logLevels != null) {
             if (cmain.logLevels.contains(":")) {
-                options.logger.setLogLevels(cmain.logLevels);
+                tempOptions.getLogger().setLogLevels(cmain.logLevels);
             } else {
-                options.logger.setLogLevels("*:" + cmain.logLevels);
+                tempOptions.getLogger().setLogLevels("*:" + cmain.logLevels);
             }
         }
 
-        options.prettyPrint = options.prettyPrint || cmain.prettyPrint;
-        options.pedantic = options.pedantic || cmain.pedantic;
-        options.showChart = cmain.showChart;
+        ParserOptionsLoader loader = new ParserOptionsLoader(tempOptions);
+        options = loader.loadOptions(cmain.configFile);
+
+        options.setPrettyPrint(options.getPrettyPrint() || cmain.prettyPrint);
+        options.setPedantic(options.getPedantic() || cmain.pedantic);
+        options.setShowChart(cmain.showChart);
         if (cmain.suppressCache) {
-            options.cacheDir = null;
+            options.setCacheDir(null);
         }
 
         if (cmain.version) {
-            if (options.pedantic) {
+            if (options.getPedantic()) {
                 System.out.printf("%s version %s (pedantic).%n", BuildConfig.TITLE, BuildConfig.VERSION);
             } else {
                 System.out.printf("%s version %s.%n", BuildConfig.TITLE, BuildConfig.VERSION);
             }
         }
 
-        options.logger.trace(logcategory, "%s version %s (published %s, hash: %s%s)",
+        options.getLogger().trace(logcategory, "%s version %s (published %s, hash: %s%s)",
                 BuildConfig.TITLE, BuildConfig.VERSION, BuildConfig.PUB_DATE, BuildConfig.PUB_HASH,
-                options.pedantic ? "; pedantic" : "");
+                options.getPedantic() ? "; pedantic" : "");
 
         OutputFormat outputFormat = OutputFormat.XML;
         if (cmain.outputFormat != null) {
@@ -127,14 +129,14 @@ class Main {
         }
 
         if (cmain.graphSvg != null) {
-            if (options.graphviz == null) {
-                options.logger.error(logcategory, "Cannot output SVG; GraphViz is not configured.");
+            if (options.getGraphviz() == null) {
+                options.getLogger().error(logcategory, "Cannot output SVG; GraphViz is not configured.");
                 cmain.graphSvg = null;
             } else {
                 try {
                     new Processor(false);
                 } catch (Exception ex) {
-                    options.logger.error(logcategory, "Cannot output SVG; failed to find Saxon on the classpath.");
+                    options.getLogger().error(logcategory, "Cannot output SVG; failed to find Saxon on the classpath.");
                     cmain.graphSvg = null;
                 }
             }
@@ -142,7 +144,7 @@ class Main {
 
         int startingParse;
         if (cmain.parse <= 0) {
-            options.logger.warn(logcategory, "Ignoring absurd parse number: %d", cmain.parse);
+            options.getLogger().warn(logcategory, "Ignoring absurd parse number: %d", cmain.parse);
             startingParse = 1;
         } else {
             startingParse = cmain.parse;
@@ -156,7 +158,7 @@ class Main {
             } else {
                 parseCount = Integer.parseInt(cmain.parseCount);
                 if (parseCount < 1) {
-                    options.logger.warn(logcategory, "Ignoring absurd parse count: %d", parseCount);
+                    options.getLogger().warn(logcategory, "Ignoring absurd parse count: %d", parseCount);
                     parseCount = 1;
                 }
             }
@@ -169,13 +171,13 @@ class Main {
             }
         } else {
             if (explicitInput != null) {
-                options.logger.error(logcategory, "Unexpected input: %s", cmain.inputText.get(0));
+                options.getLogger().error(logcategory, "Unexpected input: %s", cmain.inputText.get(0));
                 System.exit(1);
             } else {
                 actualInput = cmain.inputText.toArray(new String[]{});
                 for (String input : actualInput) {
                     if (input.startsWith("-")) {
-                        options.logger.error(logcategory, "Unexpected option: %s", input);
+                        options.getLogger().error(logcategory, "Unexpected option: %s", input);
                         System.exit(1);
                     }
                 }
@@ -215,13 +217,13 @@ class Main {
         InvisibleXmlParser parser;
         try {
             if (cmain.grammar == null) {
-                options.logger.trace(logcategory, "Parsing input with the ixml specification grammar.");
+                options.getLogger().trace(logcategory, "Parsing input with the ixml specification grammar.");
                 parser = invisibleXml.getParser();
                 grammarURI = null;
                 cachedURI = null;
             } else  {
                 grammarURI = URIUtils.resolve(URIUtils.cwd(), cmain.grammar);
-                options.logger.trace(logcategory, "Loading grammar: " + grammarURI);
+                options.getLogger().trace(logcategory, "Loading grammar: " + grammarURI);
 
                 cachedURI = cache.getCached(grammarURI);
                 if (cachedURI != grammarURI) {
@@ -231,7 +233,7 @@ class Main {
                         // Ignore the cached grammar...
                         parser = invisibleXml.getParser(grammarURI);
                     } else {
-                        options.logger.trace(logcategory, "Cached grammar: " + cachedURI);
+                        options.getLogger().trace(logcategory, "Cached grammar: " + cachedURI);
                     }
                 } else {
                     parser = invisibleXml.getParser(grammarURI);
@@ -249,8 +251,6 @@ class Main {
             return 2;
         }
 
-        parser.setOptions(options);
-
         if (parser.constructed()) {
             parser.getHygieneReport();
             if (grammarURI != null && grammarURI == cachedURI) { // it *didn't* get read from the cache...
@@ -266,12 +266,15 @@ class Main {
                 cache.storeCached(grammarURI, parser.getCompiledParser());
             }
         } else {
-            InvisibleXmlDocument doc = parser.getFailedParse();
-            System.err.printf("Failed to parse grammar: could not match %s at line %d, column %d%n",
-                    doc.getEarleyResult().getLastToken(), doc.getLineNumber(), doc.getColumnNumber());
-
-            if (cmain.showChart) {
-                System.out.println(doc.getTree());
+            if (parser.getException() != null) {
+                System.err.printf("Failed to parse grammar: %s", parser.getException().getMessage());
+            } else {
+                InvisibleXmlDocument doc = parser.getFailedParse();
+                System.err.printf("Failed to parse grammar: could not match %s at line %d, column %d%n",
+                        doc.getEarleyResult().getLastToken(), doc.getLineNumber(), doc.getColumnNumber());
+                if (cmain.showChart) {
+                    System.out.println(doc.getTree());
+                }
             }
 
             return 2;
@@ -307,15 +310,15 @@ class Main {
             } else {
                 progress = new ProgressBar(options ,-1);
             }
-            parser.getOptions().monitor = progress;
+            parser.getOptions().setProgressMonitor(progress);
 
             URI inputURI = URIUtils.resolve(URIUtils.cwd(), cmain.inputFile);
-            options.logger.trace(logcategory, "Loading input: %s", inputURI);
+            options.getLogger().trace(logcategory, "Loading input: %s", inputURI);
             doc = parser.parse(inputURI);
         } else {
             progress = new ProgressBar(options, input.length());
-            parser.getOptions().monitor = progress;
-            options.logger.trace(logcategory, "Input: %s", input);
+            parser.getOptions().setProgressMonitor(progress);
+            options.getLogger().trace(logcategory, "Input: %s", input);
             doc = parser.parse(input);
         }
 
@@ -323,23 +326,10 @@ class Main {
             showTime(doc.parseTime());
         }
 
-        boolean suppressAmbiguous = false;
-        boolean suppressPrefix = false;
         if (cmain.suppress != null) {
             String[] states = cmain.suppress.split("[\\s,:]+");
             for (String state : states) {
-                switch (state) {
-                    case "prefix":
-                        doc.getOptions().suppressIxmlPrefix = true;
-                        suppressPrefix = true;
-                        break;
-                    case "ambiguous":
-                        doc.getOptions().suppressIxmlAmbiguous = true;
-                        suppressAmbiguous = true;
-                        break;
-                    default:
-                        System.err.println("Ignoring request to suppress unknown state: "+ state);
-                }
+                doc.getOptions().suppressState(state);
             }
         }
 
@@ -363,7 +353,7 @@ class Main {
         if (doc.getNumberOfParses() > 1 || infambig) {
             assert ambiguity != null;
 
-            if (!suppressAmbiguous) {
+            if (!doc.getOptions().isSuppressedState("ambiguous")) {
                 if (doc.getNumberOfParses() == 1) {
                     System.out.println("There is 1 parse, but the grammar is infinitely ambiguous");
                 } else {
@@ -420,10 +410,10 @@ class Main {
                 }
 
                 String state = "";
-                if (!suppressAmbiguous) {
+                if (!doc.getOptions().isSuppressedState("ambiguous")) {
                     state = "ambiguous";
                 }
-                if (doc.getEarleyResult().prefixSucceeded() && !suppressPrefix) {
+                if (doc.getEarleyResult().prefixSucceeded() && !doc.getOptions().isSuppressedState("prefix")) {
                     if ("".equals(state)) {
                         state = "prefix";
                     } else {
@@ -431,8 +421,8 @@ class Main {
                     }
                 }
 
-                doc.getOptions().suppressIxmlPrefix = true;
-                doc.getOptions().suppressIxmlAmbiguous = true;
+                doc.getOptions().suppressState("prefix");
+                doc.getOptions().suppressState("ambiguous");
 
                 if (outputFormat == OutputFormat.JSON_DATA || outputFormat == OutputFormat.JSON_TREE) {
                     output.printf("{\"ixml\":{\"parses\":%d, \"totalParses\":%d,%n", max, doc.getExactNumberOfParses());
@@ -464,7 +454,7 @@ class Main {
                 }
             } else {
                 serialize(output, doc, outputFormat);
-                if (options.trailingNewlineOnOutput) {
+                if (options.getTrailingNewlineOnOutput()) {
                     output.println();
                 }
 
@@ -489,7 +479,7 @@ class Main {
 
         switch (outputFormat) {
             case CSV:
-                options.assertValidXmlNames = false;
+                options.setAssertValidXmlNames(false);
                 dataBuilder = new DataTreeBuilder(options);
                 doc.getTree(dataBuilder);
                 dataTree = dataBuilder.getTree();
@@ -501,14 +491,14 @@ class Main {
                 output.print(dataTree.asCSV(columns));
                 break;
             case JSON_DATA:
-                options.assertValidXmlNames = false;
+                options.setAssertValidXmlNames(false);
                 dataBuilder = new DataTreeBuilder(options);
                 doc.getTree(dataBuilder);
                 dataTree = dataBuilder.getTree();
                 output.print(dataTree.asJSON());
                 break;
             case JSON_TREE:
-                options.assertValidXmlNames = false;
+                options.setAssertValidXmlNames(false);
                 simpleBuilder = new SimpleTreeBuilder(options);
                 doc.getTree(simpleBuilder);
                 simpleTree = simpleBuilder.getTree();
@@ -588,19 +578,28 @@ class Main {
 
                 // Store the dot file somewhere
                 File temp = File.createTempFile("jixp", ".dot");
-                temp.deleteOnExit();
                 PrintWriter dot = new PrintWriter(new FileOutputStream(temp));
                 dot.println(destination.getXdmNode().getStringValue());
                 dot.close();
 
-                String[] args = new String[] { options.graphviz, "-Tsvg", temp.getAbsolutePath(), "-o", output};
+                String[] args = new String[] { options.getGraphviz(), "-Tsvg", temp.getAbsolutePath(), "-o", output};
                 Process proc = Runtime.getRuntime().exec(args);
                 proc.waitFor();
-                if (!temp.delete()) {
-                    options.logger.warn(logcategory, "Failed to delete temporary file: %s", temp.getAbsolutePath());
-                }
 
-                options.logger.trace(logcategory, "Wrote SVG: %s", output);
+                if (proc.exitValue() != 0) {
+                    StringBuilder sb = new StringBuilder();
+                    int ch;
+                    while ((ch = proc.getErrorStream().read()) >= 0) {
+                        sb.appendCodePoint(ch);
+                    }
+                    options.getLogger().error(logcategory, "Failed to write SVG: %s", sb.toString());
+                } else {
+                    options.getLogger().trace(logcategory, "Wrote SVG: %s", output);
+                    if (!temp.delete()) {
+                        options.getLogger().warn(logcategory, "Failed to delete temporary file: %s", temp.getAbsolutePath());
+                        temp.deleteOnExit();
+                    }
+                }
             }
         } catch (Exception ex) {
             System.err.println("Failed to write SVG: " + ex.getMessage());
@@ -628,6 +627,9 @@ class Main {
         @Parameter(names = {"-help", "-h", "--help"}, help = true, description = "Display help")
         public boolean help = false;
 
+        @Parameter(names = {"-c", "--config"}, description = "Load a specific configuration file")
+        public String configFile = null;
+
         @Parameter(names = {"-g", "--grammar"}, description = "The input grammar")
         public String grammar = null;
 
@@ -652,7 +654,7 @@ class Main {
         @Parameter(names = {"--no-output"}, description = "Don't print the output")
         public boolean suppressOutput = false;
 
-        @Parameter(names = {"-c", "--compiled-grammar"}, description = "Save the compiled grammar")
+        @Parameter(names = {"--compiled-grammar"}, description = "Save the compiled grammar")
         public String compiledGrammar = null;
 
         @Parameter(names = {"-t", "--time"}, description = "Display timing information")

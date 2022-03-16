@@ -55,13 +55,13 @@ public class Cache {
         CaptureErrors capture = new CaptureErrors();
         processor.getUnderlyingConfiguration().setLogger(capture);
 
-        if (options.cacheDir == null) {
+        if (options.getCacheDir() == null) {
             cacheDir = null;
             globalCache = false;
             return;
         }
 
-        String useDir = options.cacheDir;
+        String useDir = options.getCacheDir();
         globalCache = useDir.startsWith(filesep);
 
         if (globalCache) {
@@ -76,10 +76,10 @@ public class Cache {
     private boolean cacheExists(String useDir) {
         File cache = new File(useDir);
         if (cache.mkdirs()) {
-            options.logger.trace(logcategory, "Created cache: %s", useDir);
+            options.getLogger().trace(logcategory, "Created cache: %s", useDir);
         } else {
             if (!cache.exists() || !cache.isDirectory() || !cache.canWrite()) {
-                options.logger.warn(logcategory, "Cannot use cache: %s", useDir);
+                options.getLogger().warn(logcategory, "Cannot use cache: %s", useDir);
                 return false;
             }
         }
@@ -113,7 +113,7 @@ public class Cache {
                 }
                 cached = cache.resolve(sb.toString() + ".cxml");
             } catch (NoSuchAlgorithmException ex) {
-                options.logger.error(logcategory, "Failed to create message digest: %s", ex.getMessage());
+                options.getLogger().error(logcategory, "Failed to create message digest: %s", ex.getMessage());
                 return grammar;
             }
         } else {
@@ -175,7 +175,7 @@ public class Cache {
 
         URI cacheURI = getCacheURI(grammar);
         if (cacheURI == grammar) {
-            options.logger.debug(logcategory, "Not cached: %s", grammar);
+            options.getLogger().debug(logcategory, "Not cached: %s", grammar);
             return;
         }
 
@@ -189,7 +189,7 @@ public class Cache {
         try {
             builder.build(source);
         } catch (SaxonApiException ex) {
-            options.logger.warn(logcategory, "Cannot cache compiled grammar: %s", ex.getMessage());
+            options.getLogger().warn(logcategory, "Cannot cache compiled grammar: %s", ex.getMessage());
             return;
         }
 
@@ -199,7 +199,7 @@ public class Cache {
             ps.println(compiledGrammar);
             ps.close();
         } catch (IOException ex) {
-            options.logger.warn(logcategory, "Failed to write cache: %s: %s", cacheURI, ex.getMessage());
+            options.getLogger().warn(logcategory, "Failed to write cache: %s: %s", cacheURI, ex.getMessage());
         }
     }
 

@@ -11,7 +11,7 @@ import static org.fusesource.jansi.internal.CLibrary.isatty;
  * A progress monitor for input parsing.
  * <p>This implementation of the CoffeeGrinder {@link ProgressMonitor} provides
  * feedback about the progress of the parse against the input. It can operate in three modes, controlled
- * by the {@link ParserOptions#progressBar} setting. If set to "tty", it will only attempt to
+ * by the {@link ParserOptions#getProgressBar()} setting. If set to "tty", it will only attempt to
  * provide progress feedback when the output is a terminal.</p>
  */
 public class ProgressBar implements ProgressMonitor {
@@ -43,7 +43,7 @@ public class ProgressBar implements ProgressMonitor {
         totalSize = total;
         frequency = (total > threshold) ? slowFrequency : fastFrequency;
 
-        showProgress = "true".equals(options.progressBar) || ("tty".equals(options.progressBar) && istty);
+        showProgress = "true".equals(options.getProgressBar()) || ("tty".equals(options.getProgressBar()) && istty);
     }
 
     /**
