@@ -7,7 +7,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
@@ -97,24 +96,6 @@ public class ParserOptionsLoader {
                 URL resource = loader.getResource(propfn);
                 options.getLogger().debug("CoffeePot", "Loading properties: %s", resource);
                 return loadFromStream(stream);
-            }
-
-            // The 'java -jar ...' case...
-            URL[] urls = ((URLClassLoader) loader).getURLs();
-            if (urls.length == 1) {
-                fn = urls[0].getPath();
-                int pos = fn.lastIndexOf("/");
-                if (pos >= 0) {
-                    fn = fn.substring(0, pos);
-                }
-                fn = fn + "/" + propfn;
-
-                propfile = new File(fn);
-                //System.err.println("FN2:" + fn);
-                if (propfile.exists() && propfile.canRead()) {
-                    options.getLogger().debug("CoffeePot", "Loading properties: %s", fn);
-                    return loadFromFile(propfile);
-                }
             }
 
             options.getLogger().debug("CoffeePot", "Failed to find nineml.properties");

@@ -23,13 +23,6 @@ log-levels=CoffeePot:trace,Parser:info
 pretty-print=true
 progress-bar=tty</programlisting>
 
-<note>
-<para>As a special case, if <application>CoffeePot</application> is run
-directly out of the distributed jar file (i.e., <command>java</command> <option>-jar</option> coffeepot-<?version?>.jar …), it will look for 
-<filename>nineml.properties</filename> in the current directory.
-</para>
-</note>
-
 <para>If the file is found and is a usable Java properties file, the
 following options are read from it:</para>
 
@@ -84,6 +77,12 @@ may be used.
 <para>Setting the progress bar to true or false enables or disables it.
 Setting it to “tty” enables it only if the output is going to a “tty”, an
 interactive computer terminal.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><property>prefix-parsing</property> (boolean)</term>
+<listitem>
+<para>If true, a parse will succeed if it matches a prefix of the input.
 </para>
 </listitem>
 </varlistentry>
