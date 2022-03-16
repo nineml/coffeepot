@@ -36,6 +36,7 @@ public class ParserOptionsLoader {
         PROPERTY_NAMES.add("ignore-trailing-whitespace");
         PROPERTY_NAMES.add("log-levels");
         PROPERTY_NAMES.add("pedantic");
+        PROPERTY_NAMES.add("prefix-parsing");
         PROPERTY_NAMES.add("pretty-print");
         PROPERTY_NAMES.add("progress-bar");
         PROPERTY_NAMES.add("suppress-states");
@@ -133,18 +134,20 @@ public class ParserOptionsLoader {
         prop = new Properties();
         prop.load(stream);
 
-        options.setPrettyPrint("true".equals(getProperty("pretty-print", "false")));
-        options.setIgnoreTrailingWhitespace("true".equals(getProperty("ignore-trailing-whitespace", "false")));
-        options.setTrailingNewlineOnOutput("true".equals(getProperty("trailing-newline-on-output", "true")));
-        options.setPedantic("true".equals(getProperty("pedantic", "false")));
         options.setGraphviz(getProperty("graphviz", null));
         options.setCacheDir(getProperty("cache", null));
-        options.setAssertValidXmlNames("true".equals(getProperty("assert-valid-xml-names", "true")));
 
-        options.setAllowMultipleDefinitions("true".equals(getProperty("allow-multiple-definitions", "false")));
-        options.setAllowUnproductiveSymbols("true".equals(getProperty("allow-unproductive-symbols", "false")));
-        options.setAllowUnreachableSymbols("true".equals(getProperty("allow-unreachable-symbols", "false")));
-        options.setAllowUndefinedSymbols("true".equals(getProperty("allow-undefined-symbols", "false")));
+        options.setPrettyPrint(getBooleanProperty("pretty-print"));
+        options.setIgnoreTrailingWhitespace(getBooleanProperty("ignore-trailing-whitespace"));
+        options.setTrailingNewlineOnOutput(getBooleanProperty("trailing-newline-on-output", true));
+        options.setPedantic(getBooleanProperty("pedantic"));
+        options.setAssertValidXmlNames(getBooleanProperty("assert-valid-xml-names", true));
+        options.setPrefixParsing(getBooleanProperty("prefix-parsing"));
+
+        options.setAllowMultipleDefinitions(getBooleanProperty("allow-multiple-definitions"));
+        options.setAllowUnproductiveSymbols(getBooleanProperty("allow-unproductive-symbols"));
+        options.setAllowUnreachableSymbols(getBooleanProperty("allow-unreachable-symbols"));
+        options.setAllowUndefinedSymbols(getBooleanProperty("allow-undefined-symbols"));
 
         String value = getProperty("default-log-level", null);
         if (value != null) {
@@ -179,6 +182,40 @@ public class ParserOptionsLoader {
         }
 
         return options;
+    }
+
+    private boolean getBooleanProperty(String name) {
+        return getBooleanProperty(name, false);
+    }
+
+    private boolean getBooleanProperty(String name, boolean defaultValue) {
+        if (prop == null || name == null) {
+            return defaultValue;
+        }
+
+        String qualifiedName = "coffeepot." + name;
+        String value;
+        if (prop.containsKey(qualifiedName)) {
+            value = prop.getProperty(qualifiedName);
+        } else {
+            value = prop.getProperty(name, null);
+        }
+
+        if (value == null) {
+            return defaultValue;
+        }
+
+        if ("true".equals(value) || "1".equals(value) || "yes".equals(value)) {
+            return true;
+        }
+
+        if ("false".equals(value) || "0".equals(value) || "no".equals(value)) {
+            return false;
+        }
+
+        options.getLogger().warn("CoffeePot",
+                "Unrecognized boolean value '%s', assuming %s", value, defaultValue);
+        return defaultValue;
     }
 
     private String getProperty(String name, String defaultValue) {
