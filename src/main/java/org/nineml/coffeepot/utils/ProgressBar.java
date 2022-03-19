@@ -27,8 +27,14 @@ public class ProgressBar implements ProgressMonitor {
     /** The threshold between small and large parses. */
     public static final int threshold = 8192;
 
-    private static final int barWidth = 40;
-    private static final boolean istty = isatty(STDOUT_FILENO) == 1;
+    public static final int barWidth = 40;
+    public static final double barDelta = 1.0 / barWidth;
+    public static final boolean istty = true || isatty(STDOUT_FILENO) == 1;
+
+    private final String emptyCell;
+    private final String fullCell;
+    private final String[] shades;
+
     private final boolean showProgress;
     private final int frequency;
     private final long totalSize;
@@ -40,9 +46,23 @@ public class ProgressBar implements ProgressMonitor {
      * @param total The total size of the input
      */
     public ProgressBar(ParserOptions options, long total) {
+        if (options.getProgressBarCharacters().length() <= 2) {
+            emptyCell = options.getProgressBarCharacters().substring(0, 1);
+            fullCell = options.getProgressBarCharacters().substring(1, 2);
+            shades = null;
+        } else {
+            String bar = options.getProgressBarCharacters();
+            emptyCell = bar.substring(0,1);
+            fullCell = bar.substring(bar.length()-1);
+            shades = new String[bar.length() - 1];
+            shades[0] = emptyCell;
+            for (int pos = 1; pos < bar.length() - 1; pos++) {
+                shades[pos] = bar.substring(pos, pos+1);
+            }
+        }
+
         totalSize = total;
         frequency = (total > threshold) ? slowFrequency : fastFrequency;
-
         showProgress = "true".equals(options.getProgressBar()) || ("tty".equals(options.getProgressBar()) && istty);
     }
 
@@ -77,19 +97,40 @@ public class ProgressBar implements ProgressMonitor {
         long remaining = (long) ((totalSize - tokens) / tpms);
 
         if (istty) {
-            StringBuilder sb = new StringBuilder();
-            for (int p = 0; p < barWidth; p++) {
-                if (p > completed) {
-                    sb.append(".");
-                } else {
-                    sb.append("#");
-                }
-            }
-
-            System.out.printf("%5.1f%% (%d t/s) %s %s     \r", percent * 100.0, (long) (tpms * 1000.0), sb, timer.elapsed(remaining));
+            System.out.printf("%5.1f%% (%d t/s) %s %s     \r", percent * 100.0, (long) (tpms * 1000.0), bar(percent), timer.elapsed(remaining));
         } else {
             System.out.printf("%5.1f%% (%d t/s) %s%n", percent * 100.0, (long) (tpms * 1000.0), timer.elapsed(remaining));
         }
+    }
+
+    /**
+     * Return a progress bar.
+     * <p>This method is really only public for testing.</p>
+     * @param percent the percentage
+     * @return a progress bar
+     * @throws IllegalArgumentException if percent &lt; 0 or percent &gt; 1
+     */
+    public String bar(double percent) {
+        if (percent < 0.0 || percent > 1.0) {
+            throw new IllegalArgumentException("Percentage out of range: " + percent);
+        }
+        StringBuilder sb = new StringBuilder();
+        for (int pos = 0; pos < barWidth; pos++) {
+            double segment = barDelta * pos;
+            if (segment >= percent) {
+                sb.append(emptyCell);
+            } else if (segment + barDelta > percent) {
+                if (shades == null) {
+                    sb.append(emptyCell);
+                } else {
+                    int idx = (int) Math.round(((percent - segment) * shades.length) / barDelta);
+                    sb.append(shades[Math.min(idx, shades.length - 1)]);
+                }
+            } else {
+                sb.append(fullCell);
+            }
+        }
+        return sb.toString();
     }
 
     /**

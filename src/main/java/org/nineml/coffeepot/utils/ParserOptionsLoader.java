@@ -156,6 +156,31 @@ public class ParserOptionsLoader {
             options.getLogger().warn("CoffeePot", "Unrecognized progress-bar option: %s", value);
         }
 
+        value = getProperty("progress-bar-style", "plain");
+        if (value != null) {
+            switch (value) {
+                case "ascii":
+                case "plain":
+                    options.setProgressBarCharacters(".#");
+                    break;
+                case "lines":
+                    options.setProgressBarCharacters("-=");
+                    break;
+                case "blocks":
+                    options.setProgressBarCharacters(" ▏▎▍▌▋▊▉█");
+                    break;
+                case "shades":
+                    options.setProgressBarCharacters(" ░▒▓█");
+                    break;
+                default:
+                    options.getLogger().warn("CoffeePot", "Unrecognized progress-bar-style: %s", value);
+            }
+        }
+
+        value = getProperty("progress-bar-characters", "null");
+
+
+
         for (String name : prop.stringPropertyNames()) {
             if (!PROPERTY_NAMES.contains(name)) {
                 options.getLogger().debug("CoffeePot", "Unknown property name: %s", name);
