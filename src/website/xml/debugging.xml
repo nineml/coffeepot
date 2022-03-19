@@ -61,9 +61,13 @@ those won’t work.</para>
 
 <programlisting linenumbering="unnumbered"
 ><![CDATA[$ coffeepot -pp -g:examples/err02.ixml frog,sat,log
-<parse-failed xmlns:ixml="http://invisiblexml.org/NS" ixml:state="failed">
-   <last-token line="1" column="3" token-count="2">'r'</last-token>
-</parse-failed>]]></programlisting>
+<fail xmlns:ixml="http://invisiblexml.org/NS" ixml:state="failed">
+   <line>1</line>
+   <column>3</column>
+   <pos>2</pos>
+   <unexpected>r</unexpected>
+   <permitted>["aeuiyo"]</permitted>
+</fail>]]></programlisting>
 
 <para>There is no universally correct answer to the question: is your
 grammar incorrect or is your input incorrect? In fact, if what you
@@ -142,9 +146,13 @@ the next match, a vowel in both cases. Not surprising since “r” isn’t a vo
 
 <programlisting linenumbering="unnumbered"
 ><![CDATA[$ coffeepot -pp -g:examples/err02.ixml  cat,ate,rat
-<parse-failed xmlns:ixml="http://invisiblexml.org/NS" ixml:state="failed">
-   <last-token line="1" column="6" token-count="5">'a'</last-token>
-</parse-failed>]]></programlisting>
+<fail xmlns:ixml="http://invisiblexml.org/NS" ixml:state="failed">
+   <line>1</line>
+   <column>6</column>
+   <pos>5</pos>
+   <unexpected>a</unexpected>
+   <permitted>["bcdfghjklmnpqrstvwxyz"]</permitted>
+</fail>]]></programlisting>
 
 <para>The state chart isn’t the only tool we have to understand what went wrong.
 We can also look at what was in the parse forest with the <option>--graph-svg</option>

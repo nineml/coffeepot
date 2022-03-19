@@ -65,6 +65,15 @@ dependencies {
     [group: 'org.fusesource.jansi', name: 'jansi', version: '2.4.0'],
     [group: 'net.sf.saxon', name: 'Saxon-HE', version: saxonVersion]
   )
+  testImplementation (
+    [group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.4.2'],
+    [group: 'org.junit.platform', name: 'junit-platform-console-standalone', version: '1.7.1'],
+  )
+  testRuntimeOnly (
+    [group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.4.2'],
+    [group: 'org.junit.vintage', name: 'junit-vintage-engine', version: '5.4.2'],
+    [group: 'org.junit.platform', name: 'junit-platform-runner', version: '1.8.2']
+  )
   documentation (
     [group: saxonGroup, name: saxonEdition, version: saxonVersion],
     [group: 'org.docbook', name: 'schemas-docbook', version: docbookVersion],
@@ -83,6 +92,10 @@ saxon.configure {
 
 docker_container.configure {
   workingDir = "docker"
+}
+
+tasks.withType(Test) {
+  useJUnitPlatform()
 }
 
 public String dateTime() {

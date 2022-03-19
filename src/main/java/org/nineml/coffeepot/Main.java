@@ -29,6 +29,7 @@ import java.util.*;
 class Main {
     public static final String logcategory = "CoffeePot";
     enum OutputFormat { XML, JSON_DATA, JSON_TREE, CSV }
+    ProgressBar progress = null;
     ParserOptions options;
 
     public static void main(String[] args) {
@@ -37,6 +38,9 @@ class Main {
             int rc = driver.run(args);
             System.exit(rc);
         } catch (Exception ex) {
+            if (driver.progress != null) {
+                System.err.println();
+            }
             System.err.println(ex.getMessage());
             System.exit(2);
         }
@@ -301,7 +305,6 @@ class Main {
             return 0;
         }
 
-        ProgressBar progress;
         InvisibleXmlDocument doc;
         if (cmain.inputFile != null) {
             File ifile = new File(cmain.inputFile);
