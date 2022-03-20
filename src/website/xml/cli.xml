@@ -14,6 +14,10 @@ with a command like:</para>
 <para>It may be more convenient, however, to write a small batch file or shell script
 to run it with an explicit classpath, <xref linkend="configuration"/>.</para>
 
+<para>In the examples that follow, we assume that “<code>coffeepot</code>” will run
+<application>CoffeePot</application>. Depending on how you’ve installed it, you may have to
+substitute <code>java -jar /path/to/coffeepot.jar</code> or some other variation.</para>
+
 <section xml:id="cli">
 <title>The command line</title>
 
