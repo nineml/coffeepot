@@ -684,7 +684,7 @@ class Main {
         @Parameter(names = {"--show-chart"}, description = "Show the underlying Earley chart")
         public boolean showChart = false;
 
-        @Parameter(names = {"--format"}, description = "Output format (xml, json-data, json-tree, or csv")
+        @Parameter(names = {"--format"}, description = "Output format (xml, json-data, json-tree, or csv)")
         public String outputFormat = null;
 
         @Parameter(names = {"--suppress"}, description = "States to ignore in the output")
