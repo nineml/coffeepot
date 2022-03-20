@@ -47,6 +47,7 @@ into requests against the underlying libraries.</para>
 
 </preface>
 
+<xi:include href="install.xml"/>
 <xi:include href="cli.xml"/>
 <xi:include href="how.xml"/>
 <xi:include href="debugging.xml"/>
