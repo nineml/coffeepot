@@ -85,10 +85,22 @@ when it couldn’t continue. In this case, note that it read as far as
 the third character, but in fact had failed at the second, the “r”.
 </para>
 
-<para>Why aren’t the numbers more accurate? The short answer is: because the parser
-can’t know that it won’t succeed until it’s “run out” of possible matches. That almost
-always means reading at least one character past the error, but sometimes several.
+<para>Why aren’t the numbers more accurate? The short answer is:
+because the parser can’t know that it won’t succeed until it’s “run
+out” of possible matches. That almost always means reading at least
+one character past the error, but sometimes several.
 </para>
+
+<note>
+<title>Also predicted…</title>
+<para>Sometimes, in addition to a list of permitted tokens, you’ll get
+an additional set of “also predicted” tokens. This happens when the
+parser is in the middle of something that could have continued (with
+one of the permitted tokens), but the parser has also made predictions
+about what could come <emphasis>after</emphasis> what it’s trying to
+finish. The also predicted tokens are an indication of what it would have
+accepted next.</para>
+</note>
 
 <para>With this simple grammar, it’s not too hard to look at the input
 and work out that “frog” is neither “consonant-vowel-consonant” nor
