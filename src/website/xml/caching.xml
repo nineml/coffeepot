@@ -1,4 +1,4 @@
-<chapter xmlns="http://docbook.org/ns/docbook"
+<appendix xmlns="http://docbook.org/ns/docbook"
          xmlns:xi='http://www.w3.org/2001/XInclude'
          xmlns:xlink="http://www.w3.org/1999/xlink"
          xml:id="caching"
@@ -27,4 +27,4 @@ absolute filename.</para>
 <para>The cache directory must be configured; if it's unconfigured, no
 caching is performed.</para>
 
-</chapter>
+</appendix>

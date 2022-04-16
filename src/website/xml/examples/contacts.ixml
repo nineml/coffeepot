@@ -1,0 +1,19 @@
+{[nineml csv-columns email,name]} .
+
+contacts: (contact, NL*)+ .
+contact: name, NL, (email, NL)?, (phone, NL)? .
+
+{[nineml csv-heading "Full Name"]}
+name: letter, ~[#a; "@"]* .
+
+{[nineml csv-heading "E-Mail"]}
+email: username, "@", domainname .
+
+{[nineml csv-heading "Phone Number"]}
+phone: ["+0123456789()- "]+ .
+
+-username: (letter; ["+-."])+ .
+-domainname: (letter; ["+-."])+ .
+
+-letter: [L] .
+-NL: -#a ; -#d, -#a .

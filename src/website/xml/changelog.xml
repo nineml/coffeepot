@@ -1,0 +1,45 @@
+<appendix xmlns="http://docbook.org/ns/docbook"
+          xmlns:xi='http://www.w3.org/2001/XInclude'
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          version="5.2"
+          xml:id="changelog">
+<title>Change log</title>
+
+<revhistory>
+<revision>
+  <date>2022-04-16</date>
+  <revdescription>
+    <para>Support for the 15 April 2022 specification, version 1.1.0</para>
+    <para>The most significant changes are:</para>
+    <orderedlist>
+      <listitem><para>The “<symbol>repeat0</symbol>” and “<symbol>repeat1</symbol>”
+      separator characters are now doubled: “<literal>item*','</literal>” becomes
+      “<literal>item**','</literal>”, and “<literal>item+','</literal>” becomes
+      “<literal>item++','</literal>”.</para>
+      </listitem>
+      <listitem><para>The semantics of “^” before a literal have changed. It now
+      signals an insertion. The grammar fragment “<literal>'a', ^'-', 'b'</literal>”
+      matches an “a” followed <emphasis>immediately</emphasis> by a “b”, but the
+      XML output will be “a-b”. The text marked “^” matches nothing but is inserted
+      in the output. The insertion character
+      <link xlink:href="https://github.com/invisibleXML/ixml/issues/72">may change</link>.
+    </para>
+      </listitem>
+      <listitem><para>At least one whitespace character or comment is required
+      between rules. (This is very unlikely to have any practical consequence
+      since most grammar authors start a new rule on a new line. But where
+      “<literal>a:'1'.b:'2'.</literal> used to be allowed, you must now
+      write “<literal>a:'1'. b:'2'.</literal>. This avoids
+      <link xlink:href="https://github.com/invisibleXML/ixml/issues/48">an ambiguity</link>
+      in the grammar.)</para>
+      </listitem>
+    </orderedlist>
+  </revdescription>
+</revision>
+<revision>
+  <date>2022-03-20</date>
+  <revremark>Initial release, version 1.0.0</revremark>
+</revision>
+</revhistory>
+
+</appendix>
