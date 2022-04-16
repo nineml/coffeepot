@@ -1,0 +1,42 @@
+date: text-date ; iso-date .
+-text-date: day, s, month, s, year .
+-iso-date: year, dash, nmonth, dash, day .
+
+-s: -' '+ .
+-dash: -'-' .
+
+year: digit, digit, digit, digit .
+day: digit?, digit .
+
+{
+{[nineml rename month]} nmonth: digit, digit .
+}
+
+{[nineml rename month]}
+nmonth: {[nineml rewrite "January"]} "01";
+       {[nineml rewrite "February"]} "02";
+       {[nineml rewrite "March"]} "03";
+       {[nineml rewrite "April"]} "04";
+       {[nineml rewrite "May"]} "05";
+       {[nineml rewrite "June"]} "06";
+       {[nineml rewrite "July"]} "07";
+       {[nineml rewrite "August"]} "08";
+       {[nineml rewrite "September"]} "09";
+       {[nineml rewrite "October"]} "10";
+       {[nineml rewrite "November"]} "11";
+       {[nineml rewrite "December"]} "12" .
+
+month: "January";   {[nineml rewrite "January"]}   "Jan";
+       "February";  {[nineml rewrite "February"]}  "Feb";
+       "March";     {[nineml rewrite "March"]}     "Mar";
+       "April";     {[nineml rewrite "April"]}     "Apr";
+       "May";
+       "June";      {[nineml rewrite "June"]}      "Jun";
+       "July";      {[nineml rewrite "July"]}      "Jul";
+       "August";    {[nineml rewrite "August"]}    "Aug";
+       "September"; {[nineml rewrite "September"]} "Sep";
+       "October";   {[nineml rewrite "October"]}   "Oct";
+       "November";  {[nineml rewrite "November"]}  "Nov";
+       "December";  {[nineml rewrite "December"]}  "Dec" .
+
+-digit: ["0"-"9"] .
