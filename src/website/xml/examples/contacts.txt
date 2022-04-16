@@ -1,0 +1,13 @@
+John Doe
+john@example.com
+555-0100
+
+Mary Smith
+m.smith@estaff.example.com
++1-222-555-0102
+
+Jane Doe
+(512) 555-0105
+
+Nancy Jones
+nancy@example.org

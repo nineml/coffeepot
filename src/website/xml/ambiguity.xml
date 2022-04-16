@@ -47,10 +47,10 @@ There are 2 possible parses.
 <para>This is an example of an essential ambiguity; you can’t “fix”
 this grammar. But let’s dig a little deeper anyway. For a small number
 of parses, one way to investigate the ambiguity is to simply list them
-all with <option>-p:all</option>:</para>
+all with <option>--parse-count:all</option>:</para>
 
 <programlisting linenumbering="unnumbered"
-><![CDATA[$ coffeepot -pp -g:examples/ambig01.ixml -p:all Shimmer
+><![CDATA[$ coffeepot -pp -g:examples/ambig01.ixml --parse-count:all Shimmer
 <ixml parses='2' totalParses='2'>
 <product xmlns:ixml="http://invisiblexml.org/NS" ixml:state="ambiguous">
    <floor-wax>Shimmer</floor-wax>
@@ -128,7 +128,7 @@ $$, 0, 1
 <application>coffeepot</application> will enumerate are:</para>
 
 <programlisting linenumbering="unnumbered"
-><![CDATA[$ coffeepot -pp -g:examples/ambig02.ixml -p:all a
+><![CDATA[$ coffeepot -pp -g:examples/ambig02.ixml --parse-count:all a
 <ixml parses='2' totalParses='2'>
 <expr xmlns:ixml="http://invisiblexml.org/NS" ixml:state="ambiguous">
    <expr>a</expr>

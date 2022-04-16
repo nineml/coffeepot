@@ -188,9 +188,9 @@ one or more times.</para>
 </section>
 
 <section xml:id="earleymapping06">
-<title>Mapping “x1*x2”</title>
+<title>Mapping “x1**x2”</title>
 
-<para>Invisible XML uses “*” between two symbols to indicate
+<para>Invisible XML uses “**” between two symbols to indicate
 that the first symbol may be repeated zero or more times, separated by
 the second. For example, <code>name*','</code> accepts zero or more names
 (however they’re defined) separated by commas.</para>
@@ -215,9 +215,9 @@ the second. For example, <code>name*','</code> accepts zero or more names
 </section>
 
 <section xml:id="earleymapping07">
-<title>Mapping “x1+x2”</title>
+<title>Mapping “x1++x2”</title>
 
-<para>Invisible XML uses “+” between two symbols to indicate
+<para>Invisible XML uses “++” between two symbols to indicate
 that the first symbol may be repeated one or more times, separated by
 the second.</para>
 
@@ -269,6 +269,11 @@ a real grammar in any useful sense.)</para>
 <para>The marks added to the grammar that reflect how (or if) a symbol
 should be output have no effect on the rule rewriting. They’re handled as attributes on
 the symbols.</para>
+</section>
+
+<section xml:id="insertions">
+<title>Insertions</title>
+<para>T.B.D.</para>
 </section>
 
 </chapter>

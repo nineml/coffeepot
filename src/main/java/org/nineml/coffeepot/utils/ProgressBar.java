@@ -29,7 +29,7 @@ public class ProgressBar implements ProgressMonitor {
 
     public static final int barWidth = 40;
     public static final double barDelta = 1.0 / barWidth;
-    public static final boolean istty = true || isatty(STDOUT_FILENO) == 1;
+    public static final boolean istty = isatty(STDOUT_FILENO) == 1;
 
     private final String emptyCell;
     private final String fullCell;
@@ -98,8 +98,6 @@ public class ProgressBar implements ProgressMonitor {
 
         if (istty) {
             System.out.printf("%5.1f%% (%d t/s) %s %s     \r", percent * 100.0, (long) (tpms * 1000.0), bar(percent), timer.elapsed(remaining));
-        } else {
-            System.out.printf("%5.1f%% (%d t/s) %s%n", percent * 100.0, (long) (tpms * 1000.0), timer.elapsed(remaining));
         }
     }
 

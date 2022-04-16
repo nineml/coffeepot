@@ -1,0 +1,173 @@
+<chapter xmlns="http://docbook.org/ns/docbook"
+         xmlns:xi='http://www.w3.org/2001/XInclude'
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xml:id="pragmas"
+         version="5.2">
+<title>Pragmas</title>
+
+<para>It’s possible to influence the behavior of the processor by placing
+pragmas in your grammar.</para>
+
+<important>
+<title>Experimental</title>
+<para>Pragmas are entirely experimental at the moment; they have
+not been accepted into the official grammar by the Community Group.
+It’s possible that the syntax may change.</para>
+<para>If you run <application>CoffeePot</application> with the
+<option>--pedantic</option> option, you cannot use pragmas.</para>
+</important>
+
+<para>A pragma begins with “<code>{[</code>” and is followed by a pragma
+name, pragma data (which may be empty), and closes with
+“<code>]}</code>”. <application>CoffeePot</application> only recognizes pragmas
+with the name “<literal>nineml</literal>”. All other pragmas are ignored.</para>
+
+<para>Pragmas can be associated with the entire grammar or with a rule,
+a nonterminal symbol, or a terminal symbol:</para>
+
+<orderedlist>
+<listitem>
+<para>A pragma placed before a symbol applies to the symbol that follows it:
+</para>
+<programlisting>rule: {[pragma applies to “A”]} A,
+      {[pragma applies to “b”]} 'b'.</programlisting>
+</listitem>
+<listitem>
+<para>A pragma placed before a rule, applies to the rule that follows it:
+</para>
+<programlisting>{[pragma applies to “rule”]}
+rule: {[pragma applies to “A”]} A,
+      {[pragma applies to “b”]} 'b'.</programlisting>
+</listitem>
+<listitem>
+<para>To apply a pragma to the entire grammar, it must precede the first rule
+and it must be followed by a full stop:</para>
+
+<programlisting>{[pragma applies to whole grammar]} .
+
+{[pragma applies to “rule”]}
+rule: {[pragma applies to “A”]} A,
+      {[pragma applies to “b”]} 'b'.</programlisting>
+</listitem>
+</orderedlist>
+
+<para>More than one pragma can appear at any of those locations:</para>
+
+<programlisting>{[pragma applies to whole grammar]} .
+{[second pragma applies to whole grammar ]} .
+
+{[pragma applies to “rule”]}
+{[second pragma applies to “rule”]}
+rule:
+   {[pragma applies to “A”]}
+   {[second pragma applies to “A”]} A,
+   {[pragma applies to “b”]}
+   {[second pragma applies to “b”]} 'b'.</programlisting>
+
+<para>If a pragma is not recognized, or does not apply, it is ignored.
+<application>CoffeePot</application> will generate debug-level log messages to alert you to
+pragmas that it is ignoring.</para>
+
+<section xml:id="pragmas-grammar">
+<title>Grammar pragmas</title>
+
+<para>There are three pragmas that apply to a grammar as a whole.</para>
+
+<section xml:id="pragma-csv-columns">
+<title>csv-columns</title>
+
+<para>Identifies the columns to be output when
+<link linkend="output-csv">CSV output</link> is selected.</para>
+
+<para>Usage:</para>
+<synopsis linenumbering="unnumbered">{[nineml csv-columns <replaceable>list,of,names</replaceable>]}</synopsis>
+
+<para>Ordinarily, CSV formatted output includes all the columns in (roughly)
+the order they occur in the XML. This pragma allows you to list the
+columns you want output and the order in which you want them output.</para>
+
+<para>If a column requested does not exist in the document, it is
+ignored. An empty column is not produced.</para>
+
+</section>
+
+<section xml:id="pragma-import">
+<title>import</title>
+
+<para>Usage:</para>
+<synopsis linenumbering="unnumbered">{[nineml import "grammar-uri"]}</synopsis>
+
+</section>
+
+<section xml:id="pragma-xmlns">
+<title>xmlns</title>
+
+<para>Usage:</para>
+<synopsis linenumbering="unnumbered">{[nineml xmlns "namespace-uri"]}</synopsis>
+
+</section>
+
+
+</section>
+
+<section xml:id="pragmas-rules">
+<title>Rule pragmas</title>
+
+<para>There are four pragmas that apply to a rules.</para>
+
+<section xml:id="pragma-csv-heading">
+<title>csv-heading</title>
+
+<para>Usage:</para>
+<synopsis linenumbering="unnumbered">{[nineml xmlns "Heading Title"]}</synopsis>
+
+</section>
+
+<section xml:id="pragma-discard-empty">
+<title>discard-empty</title>
+
+<para>Usage:</para>
+<synopsis linenumbering="unnumbered">{[nineml discard empty]}</synopsis>
+
+</section>
+
+<section xml:id="pragma-combine">
+<title>combine</title>
+
+<para>Usage:</para>
+<synopsis linenumbering="unnumbered">{[nineml combine]}</synopsis>
+
+</section>
+<section xml:id="pragma-regex">
+<title>regex</title>
+
+<para>Usage:</para>
+<synopsis linenumbering="unnumbered">{[nineml regex "regular expression"]}</synopsis>
+
+</section>
+
+</section>
+
+<section xml:id="pragmas-symbols">
+<title>Symbol pragmas</title>
+
+<para>There are two pragmas that apply to a symbols.</para>
+
+<section xml:id="pragma-rename">
+<title>rename</title>
+
+<para>Usage:</para>
+<synopsis linenumbering="unnumbered">{[nineml rename newname]}</synopsis>
+
+</section>
+
+<section xml:id="pragma-rewrite">
+<title>rewrite</title>
+
+<para>Usage:</para>
+<synopsis linenumbering="unnumbered">{[nineml rewrite "new literal"]}</synopsis>
+
+</section>
+</section>
+
+</chapter>
