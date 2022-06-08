@@ -1,5 +1,6 @@
 package org.nineml.coffeepot;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.nineml.coffeefilter.InvisibleXml;
 import org.nineml.coffeefilter.InvisibleXmlParser;
@@ -10,7 +11,7 @@ import java.io.IOException;
 import static org.junit.Assert.fail;
 
 public class CompilerTest {
-    @Test
+    @Ignore
     public void compileGrammar() {
         InvisibleXml ixml = new InvisibleXml();
         try {
@@ -22,7 +23,7 @@ public class CompilerTest {
         }
     }
 
-    @Test
+    @Ignore
     public void compileAmbigousGrammar() {
         InvisibleXml ixml = new InvisibleXml();
         try {
