@@ -1,6 +1,6 @@
 package org.nineml.coffeepot.utils;
 
-import org.nineml.coffeegrinder.parser.EarleyParser;
+import org.nineml.coffeegrinder.parser.GearleyParser;
 import org.nineml.coffeegrinder.parser.ProgressMonitor;
 import org.nineml.coffeegrinder.util.StopWatch;
 
@@ -72,7 +72,7 @@ public class ProgressBar implements ProgressMonitor {
      * @return the update frequency
      */
     @Override
-    public int starting(EarleyParser parser) {
+    public int starting(GearleyParser parser) {
         timer = new StopWatch();
         return frequency;
     }
@@ -86,7 +86,7 @@ public class ProgressBar implements ProgressMonitor {
      * @param tokens the number of tokens (characters) processed so far
      */
     @Override
-    public void progress(EarleyParser parser, long tokens) {
+    public void progress(GearleyParser parser, long tokens) {
         if (!showProgress || (totalSize >= 0 && totalSize < minSize)) {
             return;
         }
@@ -137,7 +137,7 @@ public class ProgressBar implements ProgressMonitor {
      * @param parser the parser
      */
     @Override
-    public void finished(EarleyParser parser) {
+    public void finished(GearleyParser parser) {
         if ((!showProgress || (totalSize >= 0 && totalSize < minSize))) {
             return;
         }
