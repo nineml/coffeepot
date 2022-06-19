@@ -8,11 +8,12 @@ import org.nineml.coffeefilter.InvisibleXmlParser;
 import org.nineml.coffeefilter.exceptions.IxmlException;
 import org.nineml.coffeefilter.trees.*;
 import org.nineml.coffeefilter.utils.URIUtils;
-import org.nineml.coffeegrinder.parser.*;
-import org.nineml.coffeepot.utils.Cache;
-import org.nineml.coffeepot.utils.ParserOptions;
-import org.nineml.coffeepot.utils.ParserOptionsLoader;
-import org.nineml.coffeepot.utils.ProgressBar;
+import org.nineml.coffeegrinder.parser.GearleyResult;
+import org.nineml.coffeegrinder.parser.ParseTree;
+import org.nineml.coffeegrinder.parser.Rule;
+import org.nineml.coffeegrinder.parser.SourceGrammar;
+import org.nineml.coffeegrinder.util.NopTreeBuilder;
+import org.nineml.coffeepot.utils.*;
 import org.xml.sax.InputSource;
 
 import javax.xml.transform.sax.SAXSource;
@@ -23,7 +24,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.TimeZone;
 
 /**
  * A command-line Invisible XML parser.
@@ -33,6 +37,7 @@ class Main {
     enum OutputFormat { XML, JSON_DATA, JSON_TREE, CSV }
     ProgressBar progress = null;
     ParserOptions options;
+    VerboseEventBuilder eventBuilder;
 
     public static void main(String[] args) {
         Main driver = new Main();
@@ -100,6 +105,16 @@ class Main {
         options.setShowBnfNonterminals(cmain.showHiddenNonterminals);
         if (cmain.suppressCache) {
             options.setCacheDir(null);
+        }
+
+        if (cmain.gllParser) {
+            options.setParserType("GLL");
+        }
+        if (cmain.earleyParser) {
+            if (cmain.gllParser) {
+                options.getLogger().error(logcategory, "Only one parser is allowed, using Earley.");
+            }
+            options.setParserType("Earley");
         }
 
         if (cmain.version) {
@@ -262,7 +277,7 @@ class Main {
         if (parser.constructed()) {
             parser.getHygieneReport();
             if (grammarURI != null && grammarURI == cachedURI) { // it *didn't* get read from the cache...
-                Grammar grammar = parser.getGrammar();
+                SourceGrammar grammar = parser.getGrammar();
                 grammar.setMetadataProperty("uri", grammarURI.toString());
                 grammar.setMetadataProperty("coffeepot-version", BuildConfig.VERSION);
 
@@ -289,7 +304,7 @@ class Main {
         }
 
         if (cmain.showGrammar) {
-            System.out.println("The Earley grammar:");
+            System.out.printf("The %s grammar:%n", options.getParserType());
             for (Rule rule : parser.getGrammar().getRules()) {
                 System.out.println(rule);
             }
@@ -308,6 +323,8 @@ class Main {
         if (cmain.inputFile == null && input == null) {
             return 0;
         }
+
+        eventBuilder = new VerboseEventBuilder(parser.getIxmlVersion(), options);
 
         InvisibleXmlDocument doc;
         if (cmain.inputFile != null) {
@@ -348,57 +365,45 @@ class Main {
             graphForest(doc.getResult(), options, cmain.graphSvg);
         }
 
-        Ambiguity ambiguity;
         boolean infambig = false;
         if (doc.succeeded()) {
-            ambiguity = doc.getResult().getForest().getAmbiguity();
-            infambig = ambiguity.getInfinitelyAmbiguous();
-        } else {
-            ambiguity = null;
+            infambig = doc.getResult().isInfinitelyAmbiguous();
         }
 
         if (doc.getNumberOfParses() > 1 || infambig) {
-            assert ambiguity != null;
-
             if (!doc.getOptions().isSuppressedState("ambiguous")) {
                 if (doc.getNumberOfParses() == 1) {
-                    System.out.println("There is 1 parse, but the grammar is infinitely ambiguous");
+                    System.out.println("Found 1 parse, but the grammar is infinitely ambiguous");
                 } else {
                     if (infambig) {
-                        System.out.printf("There are %s possible parses (of infinitely many).%n", doc.getExactNumberOfParses().toString());
+                        System.out.printf("Found %,d possible parses (of infinitely many).%n", doc.getNumberOfParses());
                     } else {
-                        System.out.printf("There are %s possible parses.%n", doc.getExactNumberOfParses().toString());
+                        System.out.printf("Found %,d possible parses.%n", doc.getNumberOfParses());
                     }
                 }
             }
             if (cmain.describeAmbiguity) {
-                if (ambiguity.getInfinitelyAmbiguous()) {
+                if (infambig) {
                     System.out.println("Infinite ambiguity:");
                 } else {
                     System.out.println("Ambiguity:");
                 }
-                if (ambiguity.getRoots().size() > 1) {
-                    System.out.printf("Graph has %d roots.%n", ambiguity.getRoots().size());
-                }
-                for (ForestNode node : ambiguity.getChoices().keySet()) {
-                    System.out.println(node);
-                    for (Family family : ambiguity.getChoices().get(node)) {
-                        System.out.println("\t" + family);
-                    }
-                }
             }
         }
 
-        if (doc.getNumberOfParses() > 0 && startingParse > doc.getNumberOfParses()) {
-            System.out.println("There are only " + doc.getExactNumberOfParses() + " possible parses.");
-            return 1;
-        }
+        NopContentHandler handler = new NopContentHandler();
+        eventBuilder.setHandler(handler);
 
         if (!cmain.suppressOutput) {
-            boolean more = true;
-            for (int pos = 1; more && pos < startingParse; pos++) {
-                more = doc.nextTree();
+            for (int pos = 1; pos < startingParse; pos++) {
+                doc.getTree(eventBuilder);
+                if (!doc.moreParses()) {
+                    System.out.printf("Ran out of parses after %d.%n", pos);
+                    return 1;
+                }
             }
+
+            eventBuilder.verbose = cmain.describeAmbiguity;
 
             PrintStream output = System.out;
             if (cmain.outputFile != null) {
@@ -432,7 +437,7 @@ class Main {
                 doc.getOptions().suppressState("ambiguous");
 
                 if (outputFormat == OutputFormat.JSON_DATA || outputFormat == OutputFormat.JSON_TREE) {
-                    output.printf("{\"ixml\":{\"parses\":%d, \"totalParses\":%d,%n", max, doc.getExactNumberOfParses());
+                    output.printf("{\"ixml\":{\"parses\":%d, \"totalParses\":%d,%n", max, doc.getNumberOfParses());
                     if (!"".equals(state)) {
                         output.printf("\"ixml:state\": \"%s\",%n", state);
                     }
@@ -442,16 +447,17 @@ class Main {
                     if (!"".equals(state)) {
                         output.printf(" xmlns:ixml='http://invisiblexml.org/NS' ixml:state='%s'", state);
                     }
-                    output.printf(" parses='%d' totalParses='%s'>%n", max, doc.getExactNumberOfParses());
+                    output.printf(" parses='%d' totalParses='%s'>%n", max, doc.getNumberOfParses());
                 }
 
+                boolean more = true;
                 for (int pos = 0; more && pos < max; pos++) {
                     if ((outputFormat == OutputFormat.JSON_DATA || outputFormat == OutputFormat.JSON_TREE)
                          && pos > 0) {
                         output.println(",");
                     }
                     serialize(output, doc, outputFormat);
-                    more = doc.nextTree();
+                    more = doc.moreParses();
                 }
 
                 if (outputFormat == OutputFormat.JSON_DATA || outputFormat == OutputFormat.JSON_TREE) {
@@ -463,14 +469,6 @@ class Main {
                 serialize(output, doc, outputFormat);
                 if (options.getTrailingNewlineOnOutput()) {
                     output.println();
-                }
-
-                if (cmain.treeXml != null) {
-                    doc.getParseTree().serialize(cmain.treeXml);
-                }
-
-                if (cmain.treeSvg != null) {
-                    graphTree(doc.getParseTree(), options, cmain.treeSvg);
                 }
             }
         }
@@ -488,7 +486,8 @@ class Main {
             case CSV:
                 options.setAssertValidXmlNames(false);
                 dataBuilder = new DataTreeBuilder(options);
-                doc.getTree(dataBuilder);
+                eventBuilder.setHandler(dataBuilder);
+                doc.getTree(eventBuilder);
                 dataTree = dataBuilder.getTree();
                 List<CsvColumn> columns = dataTree.prepareCsv();
                 if (columns == null) {
@@ -500,19 +499,23 @@ class Main {
             case JSON_DATA:
                 options.setAssertValidXmlNames(false);
                 dataBuilder = new DataTreeBuilder(options);
-                doc.getTree(dataBuilder);
+                eventBuilder.setHandler(dataBuilder);
+                doc.getTree(eventBuilder);
                 dataTree = dataBuilder.getTree();
                 output.print(dataTree.asJSON());
                 break;
             case JSON_TREE:
                 options.setAssertValidXmlNames(false);
                 simpleBuilder = new SimpleTreeBuilder(options);
-                doc.getTree(simpleBuilder);
+                eventBuilder.setHandler(simpleBuilder);
+                doc.getTree(eventBuilder);
                 simpleTree = simpleBuilder.getTree();
                 output.print(simpleTree.asJSON());
                 break;
             default:
-                doc.getTree(output);
+                StringTreeBuilder handler = new StringTreeBuilder(options, output);
+                eventBuilder.setHandler(handler);
+                doc.getTree(eventBuilder);
         }
     }
 
@@ -585,7 +588,7 @@ class Main {
 
                 // Store the dot file somewhere
                 File temp = File.createTempFile("jixp", ".dot");
-                PrintWriter dot = new PrintWriter(new FileOutputStream(temp));
+                PrintWriter dot = new PrintWriter(Files.newOutputStream(temp.toPath()));
                 dot.println(destination.getXdmNode().getStringValue());
                 dot.close();
 
@@ -646,12 +649,6 @@ class Main {
         @Parameter(names = {"-G", "--graph-svg"}, description = "Output an SVG graph of the forest")
         public String graphSvg = null;
 
-        @Parameter(names = {"--tree-xml"}, description = "Output an XML description of the parse tree")
-        public String treeXml = null;
-
-        @Parameter(names = {"-T", "--tree-svg"}, description = "Output an SVG graph of the parse tree")
-        public String treeSvg = null;
-
         @Parameter(names = {"-i", "--input"}, description = "The input")
         public String inputFile = null;
 
@@ -708,6 +705,12 @@ class Main {
 
         @Parameter(names = {"--show-hidden-nonterminals"}, description = "Show nonterminals generated by the BNF conversion")
         public boolean showHiddenNonterminals = false;
+
+        @Parameter(names = {"--gll"}, description = "Use the GLL parser")
+        public boolean gllParser = false;
+
+        @Parameter(names = {"--earley"}, description = "Use the Earley parser")
+        public boolean earleyParser = false;
 
         @Parameter(description = "The input")
         public List<String> inputText = new ArrayList<>();
