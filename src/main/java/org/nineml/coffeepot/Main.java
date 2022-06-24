@@ -98,6 +98,15 @@ class Main {
         ParserOptionsLoader loader = new ParserOptionsLoader(tempOptions);
         options = loader.loadOptions(cmain.configFile);
 
+        // Make sure we apply the command line log levels to the "real" options
+        if (cmain.logLevels != null) {
+            if (cmain.logLevels.contains(":")) {
+                options.getLogger().setLogLevels(cmain.logLevels);
+            } else {
+                options.getLogger().setLogLevels("*:" + cmain.logLevels);
+            }
+        }
+
         options.setPrettyPrint(options.getPrettyPrint() || cmain.prettyPrint);
         options.setPedantic(options.getPedantic() || cmain.pedantic);
         options.setShowChart(cmain.showChart);
@@ -304,9 +313,43 @@ class Main {
         }
 
         if (cmain.showGrammar) {
-            System.out.printf("The %s grammar:%n", options.getParserType());
+            // Let's align the ::= signs for pretty...
+            ArrayList<String> rules = new ArrayList<>();
+            int indent = 0;
             for (Rule rule : parser.getGrammar().getRules()) {
-                System.out.println(rule);
+                String rulestr = rule.toString();
+                if (rule.rhs.isEmpty()) {
+                    rulestr += "ε";
+                }
+                if (rulestr.indexOf("::=") > indent) {
+                    indent = rulestr.indexOf("::=");
+                }
+                rules.add(rulestr);
+            }
+
+            // Get me some blanks.
+            StringBuilder sb = new StringBuilder();
+            for (int pos = 0; pos < indent; pos++) {
+                sb.append(" ");
+            }
+            String maxIndent = sb.toString();
+
+            String format = "%d";
+            if (rules.size() >= 10) {
+                format = "%2d";
+            }
+            if (rules.size() >= 100) {
+                format = "%3d";
+            }
+            if (rules.size() >= 1000) {
+                format = "%4,d";
+            }
+            format += ". %s%s%n";
+            System.out.printf("The %s grammar (%d rules):%n", options.getParserType(), rules.size());
+            for (int index = 0; index < rules.size(); index++) {
+                String rule = rules.get(index);
+                String indentStr = maxIndent.substring(0, indent - rule.indexOf("::="));
+                System.out.printf(format, index+1, indentStr, rule);
             }
         }
 
@@ -327,21 +370,20 @@ class Main {
         eventBuilder = new VerboseEventBuilder(parser.getIxmlVersion(), options);
 
         InvisibleXmlDocument doc;
-        if (cmain.inputFile != null) {
-            File ifile = new File(cmain.inputFile);
-            if (ifile.exists()) {
-                progress = new ProgressBar(options, ifile.length());
-            } else {
-                progress = new ProgressBar(options ,-1);
-            }
-            parser.getOptions().setProgressMonitor(progress);
 
-            URI inputURI = URIUtils.resolve(URIUtils.cwd(), cmain.inputFile);
-            options.getLogger().trace(logcategory, "Loading input: %s", inputURI);
-            doc = parser.parse(inputURI);
+        progress = new ProgressBar(options);
+        parser.getOptions().setProgressMonitor(progress);
+
+        if (cmain.inputFile != null) {
+            if ("-".equals(cmain.inputFile)) {
+                options.getLogger().debug(logcategory, "Reading standard input");
+                doc = parser.parse(System.in, "UTF-8");
+            } else {
+                URI inputURI = URIUtils.resolve(URIUtils.cwd(), cmain.inputFile);
+                options.getLogger().debug(logcategory, "Loading input: %s", inputURI);
+                doc = parser.parse(inputURI);
+            }
         } else {
-            progress = new ProgressBar(options, input.length());
-            parser.getOptions().setProgressMonitor(progress);
             options.getLogger().trace(logcategory, "Input: %s", input);
             doc = parser.parse(input);
         }
