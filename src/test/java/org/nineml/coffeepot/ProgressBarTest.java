@@ -10,7 +10,7 @@ public class ProgressBarTest {
     public void emptyBar() {
         ParserOptions options = new ParserOptions();
         options.setProgressBarCharacters("xy");
-        ProgressBar progress = new ProgressBar(options, 100);
+        ProgressBar progress = new ProgressBar(options);
         String bar = progress.bar(0.0);
         Assertions.assertEquals("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", bar);
     }
@@ -19,7 +19,7 @@ public class ProgressBarTest {
     public void fullBar() {
         ParserOptions options = new ParserOptions();
         options.setProgressBarCharacters("xy");
-        ProgressBar progress = new ProgressBar(options, 100);
+        ProgressBar progress = new ProgressBar(options);
         String bar = progress.bar(1.0);
         Assertions.assertEquals("yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy", bar);
     }
@@ -28,7 +28,7 @@ public class ProgressBarTest {
     public void halfBar() {
         ParserOptions options = new ParserOptions();
         options.setProgressBarCharacters(".#");
-        ProgressBar progress = new ProgressBar(options, 100);
+        ProgressBar progress = new ProgressBar(options);
         String bar = progress.bar(0.5);
         Assertions.assertEquals("####################....................", bar);
     }
@@ -37,7 +37,7 @@ public class ProgressBarTest {
     public void fractions_1_plus_eighths() {
         ParserOptions options = new ParserOptions();
         options.setProgressBarCharacters(".12345678");
-        ProgressBar progress = new ProgressBar(options, 100);
+        ProgressBar progress = new ProgressBar(options);
         for (int pos = 1; pos < 8; pos++) {
             double frac = (1.0 * pos) / 8.0;
             frac = frac * ProgressBar.barDelta;
@@ -52,7 +52,7 @@ public class ProgressBarTest {
     public void fractions_20_plus_eighths() {
         ParserOptions options = new ParserOptions();
         options.setProgressBarCharacters(".12345678");
-        ProgressBar progress = new ProgressBar(options, 100);
+        ProgressBar progress = new ProgressBar(options);
         for (int pos = 1; pos < 8; pos++) {
             double frac = (1.0 * pos) / 8.0;
             frac = frac * ProgressBar.barDelta;
@@ -67,7 +67,7 @@ public class ProgressBarTest {
     public void fractions_1_plus_quarters() {
         ParserOptions options = new ParserOptions();
         options.setProgressBarCharacters(".1234");
-        ProgressBar progress = new ProgressBar(options, 100);
+        ProgressBar progress = new ProgressBar(options);
         for (int pos = 1; pos < 4; pos++) {
             double frac = (1.0 * pos) / 4.0;
             frac = frac * ProgressBar.barDelta;
@@ -82,7 +82,7 @@ public class ProgressBarTest {
     public void fractions_20_plus_quarters() {
         ParserOptions options = new ParserOptions();
         options.setProgressBarCharacters(".1234");
-        ProgressBar progress = new ProgressBar(options, 100);
+        ProgressBar progress = new ProgressBar(options);
         for (int pos = 1; pos < 4; pos++) {
             double frac = (1.0 * pos) / 4.0;
             frac = frac * ProgressBar.barDelta;

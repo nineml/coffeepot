@@ -1,8 +1,11 @@
 package org.nineml.coffeepot.utils;
 
 import org.nineml.coffeegrinder.parser.GearleyParser;
+import org.nineml.coffeegrinder.parser.ParserType;
 import org.nineml.coffeegrinder.parser.ProgressMonitor;
 import org.nineml.coffeegrinder.util.StopWatch;
+
+import java.util.Calendar;
 
 import static org.fusesource.jansi.internal.CLibrary.STDOUT_FILENO;
 import static org.fusesource.jansi.internal.CLibrary.isatty;
@@ -15,6 +18,9 @@ import static org.fusesource.jansi.internal.CLibrary.isatty;
  * provide progress feedback when the output is a terminal.</p>
  */
 public class ProgressBar implements ProgressMonitor {
+    public static final String logcategory = "ProgressBar";
+    /** Output frequency for large parses. */
+    public static final int gllFrequency = 10000;
     /** Output frequency for large parses. */
     public static final int slowFrequency = 500;
     /** Output frequency for small parses. */
@@ -35,17 +41,27 @@ public class ProgressBar implements ProgressMonitor {
     private final String fullCell;
     private final String[] shades;
 
-    private final boolean showProgress;
-    private final int frequency;
-    private final long totalSize;
+    private final ParserOptions options;
+    private boolean showProgressBar;
+    private boolean showProgress;
+    private int totalSize;
+    private int frequency;
+    public int logUpdateSeconds = 10; // seconds
+    public double logUpdatePercent = 0.1; // 10%
+    private long logUpdateInterval = logUpdateSeconds * 1000;
     private StopWatch timer = null;
+    private long lastUpdateTime = 0;
+    private double lastUpdatePercent = 0.0;
+    private int highwater = 0;
+    private long highwaterTime = 0;
 
     /**
      * Create a progress bar.
      * @param options The parser options
-     * @param total The total size of the input
      */
-    public ProgressBar(ParserOptions options, long total) {
+    public ProgressBar(ParserOptions options) {
+        this.options = options;
+
         if (options.getProgressBarCharacters().length() <= 2) {
             emptyCell = options.getProgressBarCharacters().substring(0, 1);
             fullCell = options.getProgressBarCharacters().substring(1, 2);
@@ -60,10 +76,6 @@ public class ProgressBar implements ProgressMonitor {
                 shades[pos] = bar.substring(pos, pos+1);
             }
         }
-
-        totalSize = total;
-        frequency = (total > threshold) ? slowFrequency : fastFrequency;
-        showProgress = "true".equals(options.getProgressBar()) || ("tty".equals(options.getProgressBar()) && istty);
     }
 
     /**
@@ -72,7 +84,31 @@ public class ProgressBar implements ProgressMonitor {
      * @return the update frequency
      */
     @Override
-    public int starting(GearleyParser parser) {
+    public int starting(GearleyParser parser, int tokens) {
+        lastUpdateTime = Calendar.getInstance().getTimeInMillis();
+        lastUpdatePercent = 0.0;
+        totalSize = tokens;
+        frequency = (tokens > threshold) ? slowFrequency : fastFrequency;
+        showProgress = !"false".equals(options.getProgressBar()) && totalSize >= 0;
+        showProgressBar = "true".equals(options.getProgressBar()) || ("tty".equals(options.getProgressBar()) && istty);
+
+        logUpdateInterval = 1000L * logUpdateSeconds;
+
+        if (parser.getParserType() == ParserType.GLL) {
+            frequency = gllFrequency;
+        }
+
+        if (showProgressBar) {
+            options.getLogger().debug(logcategory, "Progress bar from 0 to %,d every %,d tokens %s",
+                    tokens, frequency, (istty ? "on a TTY" : "(not a TTY)"));
+        } else {
+            if (parser.getParserType() == ParserType.Earley) {
+                options.getLogger().debug(logcategory, "Progress logging every %4.1f%%", logUpdatePercent*100.0);
+            } else {
+                options.getLogger().debug(logcategory, "Progress logging every %ds", logUpdateSeconds);
+            }
+        }
+
         timer = new StopWatch();
         return frequency;
     }
@@ -86,18 +122,77 @@ public class ProgressBar implements ProgressMonitor {
      * @param tokens the number of tokens (characters) processed so far
      */
     @Override
-    public void progress(GearleyParser parser, long tokens) {
-        if (!showProgress || (totalSize >= 0 && totalSize < minSize)) {
+    public void progress(GearleyParser parser, int tokens) {
+        if (!showProgress) {
             return;
         }
 
+        long now = Calendar.getInstance().getTimeInMillis();
         double percent = (1.0*tokens) / totalSize;
-        int completed = (int) Math.floor(barWidth * percent);
+
+        if ((!showProgressBar && now - lastUpdateTime < logUpdateInterval)
+                && (percent - lastUpdatePercent < logUpdatePercent)) {
+            return;
+        }
+
         double tpms = (1.0*tokens) / timer.duration();
         long remaining = (long) ((totalSize - tokens) / tpms);
 
-        if (istty) {
+        if (showProgressBar) {
             System.out.printf("%5.1f%% (%d t/s) %s %s     \r", percent * 100.0, (long) (tpms * 1000.0), bar(percent), timer.elapsed(remaining));
+        } else {
+            options.getLogger().info(logcategory, "Parsed %,d tokens (%4.1f%% at %,d t/s)",
+                    tokens, percent * 100.0, (long) (tpms * 1000.0));
+            lastUpdateTime = now;
+            lastUpdatePercent = percent;
+        }
+    }
+
+    private long lastHighwaterTime = 0;
+    private long totalproc = 0;
+
+    /**
+     * Track progress.
+     * <p>On a TTY, this updates an in-place status bar with information about the percentage
+     * complete and estimated time to finishing. If {@link System#out} is not a TTY, it simply
+     * prints a progress message.</p>
+     * @param parser the parser
+     * @param size the number of tokens (characters) processed so far
+     */
+    @Override
+    public void workingSet(GearleyParser parser, int size) {
+        if (!showProgress) {
+            return;
+        }
+
+        long remaining = -1;
+        final double percent;
+        if (size > highwater) {
+            percent = 1.0;
+            highwater = size;
+            highwaterTime = timer.duration();
+        } else {
+            percent = (1.0 * size) / highwater;
+            double spms = (1.0*(highwater - size)) / (timer.duration() - highwaterTime);
+            remaining = (long) (size / spms);
+        }
+
+        if (showProgressBar) {
+            if (remaining >= 0) {
+                System.out.printf("%s %,d/%,d %s                  \r", bar(percent), size, highwater, timer.elapsed(remaining));
+            } else {
+                System.out.printf("%s %,d/%,d                 \r", bar(percent), size, highwater);
+            }
+        } else {
+            long now = Calendar.getInstance().getTimeInMillis();
+            if (now - lastUpdateTime > logUpdateInterval) {
+                lastUpdateTime = now;
+                if (remaining >= 0) {
+                    options.getLogger().info(logcategory, "Remaining %,d/%,d states; %s", size, highwater, timer.elapsed(remaining));
+                } else {
+                    options.getLogger().info(logcategory, "Remaining %,d/%,d states", size, highwater);
+                }
+            }
         }
     }
 
@@ -138,11 +233,11 @@ public class ProgressBar implements ProgressMonitor {
      */
     @Override
     public void finished(GearleyParser parser) {
-        if ((!showProgress || (totalSize >= 0 && totalSize < minSize))) {
+        if ((!showProgressBar || (totalSize >= 0 && totalSize < minSize))) {
             return;
         }
         if (istty) {
-            System.out.print("                                                                      \r");
+            System.out.print("                                                                                      \r");
         }
     }
 }
