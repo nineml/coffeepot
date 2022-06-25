@@ -5,11 +5,10 @@ import org.nineml.coffeefilter.utils.EventBuilder;
 import org.nineml.coffeegrinder.parser.NonterminalSymbol;
 import org.nineml.coffeegrinder.parser.RuleChoice;
 import org.nineml.coffeegrinder.parser.Symbol;
-import org.nineml.coffeegrinder.util.ParserAttribute;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 
 public class VerboseEventBuilder extends EventBuilder {
@@ -37,7 +36,7 @@ public class VerboseEventBuilder extends EventBuilder {
 
             for (int index = 0; index < symbolStack.size(); index++) {
                 StackFrame frame = symbolStack.get(index);
-                String mark = getAttribute("mark", frame.attributes, "-");
+                String mark =  frame.attributes.getOrDefault("mark", "-");
                 if ("^".equals(mark)) {
                     sb.append("/");
                     sb.append(frame.symbol);
@@ -51,7 +50,7 @@ public class VerboseEventBuilder extends EventBuilder {
                 RuleChoice choice = alternatives.get(index);
                 sb = new StringBuilder();
                 sb.append(choice.getSymbol());
-                String priority = getAttribute("priority", choice.getSymbol().getAttributes(), null);
+                String priority = choice.getSymbol().getAttributesMap().getOrDefault("priority", null);
                 if (priority != null) {
                     sb.append("(").append(priority).append(")");
                 }
@@ -64,7 +63,7 @@ public class VerboseEventBuilder extends EventBuilder {
                             sb.append(", ");
                         }
                         sb.append(symbol);
-                        priority = getAttribute("priority", symbol.getAttributes(), null);
+                        priority = symbol.getAttributesMap().getOrDefault("priority", null);
                         if (priority != null) {
                             sb.append("(").append(priority).append(")");
                         }
@@ -79,17 +78,8 @@ public class VerboseEventBuilder extends EventBuilder {
         return selected;
     }
 
-    private String getAttribute(String name, Collection<ParserAttribute> attributes, String defaultValue) {
-        for (ParserAttribute attr : attributes) {
-            if (name.equals(attr.getName())) {
-                return attr.getValue();
-            }
-        }
-        return defaultValue;
-    }
-
     @Override
-    public void startNonterminal(NonterminalSymbol symbol, Collection<ParserAttribute> attributes, int leftExtent, int rightExtent) {
+    public void startNonterminal(NonterminalSymbol symbol, Map<String,String> attributes, int leftExtent, int rightExtent) {
         super.startNonterminal(symbol, attributes, leftExtent, rightExtent);
         if (!symbolStack.isEmpty()) {
             StackFrame top = symbolStack.peek();
@@ -102,7 +92,7 @@ public class VerboseEventBuilder extends EventBuilder {
     }
 
     @Override
-    public void endNonterminal(NonterminalSymbol symbol, Collection<ParserAttribute> attributes, int leftExtent, int rightExtent) {
+    public void endNonterminal(NonterminalSymbol symbol, Map<String,String> attributes, int leftExtent, int rightExtent) {
         super.endNonterminal(symbol, attributes, leftExtent, rightExtent);
         symbolStack.pop();
     }
@@ -110,10 +100,10 @@ public class VerboseEventBuilder extends EventBuilder {
     private static class StackFrame {
         public final HashMap<Symbol,Integer> childCounts;
         public final Symbol symbol;
-        public final Collection<ParserAttribute> attributes;
+        public final Map<String,String> attributes;
         public final int leftExtent;
         public final int rightExtent;
-        public StackFrame(Symbol symbol, Collection<ParserAttribute> attributes, int left, int right) {
+        public StackFrame(Symbol symbol, Map<String,String> attributes, int left, int right) {
             childCounts = new HashMap<>();
             this.symbol = symbol;
             this.attributes = attributes;
