@@ -458,11 +458,6 @@ class Main {
                     return 1;
                 }
 
-                long max = parseCount;
-                if (allparses) {
-                    max = doc.getNumberOfParses();
-                }
-
                 String state = "";
                 if (!doc.getOptions().isSuppressedState("ambiguous")) {
                     state = "ambiguous";
@@ -479,33 +474,46 @@ class Main {
                 doc.getOptions().suppressState("ambiguous");
 
                 if (outputFormat == OutputFormat.JSON_DATA || outputFormat == OutputFormat.JSON_TREE) {
-                    output.printf("{\"ixml\":{\"parses\":%d, \"totalParses\":%d,%n", max, doc.getNumberOfParses());
+                    if (allparses) {
+                        output.printf("{\"ixml\":{\"parses\":\"all\",%n");
+                    } else {
+                        output.printf("{\"ixml\":{\"parses\":%d,%n", parseCount);
+                    }
                     if (!"".equals(state)) {
                         output.printf("\"ixml:state\": \"%s\",%n", state);
                     }
                     output.println("\"trees\":[");
                 } else {
-                    output.print("<ixml");
+                    output.print("<ixml-parses");
                     if (!"".equals(state)) {
                         output.printf(" xmlns:ixml='http://invisiblexml.org/NS' ixml:state='%s'", state);
                     }
-                    output.printf(" parses='%d' totalParses='%s'>%n", max, doc.getNumberOfParses());
+                    output.printf(" requested-parses='%s'>%n", allparses ? "all" : "" + parseCount);
                 }
 
                 boolean more = true;
-                for (int pos = 0; more && pos < max; pos++) {
+                int pos = 1;
+                while (more) {
                     if ((outputFormat == OutputFormat.JSON_DATA || outputFormat == OutputFormat.JSON_TREE)
-                         && pos > 0) {
+                         && pos > 1) {
                         output.println(",");
                     }
+                    if (outputFormat == OutputFormat.XML) {
+                        output.printf("<ixml parse='%d'>", pos);
+                    }
                     serialize(output, doc, outputFormat);
-                    more = doc.moreParses();
+                    if (outputFormat == OutputFormat.XML) {
+                        output.printf("</ixml>%n");
+                    }
+                    pos++;
+                    more = doc.succeeded() && eventBuilder.moreParses();
+                    more = more && (allparses || pos <= parseCount);
                 }
 
                 if (outputFormat == OutputFormat.JSON_DATA || outputFormat == OutputFormat.JSON_TREE) {
                     output.println("]}}");
                 } else {
-                    output.println("</ixml>");
+                    output.println("</ixml-parses>");
                 }
             } else {
                 serialize(output, doc, outputFormat);
