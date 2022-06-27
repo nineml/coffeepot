@@ -160,11 +160,34 @@ public class ProgressBar implements ProgressMonitor {
      * @param size the number of tokens (characters) processed so far
      */
     @Override
-    public void workingSet(GearleyParser parser, int size) {
+    public void workingSet(GearleyParser parser, int size, int tokens) {
         if (!showProgress) {
             return;
         }
 
+        long now = Calendar.getInstance().getTimeInMillis();
+        double percent = (1.0*tokens) / totalSize;
+
+        if ((!showProgressBar && now - lastUpdateTime < logUpdateInterval)
+                && (percent - lastUpdatePercent < logUpdatePercent)) {
+            return;
+        }
+
+        double tpms = (1.0*tokens) / timer.duration();
+        long remaining = (long) ((totalSize - tokens) / tpms);
+
+        String queue = size > 1 ? String.format("[queue: %,d]", size) : "";
+
+        if (showProgressBar) {
+            System.out.printf("%5.1f%% (%d t/s) %s %s %s    \r", percent * 100.0, (long) (tpms * 1000.0), bar(percent), timer.elapsed(remaining), queue);
+        } else {
+            options.getLogger().info(logcategory, "Parsed %,d tokens (%4.1f%% at %,d t/s)",
+                    tokens, percent * 100.0, (long) (tpms * 1000.0));
+            lastUpdateTime = now;
+            lastUpdatePercent = percent;
+        }
+
+        /*
         long remaining = -1;
         final double percent;
         if (size > highwater) {
@@ -179,9 +202,9 @@ public class ProgressBar implements ProgressMonitor {
 
         if (showProgressBar) {
             if (remaining >= 0) {
-                System.out.printf("%s %,d/%,d %s                  \r", bar(percent), size, highwater, timer.elapsed(remaining));
+                System.out.printf("%s %,d/%,d %s (%,d)                  \r", bar(percent), size, highwater, timer.elapsed(remaining),token_highwater);
             } else {
-                System.out.printf("%s %,d/%,d                 \r", bar(percent), size, highwater);
+                System.out.printf("%s %,d/%,d (%,d)                \r", bar(percent), size, highwater, token_highwater);
             }
         } else {
             long now = Calendar.getInstance().getTimeInMillis();
@@ -194,6 +217,7 @@ public class ProgressBar implements ProgressMonitor {
                 }
             }
         }
+         */
     }
 
     /**
@@ -233,7 +257,7 @@ public class ProgressBar implements ProgressMonitor {
      */
     @Override
     public void finished(GearleyParser parser) {
-        if ((!showProgressBar || (totalSize >= 0 && totalSize < minSize))) {
+        if (!showProgressBar) {
             return;
         }
         if (istty) {
