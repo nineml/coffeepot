@@ -259,7 +259,26 @@ class Main {
 
                 cachedURI = cache.getCached(grammarURI);
                 if (cachedURI != grammarURI) {
-                    parser = invisibleXml.getParser(cachedURI);
+                    try {
+                        parser = invisibleXml.getParser(cachedURI);
+                    } catch (IxmlException ex) {
+                        if ("P004".equals(ex.getCode())) {
+                            options.getLogger().warn(Cache.logcategory, "%s", ex.getMessage());
+                            // Delete the cached URI; try again
+                            if (cachedURI.getScheme().equals("file")) {
+                                File cached = new File(cachedURI.getPath());
+                                boolean ok = cached.delete();
+                                if (ok) {
+                                    options.getLogger().info(Cache.logcategory, "Deleted cached grammar: %s", cachedURI.getPath());
+                                } else {
+                                    options.getLogger().info(Cache.logcategory, "Failed to delete cached grammar: %s", cachedURI.getPath());
+                                }
+                            }
+                            parser = invisibleXml.getParser(grammarURI);
+                        } else {
+                            throw ex;
+                        }
+                    }
                     String ver = parser.getGrammar().getMetadataProperty("coffeepot-version");
                     if (!BuildConfig.VERSION.equals(ver)) {
                         // Ignore the cached grammar...
@@ -357,7 +376,7 @@ class Main {
             if ("-".equals(cmain.compiledGrammar)) {
                 System.out.println(parser.getCompiledParser());
             } else {
-                PrintStream ps = new PrintStream(Files.newOutputStream(Paths.get(cmain.compiledGrammar)));
+                PrintStream ps = new PrintStream(Files.newOutputStream(Paths.get(cmain.compiledGrammar)), true, "UTF-8");
                 ps.println(parser.getCompiledParser());
                 ps.close();
             }
