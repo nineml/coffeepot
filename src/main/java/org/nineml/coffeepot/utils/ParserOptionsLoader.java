@@ -60,6 +60,7 @@ public class ParserOptionsLoader {
 
     /**
      * Load the options.
+     * @param configFile the name of the configuration file.
      * @return the options initialized from the properties file, if one was found.
      */
     public ParserOptions loadOptions(String configFile) {
