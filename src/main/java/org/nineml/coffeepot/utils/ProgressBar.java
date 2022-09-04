@@ -135,7 +135,10 @@ public class ProgressBar implements ProgressMonitor {
             return;
         }
 
-        double tpms = (1.0*tokens) / timer.duration();
+        // Don't let the duration be 0, it makes the rate infinite
+        long duration = Math.max(1, timer.duration());
+
+        double tpms = (1.0*tokens) / duration;
         long remaining = (long) ((totalSize - tokens) / tpms);
 
         if (showProgressBar) {
@@ -147,9 +150,6 @@ public class ProgressBar implements ProgressMonitor {
             lastUpdatePercent = percent;
         }
     }
-
-    private long lastHighwaterTime = 0;
-    private long totalproc = 0;
 
     /**
      * Track progress.
@@ -173,7 +173,10 @@ public class ProgressBar implements ProgressMonitor {
             return;
         }
 
-        double tpms = (1.0*tokens) / timer.duration();
+        // Don't let the duration be 0, it makes the rate infinite
+        long duration = Math.max(1, timer.duration());
+
+        double tpms = (1.0*tokens) / duration;
         long remaining = (long) ((totalSize - tokens) / tpms);
 
         String queue = size > 1 ? String.format("[queue: %,d]", size) : "";
@@ -186,38 +189,6 @@ public class ProgressBar implements ProgressMonitor {
             lastUpdateTime = now;
             lastUpdatePercent = percent;
         }
-
-        /*
-        long remaining = -1;
-        final double percent;
-        if (size > highwater) {
-            percent = 1.0;
-            highwater = size;
-            highwaterTime = timer.duration();
-        } else {
-            percent = (1.0 * size) / highwater;
-            double spms = (1.0*(highwater - size)) / (timer.duration() - highwaterTime);
-            remaining = (long) (size / spms);
-        }
-
-        if (showProgressBar) {
-            if (remaining >= 0) {
-                System.out.printf("%s %,d/%,d %s (%,d)                  \r", bar(percent), size, highwater, timer.elapsed(remaining),token_highwater);
-            } else {
-                System.out.printf("%s %,d/%,d (%,d)                \r", bar(percent), size, highwater, token_highwater);
-            }
-        } else {
-            long now = Calendar.getInstance().getTimeInMillis();
-            if (now - lastUpdateTime > logUpdateInterval) {
-                lastUpdateTime = now;
-                if (remaining >= 0) {
-                    options.getLogger().info(logcategory, "Remaining %,d/%,d states; %s", size, highwater, timer.elapsed(remaining));
-                } else {
-                    options.getLogger().info(logcategory, "Remaining %,d/%,d states", size, highwater);
-                }
-            }
-        }
-         */
     }
 
     /**
@@ -261,7 +232,63 @@ public class ProgressBar implements ProgressMonitor {
             return;
         }
         if (istty) {
-            System.out.print("                                                                                      \r");
+            System.out.print("                                                                                               \r");
+        }
+    }
+
+    public void startingRecords(int records) {
+        lastUpdateTime = Calendar.getInstance().getTimeInMillis();
+        lastUpdatePercent = 0.0;
+        totalSize = records;
+        frequency = (records > threshold) ? slowFrequency : fastFrequency;
+        showProgress = !"false".equals(options.getProgressBar()) && totalSize >= 0;
+        showProgressBar = "true".equals(options.getProgressBar()) || ("tty".equals(options.getProgressBar()) && istty);
+
+        logUpdateInterval = 1000L * logUpdateSeconds;
+
+        if (showProgressBar) {
+            options.getLogger().debug(logcategory, "Progress bar over %d records %s",
+                    records, (istty ? "on a TTY" : "(not a TTY)"));
+        }
+
+        timer = new StopWatch();
+    }
+
+    public void progressRecord(int record) {
+        if (!showProgress) {
+            return;
+        }
+
+        long now = Calendar.getInstance().getTimeInMillis();
+        double percent = (1.0*record) / totalSize;
+
+        if ((!showProgressBar && now - lastUpdateTime < logUpdateInterval)
+                && (percent - lastUpdatePercent < logUpdatePercent)) {
+            return;
+        }
+
+        // Don't let the duration be 0, it makes the rate infinite
+        long duration = Math.max(1, timer.duration());
+
+        double tpms = (1.0*record) / duration;
+        long remaining = (long) ((totalSize - record) / tpms);
+
+        if (showProgressBar) {
+            System.out.printf("%5.1f%% (%d r/s) %s %s     \r", percent * 100.0, (long) (tpms * 1000.0), bar(percent), timer.elapsed(remaining));
+        } else {
+            options.getLogger().info(logcategory, "Parsed %,d records (%4.1f%% at %,d r/s)",
+                    record, percent * 100.0, (long) (tpms * 1000.0));
+            lastUpdateTime = now;
+            lastUpdatePercent = percent;
+        }
+    }
+
+    public void finishedRecords() {
+        if (!showProgressBar) {
+            return;
+        }
+        if (istty) {
+            System.out.print("                                                                                               \r");
         }
     }
 }
