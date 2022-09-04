@@ -15,8 +15,8 @@
 
 <xsl:import href="../website/docbook.xsl"/>
 
-<xsl:param name="css-links"
-           select="'css/docbook.css css/docbook-screen.css css/nineml.css css/coffeepot.css'"/>
+<xsl:param name="user-css-links"
+           select="'css/nineml.css css/coffeepot.css'"/>
 
 <!-- ============================================================ -->
 
