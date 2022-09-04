@@ -187,6 +187,35 @@ may be used.
 </para>
 </listitem>
 </varlistentry>
+
+<varlistentry>
+<term><option>--record-end:<replaceable>regular-expression</replaceable></option></term>
+<listitem>
+<para>Specifies that the input should be parsed as a set of records delimited
+by the regular expression provided at the end of each record.
+(Implies <option>--records</option>.)
+</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term><option>--record-start:<replaceable>regular-expression</replaceable></option></term>
+<listitem>
+<para>Specifies that the input should be parsed as a set of records delimited
+by the regular expression provided at the start of each record.
+(Implies <option>--records</option>.)
+</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term><option>--records</option></term>
+<listitem>
+<para>Specifies that the input should be parsed as a set of records. If neither
+<option>--record-start</option> or <option>--record-end</option> is provided, the
+default separator is the record-ending regular expression “<code>\n</code>”.
+</para>
+</listitem>
+</varlistentry>
+
 <varlistentry>
 <term><option>--show-chart</option></term>
 <listitem>

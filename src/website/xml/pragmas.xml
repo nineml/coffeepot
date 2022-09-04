@@ -10,17 +10,34 @@ pragmas in your grammar.</para>
 
 <important>
 <title>Experimental</title>
-<para>Pragmas are entirely experimental at the moment; they have
-not been accepted into the official grammar by the Community Group.
-It’s possible that the syntax may change.</para>
+<para>Pragmas are a separate feature; they are not part of Invisible XML 1.0.
+As of 4 September 2022, the pragma syntax accepted by
+<link xlink:href="https://coffeefilter.nineml.org/">CoffeeFilter</link> (and
+<application>CoffeePot</application>) has been updated to the grammar described in
+<citetitle xlink:href="https://balisage.net/Proceedings/vol27/html/Sperberg-McQueen01/BalisageVol27-Sperberg-McQueen01.html">Designing for change: Pragmas in Invisible XML as an extensibility
+mechanism</citetitle> presented at
+<link xlink:href="https://balisage.net/">Balisage</link>, 2022.</para>
 <para>If you run <application>CoffeePot</application> with the
 <option>--pedantic</option> option, you cannot use pragmas.</para>
 </important>
 
 <para>A pragma begins with “<code>{[</code>” and is followed by a pragma
 name, pragma data (which may be empty), and closes with
-“<code>]}</code>”. <application>CoffeePot</application> only recognizes pragmas
-with the name “<literal>nineml</literal>”. All other pragmas are ignored.</para>
+“<code>]}</code>”. The pragma name is a shortcut for a URI which provides
+the “real” identity of the pragma. This mechanism leverages URI space to achieve
+distributed extensibility.</para>
+
+<para>The mapping from names to URIs is done with the
+“<code>pragma</code>” pragma at the top of your grammar. This, for example,
+declares the name “<code>nineml</code>” as the pragma identified by the
+URI “<code>https://nineml.org/ns/pragma/</code>”:</para>
+
+<programlisting>{[+pragma nineml "https://nineml.org/ns/pragma/"]}</programlisting>
+
+<para><application>CoffeePot</application> ignores any pragmas it does
+not recognize. The rest of this document assumes that you have
+declared the pragma name “<code>nineml</code>” as shown above. You
+must do this in every grammar file where you use pragmas.</para>
 
 <para>Pragmas can be associated with the entire grammar or with a rule,
 a nonterminal symbol, or a terminal symbol:</para>
@@ -99,14 +116,43 @@ ignored. An empty column is not produced.</para>
 
 </section>
 
-<section xml:id="pragma-xmlns">
-<title>xmlns</title>
+<section xml:id="pragma-ns">
+<title>ns</title>
 
 <para>Usage:</para>
-<synopsis linenumbering="unnumbered">{[nineml xmlns "namespace-uri"]}</synopsis>
+<synopsis linenumbering="unnumbered">{[nineml ns "namespace-uri"]}</synopsis>
 
 </section>
 
+<section xml:id="pragma-record-end">
+<title>record-end</title>
+
+<para>The <code>record-end</code> pragma enables record-oriented processing by
+default. It’s value is the regular expression that marks record ends. Unlike the
+other pragmas, this one has a different URI binding. It is a grammar option and
+must be placed at the beginning of your grammar:
+</para>
+
+<para>Usage:</para>
+<synopsis linenumbering="unnumbered">{[+pragma opt "https://nineml.org/ns/pragma/options/"]}
+{[+opt record-end "\n([^ ])"]}</synopsis>
+
+</section>
+
+<section xml:id="pragma-record-start">
+<title>record-start</title>
+
+<para>The <code>record-start</code> pragma enables record-oriented processing by
+default. It’s value is the regular expression that marks record starts. Unlike the
+other pragmas, this one has a different URI binding. It is a grammar option and
+must be placed at the beginning of your grammar:
+</para>
+
+<para>Usage:</para>
+<synopsis linenumbering="unnumbered">{[+pragma opt "https://nineml.org/ns/pragma/options/"]}
+{[+opt record-start "([^\\])\n"]}</synopsis>
+
+</section>
 
 </section>
 
