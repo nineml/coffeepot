@@ -434,6 +434,56 @@ class Main {
             }
         }
 
+        // What if the grammar specifies a record separator...
+        if (!cmain.records) {
+            final String rsuri = "https://nineml.org/ns/pragma/options/record-start";
+            final String reuri = "https://nineml.org/ns/pragma/options/record-end";
+
+            Map<String,List<String>> metadata = parser.getMetadata();
+            if (metadata.containsKey(rsuri) && metadata.containsKey(reuri)) {
+                options.getLogger().error(logcategory, "Grammar must not specify both record-start and record-end options.");
+            } else if (metadata.containsKey(rsuri) || metadata.containsKey(reuri)) {
+                String key = metadata.containsKey(rsuri) ? rsuri : reuri;
+                if (metadata.get(key).size() != 1) {
+                    options.getLogger().error(logcategory, "Grammar must not specify more than one record-start or record-end option.");
+                } else {
+                    String value = metadata.get(key).get(0).trim();
+                    if ("".equals(value)) {
+                        options.getLogger().error(logcategory, "Grammar must not specify empty record separator.");
+                    } else {
+                        String quote = value.substring(0, 1);
+                        if (quote.equals("\"") || quote.equals("'")) {
+                            if (!value.endsWith(quote)) {
+                                options.getLogger().error(logcategory, "Grammar specified record separator with mismatched quotes.");
+                            } else {
+                                value = value.substring(1, value.length()-1);
+                                if ("'".equals(quote)) {
+                                    value = value.replaceAll("\\\\'", quote);
+                                } else {
+                                    value = value.replaceAll("\\\\\"", quote);
+                                }
+                                options.getLogger().info(logcategory, "Grammar selects record-based processing.");
+                                cmain.records = true;
+                                if (rsuri.equals(key)) {
+                                    cmain.recordstart = value;
+                                } else {
+                                    cmain.recordend = value;
+                                }
+                            }
+                        } else {
+                            options.getLogger().info(logcategory, "Grammar selects record-based processing.");
+                            cmain.records = true;
+                            if (rsuri.equals(key)) {
+                                cmain.recordstart = value;
+                            } else {
+                                cmain.recordend = value;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         if (cmain.records) {
             if (cmain.recordend != null) {
                 inputRecords = RecordSplitter.splitOnEnd(input, cmain.recordend);
@@ -600,102 +650,100 @@ class Main {
             }
         }
 
-        if (!cmain.suppressOutput) {
-            for (int pos = 1; pos < startingParse; pos++) {
-                doc.getTree(eventBuilder);
-                if (!doc.moreParses()) {
-                    System.out.printf("Ran out of parses after %d.%n", pos);
-                    return 1;
+        for (int pos = 1; pos < startingParse; pos++) {
+            doc.getTree(eventBuilder);
+            if (!doc.moreParses()) {
+                System.out.printf("Ran out of parses after %d.%n", pos);
+                return 1;
+            }
+        }
+
+        eventBuilder.verbose = cmain.describeAmbiguity;
+
+        StringBuilder xoutput = new StringBuilder();
+
+        if (parseCount > 1 || allparses) {
+            if (outputFormat == OutputFormat.CSV) {
+                System.err.println("Cannot output multiple parses as CSV");
+                return 1;
+            }
+
+            String state = "";
+            if (!doc.getOptions().isSuppressedState("ambiguous")) {
+                state = "ambiguous";
+            }
+            if (doc.getResult().prefixSucceeded() && !doc.getOptions().isSuppressedState("prefix")) {
+                if ("".equals(state)) {
+                    state = "prefix";
+                } else {
+                    state += " prefix";
                 }
             }
 
-            eventBuilder.verbose = cmain.describeAmbiguity;
+            doc.getOptions().suppressState("prefix");
+            doc.getOptions().suppressState("ambiguous");
 
-            StringBuilder xoutput = new StringBuilder();
-
-            if (parseCount > 1 || allparses) {
-                if (outputFormat == OutputFormat.CSV) {
-                    System.err.println("Cannot output multiple parses as CSV");
-                    return 1;
-                }
-
-                String state = "";
-                if (!doc.getOptions().isSuppressedState("ambiguous")) {
-                    state = "ambiguous";
-                }
-                if (doc.getResult().prefixSucceeded() && !doc.getOptions().isSuppressedState("prefix")) {
-                    if ("".equals(state)) {
-                        state = "prefix";
-                    } else {
-                        state += " prefix";
-                    }
-                }
-
-                doc.getOptions().suppressState("prefix");
-                doc.getOptions().suppressState("ambiguous");
-
-                if (outputFormat == OutputFormat.JSON_DATA || outputFormat == OutputFormat.JSON_TREE) {
-                    if (allparses) {
-                        xoutput.append("{\"ixml\":{\"parses\":\"all\",\n");
-                    } else {
-                        xoutput.append("{\"ixml\":{\"parses\":").append(parseCount).append(",\n");
-                    }
-                    if (!"".equals(state)) {
-                        xoutput.append("\"ixml:state\": \"").append(state).append("\",\n");
-                    }
-                    xoutput.append("\"trees\":[");
+            if (outputFormat == OutputFormat.JSON_DATA || outputFormat == OutputFormat.JSON_TREE) {
+                if (allparses) {
+                    xoutput.append("{\"ixml\":{\"parses\":\"all\",\n");
                 } else {
-                    xoutput.append("<ixml-parses");
-                    if (!"".equals(state)) {
-                        xoutput.append(" xmlns:ixml='http://invisiblexml.org/NS' ixml:state='").append(state).append("'");
-
-                    }
-                    xoutput.append(" requested-parses='").append(allparses ? "all" : parseCount).append("'>\n");
+                    xoutput.append("{\"ixml\":{\"parses\":").append(parseCount).append(",\n");
                 }
-
-                boolean more = true;
-                int pos = 1;
-                while (more) {
-                    if ((outputFormat == OutputFormat.JSON_DATA || outputFormat == OutputFormat.JSON_TREE)
-                            && pos > 1) {
-                        xoutput.append(",");
-                    }
-                    if (outputFormat == OutputFormat.XML) {
-                        xoutput.append("<ixml parse='").append(pos).append("'>");
-                    }
-
-                    String result = serialize(doc, outputFormat);
-                    if (result == null) {
-                        return 3;
-                    }
-
-                    xoutput.append(result);
-                    if (outputFormat == OutputFormat.XML) {
-                        xoutput.append("</ixml>\n");
-                    }
-                    pos++;
-                    more = doc.succeeded() && eventBuilder.moreParses();
-                    more = more && (allparses || pos <= parseCount);
+                if (!"".equals(state)) {
+                    xoutput.append("\"ixml:state\": \"").append(state).append("\",\n");
                 }
-
-                if (outputFormat == OutputFormat.JSON_DATA || outputFormat == OutputFormat.JSON_TREE) {
-                    xoutput.append("]}}");
-                } else {
-                    xoutput.append("</ixml-parses>");
-                }
+                xoutput.append("\"trees\":[");
             } else {
+                xoutput.append("<ixml-parses");
+                if (!"".equals(state)) {
+                    xoutput.append(" xmlns:ixml='http://invisiblexml.org/NS' ixml:state='").append(state).append("'");
+
+                }
+                xoutput.append(" requested-parses='").append(allparses ? "all" : parseCount).append("'>\n");
+            }
+
+            boolean more = true;
+            int pos = 1;
+            while (more) {
+                if ((outputFormat == OutputFormat.JSON_DATA || outputFormat == OutputFormat.JSON_TREE)
+                        && pos > 1) {
+                    xoutput.append(",");
+                }
+                if (outputFormat == OutputFormat.XML) {
+                    xoutput.append("<ixml parse='").append(pos).append("'>");
+                }
+
                 String result = serialize(doc, outputFormat);
                 if (result == null) {
                     return 3;
                 }
+
                 xoutput.append(result);
-                if (options.getTrailingNewlineOnOutput()) {
-                    xoutput.append("\n");
+                if (outputFormat == OutputFormat.XML) {
+                    xoutput.append("</ixml>\n");
                 }
+                pos++;
+                more = doc.succeeded() && eventBuilder.moreParses();
+                more = more && (allparses || pos <= parseCount);
             }
 
-            outputRecords.add(xoutput.toString());
+            if (outputFormat == OutputFormat.JSON_DATA || outputFormat == OutputFormat.JSON_TREE) {
+                xoutput.append("]}}");
+            } else {
+                xoutput.append("</ixml-parses>");
+            }
+        } else {
+            String result = serialize(doc, outputFormat);
+            if (result == null) {
+                return 3;
+            }
+            xoutput.append(result);
+            if (options.getTrailingNewlineOnOutput()) {
+                xoutput.append("\n");
+            }
         }
+
+        outputRecords.add(xoutput.toString());
 
         return 0;
     }
