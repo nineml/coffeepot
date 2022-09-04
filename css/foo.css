@@ -1,0 +1,521 @@
+@page A4-book-flow {
+    size: A4;
+    @footnote {
+        float: bottom page;
+        border-top: thin solid black;
+        border-length: 30%;
+        padding-top: 0.5em;
+    }
+}
+
+@page A4-book-flow:right {
+    size: A4;
+    margin-left: var(--margin-inner);
+    margin-right: var(--margin-outer);
+
+    @top-center {
+        content: string(SectionTitle);
+    }
+    @bottom-right {
+        content: counter(page);
+    }
+}
+
+@page A4-book-flow:left {
+    size: A4;
+    margin-left: var(--margin-outer);
+    margin-right: var(--margin-inner);
+
+    @top-center {
+        content: string(ComponentTitle);
+    }
+    @bottom-left {
+        content: counter(page);
+    }
+}
+
+@page A4-book-flow:first:right {
+    size: A4;
+    margin-left: var(--margin-inner);
+    margin-right: var(--margin-outer);
+
+    @top-center {
+        content: "";
+    }
+    @bottom-right {
+        content: counter(page);
+    }
+}
+
+@page A4-book-flow:first:left {
+    size: A4;
+    margin-left: var(--margin-outer);
+    margin-right: var(--margin-inner);
+
+    @top-center {
+        content: "";
+    }
+    @bottom-left {
+        content: counter(page);
+    }
+}
+
+@page A4-book-flow:blank {
+    size: A4;
+    @top-left {
+        content: "";
+    }
+    @top-center {
+        content: "";
+    }
+    @top-right {
+        content: "";
+    }
+    @bottom-left {
+        content: "";
+    }
+    @bottom-center {
+        content: "";
+    }
+    @bottom-right {
+        content: "";
+    }
+}
+
+@page A4-book-flow-draft {
+    size: A4;
+    background-image: url('draft.svg');
+    background-position: 0.5cm 0.5cm;
+    background-repeat: no-repeat;
+    background-size: 2.5cm;
+    background-origin: border-box;
+    background-clip: border-box;
+    @footnote {
+        float: bottom page;
+        border-top: thin solid black;
+        border-length: 30%;
+        padding-top: 0.5em;
+    }
+}
+
+@page A4-book-flow-draft:right {
+    size: A4;
+    margin-left: var(--margin-inner);
+    margin-right: var(--margin-outer);
+
+    @top-center {
+        content: string(SectionTitle);
+    }
+    @bottom-right {
+        content: counter(page);
+    }
+}
+
+@page A4-book-flow-draft:left {
+    size: A4;
+    margin-left: var(--margin-outer);
+    margin-right: var(--margin-inner);
+
+    @top-center {
+        content: string(ComponentTitle);
+    }
+    @bottom-left {
+        content: counter(page);
+    }
+}
+
+@page A4-book-flow-draft:first:right {
+    size: A4;
+    margin-left: var(--margin-inner);
+    margin-right: var(--margin-outer);
+
+    @top-center {
+        content: "";
+    }
+    @bottom-right {
+        content: counter(page);
+    }
+}
+
+@page A4-book-flow-draft:first:left {
+    size: A4;
+    margin-left: var(--margin-outer);
+    margin-right: var(--margin-inner);
+
+    @top-center {
+        content: "";
+    }
+    @bottom-left {
+        content: counter(page);
+    }
+}
+
+@page A4-book-flow-draft:blank {
+    size: A4;
+    @top-left {
+        content: "";
+    }
+    @top-center {
+        content: "";
+    }
+    @top-right {
+        content: "";
+    }
+    @bottom-left {
+        content: "";
+    }
+    @bottom-center {
+        content: "";
+    }
+    @bottom-right {
+        content: "";
+    }
+}
+
+@page A5-book-flow {
+    size: A5;
+    @footnote {
+        float: bottom page;
+        border-top: thin solid black;
+        border-length: 30%;
+        padding-top: 0.5em;
+    }
+}
+
+@page A5-book-flow:right {
+    size: A5;
+    margin-left: var(--margin-inner);
+    margin-right: var(--margin-outer);
+
+    @top-center {
+        content: string(SectionTitle);
+    }
+    @bottom-right {
+        content: counter(page);
+    }
+}
+
+@page A5-book-flow:left {
+    size: A5;
+    margin-left: var(--margin-outer);
+    margin-right: var(--margin-inner);
+
+    @top-center {
+        content: string(ComponentTitle);
+    }
+    @bottom-left {
+        content: counter(page);
+    }
+}
+
+@page A5-book-flow:first:right {
+    size: A5;
+    margin-left: var(--margin-inner);
+    margin-right: var(--margin-outer);
+
+    @top-center {
+        content: "";
+    }
+    @bottom-right {
+        content: counter(page);
+    }
+}
+
+@page A5-book-flow:first:left {
+    size: A5;
+    margin-left: var(--margin-outer);
+    margin-right: var(--margin-inner);
+
+    @top-center {
+        content: "";
+    }
+    @bottom-left {
+        content: counter(page);
+    }
+}
+
+@page A5-book-flow:blank {
+    size: A5;
+    @top-left {
+        content: "";
+    }
+    @top-center {
+        content: "";
+    }
+    @top-right {
+        content: "";
+    }
+    @bottom-left {
+        content: "";
+    }
+    @bottom-center {
+        content: "";
+    }
+    @bottom-right {
+        content: "";
+    }
+}
+
+@page A5-book-flow-draft {
+    size: A5;
+    background-image: url('draft.svg');
+    background-position: 0.5cm 0.5cm;
+    background-repeat: no-repeat;
+    background-size: 2.5cm;
+    background-origin: border-box;
+    background-clip: border-box;
+    @footnote {
+        float: bottom page;
+        border-top: thin solid black;
+        border-length: 30%;
+        padding-top: 0.5em;
+    }
+}
+
+@page A5-book-flow-draft:right {
+    size: A5;
+    margin-left: var(--margin-inner);
+    margin-right: var(--margin-outer);
+
+    @top-center {
+        content: string(SectionTitle);
+    }
+    @bottom-right {
+        content: counter(page);
+    }
+}
+
+@page A5-book-flow-draft:left {
+    size: A5;
+    margin-left: var(--margin-outer);
+    margin-right: var(--margin-inner);
+
+    @top-center {
+        content: string(ComponentTitle);
+    }
+    @bottom-left {
+        content: counter(page);
+    }
+}
+
+@page A5-book-flow-draft:first:right {
+    size: A5;
+    margin-left: var(--margin-inner);
+    margin-right: var(--margin-outer);
+
+    @top-center {
+        content: "";
+    }
+    @bottom-right {
+        content: counter(page);
+    }
+}
+
+@page A5-book-flow-draft:first:left {
+    size: A5;
+    margin-left: var(--margin-outer);
+    margin-right: var(--margin-inner);
+
+    @top-center {
+        content: "";
+    }
+    @bottom-left {
+        content: counter(page);
+    }
+}
+
+@page A5-book-flow-draft:blank {
+    size: A5;
+    @top-left {
+        content: "";
+    }
+    @top-center {
+        content: "";
+    }
+    @top-right {
+        content: "";
+    }
+    @bottom-left {
+        content: "";
+    }
+    @bottom-center {
+        content: "";
+    }
+    @bottom-right {
+        content: "";
+    }
+}
+
+@page Letter-book-flow {
+    size: Letter;
+    @footnote {
+        float: bottom page;
+        border-top: thin solid black;
+        border-length: 30%;
+        padding-top: 0.5em;
+    }
+}
+
+@page Letter-book-flow:right {
+    size: Letter;
+    margin-left: var(--margin-inner);
+    margin-right: var(--margin-outer);
+
+    @top-center {
+        content: string(SectionTitle);
+    }
+    @bottom-right {
+        content: counter(page);
+    }
+}
+
+@page Letter-book-flow:left {
+    size: Letter;
+    margin-left: var(--margin-outer);
+    margin-right: var(--margin-inner);
+
+    @top-center {
+        content: string(ComponentTitle);
+    }
+    @bottom-left {
+        content: counter(page);
+    }
+}
+
+@page Letter-book-flow:first:right {
+    size: Letter;
+    margin-left: var(--margin-inner);
+    margin-right: var(--margin-outer);
+
+    @top-center {
+        content: "";
+    }
+    @bottom-right {
+        content: counter(page);
+    }
+}
+
+@page Letter-book-flow:first:left {
+    size: Letter;
+    margin-left: var(--margin-outer);
+    margin-right: var(--margin-inner);
+
+    @top-center {
+        content: "";
+    }
+    @bottom-left {
+        content: counter(page);
+    }
+}
+
+@page Letter-book-flow:blank {
+    size: Letter;
+    @top-left {
+        content: "";
+    }
+    @top-center {
+        content: "";
+    }
+    @top-right {
+        content: "";
+    }
+    @bottom-left {
+        content: "";
+    }
+    @bottom-center {
+        content: "";
+    }
+    @bottom-right {
+        content: "";
+    }
+}
+
+@page Letter-book-flow-draft {
+    size: Letter;
+    background-image: url('draft.svg');
+    background-position: 0.5cm 0.5cm;
+    background-repeat: no-repeat;
+    background-size: 2.5cm;
+    background-origin: border-box;
+    background-clip: border-box;
+    @footnote {
+        float: bottom page;
+        border-top: thin solid black;
+        border-length: 30%;
+        padding-top: 0.5em;
+    }
+}
+
+@page Letter-book-flow-draft:right {
+    size: Letter;
+    margin-left: var(--margin-inner);
+    margin-right: var(--margin-outer);
+
+    @top-center {
+        content: string(SectionTitle);
+    }
+    @bottom-right {
+        content: counter(page);
+    }
+}
+
+@page Letter-book-flow-draft:left {
+    size: Letter;
+    margin-left: var(--margin-outer);
+    margin-right: var(--margin-inner);
+
+    @top-center {
+        content: string(ComponentTitle);
+    }
+    @bottom-left {
+        content: counter(page);
+    }
+}
+
+@page Letter-book-flow-draft:first:right {
+    size: Letter;
+    margin-left: var(--margin-inner);
+    margin-right: var(--margin-outer);
+
+    @top-center {
+        content: "";
+    }
+    @bottom-right {
+        content: counter(page);
+    }
+}
+
+@page Letter-book-flow-draft:first:left {
+    size: Letter;
+    margin-left: var(--margin-outer);
+    margin-right: var(--margin-inner);
+
+    @top-center {
+        content: "";
+    }
+    @bottom-left {
+        content: counter(page);
+    }
+}
+
+@page Letter-book-flow-draft:blank {
+    size: Letter;
+    @top-left {
+        content: "";
+    }
+    @top-center {
+        content: "";
+    }
+    @top-right {
+        content: "";
+    }
+    @bottom-left {
+        content: "";
+    }
+    @bottom-center {
+        content: "";
+    }
+    @bottom-right {
+        content: "";
+    }
+}

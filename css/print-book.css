@@ -1,43 +1,43 @@
 /* "Book" style; recto/verso pages, chapters start on the right */
 
-@page normal-flow::right {
-    @top-center {
-        content: string(ComponentTitle);
-    }
-    @bottom-right {
-        content: counter(page);
-    }
-}
-
-@page normal-flow::left {
-    @top-center {
-        content: string(ComponentTitle);
-    }
-    @bottom-left {
-        content: counter(page);
-    }
-}
-
-@page normal-flow:first::right {
-    @top-center {
-        content: "";
-    }
-    @bottom-right {
-        content: counter(page);
-    }
-}
-
-@page normal-flow:first::left {
-    @top-center {
-        content: "";
-    }
-    @bottom-left {
-        content: counter(page);
-    }
-}
-
-html {
+:root {
     page: title;
+}
+
+@page normal-flow:right {
+    @top-center {
+        content: string(ComponentTitle);
+    }
+    @bottom-right {
+        content: counter(page);
+    }
+}
+
+@page normal-flow:left {
+    @top-center {
+        content: string(ComponentTitle);
+    }
+    @bottom-left {
+        content: counter(page);
+    }
+}
+
+@page normal-flow:first:right {
+    @top-center {
+        content: "";
+    }
+    @bottom-right {
+        content: counter(page);
+    }
+}
+
+@page normal-flow:first:left {
+    @top-center {
+        content: "";
+    }
+    @bottom-left {
+        content: counter(page);
+    }
 }
 
 main {
