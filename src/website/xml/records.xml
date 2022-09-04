@@ -1,0 +1,81 @@
+<chapter xmlns="http://docbook.org/ns/docbook"
+         xmlns:xi='http://www.w3.org/2001/XInclude'
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xml:id="records"
+         version="5.2">
+<title>Parsing records</title>
+
+<para>Often, what you are trying to parse can been seen as file of records.
+Consider this input, for example:</para>
+
+<programlisting>This is a line\
+that continues
+This is a new line
+So is this
+But this one \
+continues \
+for \
+several lines.</programlisting>
+
+<para>Many readers will be familiar with this pattern. Each line that ends with a “\” is
+interpreted as continuing on the next line. So this file consists of four records.
+We can parse it with this grammar:</para>
+
+<programlisting>records = record+ .
+record = simple-value | extended-value .
+-simple-value = ~[#a]*, ~["\"], -#a .
+-extended-value = ~[#a]*, "\", #a, -record .</programlisting>
+
+<para>to obtain:</para>
+
+<programlisting><![CDATA[$ coffeepot -g:lines.ixml -i:lines.txt -pp
+<records>
+   <record>This is a line\
+that continues</record>
+   <record>This is a new line</record>
+   <record>So is this</record>
+   <record>But this one \
+continues \
+for \
+several lines.</record>
+</records>]]></programlisting>
+
+<para>Starting with version 1.99.10,
+<application>CoffeePot</application> offers an alternative approach.
+You can use the “<code>--record-end</code>” option to tell CoffeePot
+to break the file into records for you, and then parse each record
+with your grammar.</para>
+
+<para>With this approach, you can use a simpler grammar:</para>
+
+<programlisting>record = ~[]*.</programlisting>
+
+<para>To obtain the same result:</para>
+
+<programlisting><![CDATA[$ coffeepot -g:line.ixml -i:lines.txt --record-end:"([^\\\\])\\n" -pp
+<records>
+<record>This is a line\
+that continues</record>
+<record>This is a new line</record>
+<record>So is this</record>
+<record>But this one \
+continues \
+for \
+several lines.</record>
+</records>]]></programlisting>
+
+<para>You can embed the regular expression in the grammar with a
+pragma so that you don’t have to deal with double-escaping the
+backslashes (once for the shell and once for the regular
+expression).</para>
+
+<para>There’s a corresponding “<code>--record-start</code>” option for the case where
+the records are more easily identified by their beginning than their end.</para>
+
+<para>In either case, capture groups are preserved and everything else
+is discarded.</para>
+
+<para>For some inputs, using record splitting in this way may result
+in dramatically improved performance and/or simpler grammars.</para>
+
+</chapter>

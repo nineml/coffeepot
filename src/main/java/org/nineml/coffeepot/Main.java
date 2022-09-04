@@ -7,27 +7,24 @@ import org.nineml.coffeefilter.InvisibleXmlDocument;
 import org.nineml.coffeefilter.InvisibleXmlParser;
 import org.nineml.coffeefilter.exceptions.IxmlException;
 import org.nineml.coffeefilter.trees.*;
-import org.nineml.coffeefilter.utils.URIUtils;
+import org.nineml.coffeefilter.util.URIUtils;
 import org.nineml.coffeegrinder.parser.GearleyResult;
 import org.nineml.coffeegrinder.parser.ParseTree;
 import org.nineml.coffeegrinder.parser.Rule;
 import org.nineml.coffeegrinder.parser.SourceGrammar;
-import org.nineml.coffeegrinder.util.NopTreeBuilder;
 import org.nineml.coffeepot.utils.*;
 import org.xml.sax.InputSource;
 
 import javax.xml.transform.sax.SAXSource;
 import java.io.*;
 import java.net.URI;
+import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 
 /**
  * A command-line Invisible XML parser.
@@ -38,6 +35,12 @@ class Main {
     ProgressBar progress = null;
     ParserOptions options;
     VerboseEventBuilder eventBuilder;
+    CommandMain cmain;
+    List<String> inputRecords;
+    ArrayList<String> outputRecords = new ArrayList<>();
+    boolean parseError = false;
+    InvisibleXmlParser parser;
+    OutputFormat outputFormat;
 
     public static void main(String[] args) {
         Main driver = new Main();
@@ -54,7 +57,7 @@ class Main {
     }
 
     private int run(String[] args) throws IOException {
-        CommandMain cmain = new CommandMain();
+        cmain = new CommandMain();
         JCommander jc = JCommander.newBuilder().addObject(cmain).build();
 
         jc.setProgramName("coffeepot");
@@ -83,6 +86,21 @@ class Main {
         } catch (ParameterException pe) {
             System.err.println(pe.getMessage());
             usage(pe.getJCommander(), false);
+        }
+
+        cmain.records |= cmain.recordstart != null || cmain.recordend != null;
+        if (cmain.records) {
+            if (cmain.recordstart != null && cmain.recordend != null) {
+                System.err.println("You can only specify one of --record-start and --record-end");
+                return 1;
+            }
+            if (cmain.recordstart == null && cmain.recordend == null) {
+                cmain.recordend = "\n";
+            }
+            if (cmain.parse != 1 || !"1".equals(cmain.parseCount)) {
+                System.err.println("You cannot specify --parse or --parse-count with --records");
+                return 1;
+            }
         }
 
         // We need temp options to parse the command line log levels parameter
@@ -138,7 +156,7 @@ class Main {
                 BuildConfig.TITLE, BuildConfig.VERSION, BuildConfig.PUB_DATE, BuildConfig.PUB_HASH,
                 options.getPedantic() ? "; pedantic" : "");
 
-        OutputFormat outputFormat = OutputFormat.XML;
+        outputFormat = OutputFormat.XML;
         if (cmain.outputFormat != null) {
             switch (cmain.outputFormat) {
                 case "xml":
@@ -246,7 +264,6 @@ class Main {
         URI cachedURI;
 
         InvisibleXml invisibleXml = new InvisibleXml(options);
-        InvisibleXmlParser parser;
         try {
             if (cmain.grammar == null) {
                 options.getLogger().trace(logcategory, "Parsing input with the ixml specification grammar.");
@@ -386,28 +403,182 @@ class Main {
             return 0;
         }
 
+        // Collect the input so we can break it into records
+        if (cmain.inputFile != null) {
+            try {
+                final InputStreamReader isr;
+                if ("-".equals(cmain.inputFile)) {
+                    options.getLogger().debug(logcategory, "Reading standard input");
+                    isr = new InputStreamReader(System.in, cmain.encoding);
+                } else {
+                    URI inputURI = URIUtils.resolve(URIUtils.cwd(), cmain.inputFile);
+                    options.getLogger().debug(logcategory, "Loading input: %s", inputURI);
+                    URLConnection conn = inputURI.toURL().openConnection();
+                    isr = new InputStreamReader(conn.getInputStream(), cmain.encoding);
+                }
+                BufferedReader reader = new BufferedReader(isr);
+
+                // I'm not confident this is the most efficient way to do this, but...
+                StringBuilder sb = new StringBuilder(1024);
+                int inputchar = reader.read();
+                while (inputchar != -1) {
+                    sb.append((char) inputchar);
+                    inputchar = reader.read();
+                }
+
+                input = sb.toString();
+            } catch (IOException ex) {
+                System.err.println("Failed to read input: " + cmain.inputFile);
+                System.err.println(ex.getMessage());
+                return 3;
+            }
+        }
+
+        // What if the grammar specifies a record separator...
+        if (!cmain.records) {
+            final String rsuri = "https://nineml.org/ns/pragma/options/record-start";
+            final String reuri = "https://nineml.org/ns/pragma/options/record-end";
+
+            Map<String,List<String>> metadata = parser.getMetadata();
+            if (metadata.containsKey(rsuri) && metadata.containsKey(reuri)) {
+                options.getLogger().error(logcategory, "Grammar must not specify both record-start and record-end options.");
+            } else if (metadata.containsKey(rsuri) || metadata.containsKey(reuri)) {
+                String key = metadata.containsKey(rsuri) ? rsuri : reuri;
+                if (metadata.get(key).size() != 1) {
+                    options.getLogger().error(logcategory, "Grammar must not specify more than one record-start or record-end option.");
+                } else {
+                    String value = metadata.get(key).get(0).trim();
+                    if ("".equals(value)) {
+                        options.getLogger().error(logcategory, "Grammar must not specify empty record separator.");
+                    } else {
+                        String quote = value.substring(0, 1);
+                        if (quote.equals("\"") || quote.equals("'")) {
+                            if (!value.endsWith(quote)) {
+                                options.getLogger().error(logcategory, "Grammar specified record separator with mismatched quotes.");
+                            } else {
+                                value = value.substring(1, value.length()-1);
+                                if ("'".equals(quote)) {
+                                    value = value.replaceAll("\\\\'", quote);
+                                } else {
+                                    value = value.replaceAll("\\\\\"", quote);
+                                }
+                                options.getLogger().info(logcategory, "Grammar selects record-based processing.");
+                                cmain.records = true;
+                                if (rsuri.equals(key)) {
+                                    cmain.recordstart = value;
+                                } else {
+                                    cmain.recordend = value;
+                                }
+                            }
+                        } else {
+                            options.getLogger().info(logcategory, "Grammar selects record-based processing.");
+                            cmain.records = true;
+                            if (rsuri.equals(key)) {
+                                cmain.recordstart = value;
+                            } else {
+                                cmain.recordend = value;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (cmain.records) {
+            if (cmain.recordend != null) {
+                inputRecords = RecordSplitter.splitOnEnd(input, cmain.recordend);
+            } else {
+                inputRecords = RecordSplitter.splitOnStart(input, cmain.recordstart);
+            }
+        } else {
+            inputRecords = new ArrayList<>();
+            inputRecords.add(input);
+        }
+
+        long parseStart = Calendar.getInstance().getTimeInMillis();
+
+        progress = new ProgressBar(options);
+        if (inputRecords.size() == 1) {
+            parser.getOptions().setProgressMonitor(progress);
+        } else {
+            progress.startingRecords(inputRecords.size());
+        }
+
+        for (int pos = 0; pos < inputRecords.size(); pos++) {
+            String record = inputRecords.get(pos);
+            options.getLogger().debug(logcategory, "Parsing record %d of %d", pos, inputRecords.size());
+            int rc = parse(record, pos+1);
+            if (rc != 0) {
+                progress.finishedRecords();
+                return rc;
+            }
+        }
+
+        progress.finishedRecords();
+
+        long parseEnd = Calendar.getInstance().getTimeInMillis();
+        if (cmain.timing && inputRecords.size() > 1) {
+            showTime(parseEnd - parseStart);
+        }
+
+        if (!cmain.suppressOutput) {
+            PrintStream output = System.out;
+            if (cmain.outputFile != null) {
+                output = new PrintStream(Files.newOutputStream(Paths.get(cmain.outputFile)));
+            }
+
+            if (inputRecords.size() > 1) {
+                if (outputFormat == OutputFormat.JSON_DATA || outputFormat == OutputFormat.JSON_TREE) {
+                    output.println("{");
+                    if (parseError) {
+                        output.println("  \"ixml:state\": \"failed\",");
+                    }
+                    output.println("  \"records\": [");
+                } else {
+                    output.print("<records");
+                    if (parseError) {
+                        output.print(" xmlns:ixml=\"http://invisiblexml.org/NS\" ixml:state=\"failed\"");
+                    }
+                    output.println(">");
+                }
+            }
+
+            for (int pos = 0; pos < outputRecords.size(); pos++) {
+                String result = outputRecords.get(pos);
+                output.print(result);
+                if ((outputFormat == OutputFormat.JSON_DATA || outputFormat == OutputFormat.JSON_TREE)
+                        && (pos+1 < outputRecords.size())) {
+                    output.println(",");
+                }
+            }
+
+            if (inputRecords.size() > 1) {
+                if (outputFormat == OutputFormat.JSON_DATA || outputFormat == OutputFormat.JSON_TREE) {
+                    output.println("]\n}\n");
+                } else {
+                    output.println("</records>");
+                }
+            }
+
+            output.close();
+        }
+
+        return 0;
+    }
+
+    private int parse(String input, int recordNumber) {
         eventBuilder = new VerboseEventBuilder(parser.getIxmlVersion(), options);
 
         InvisibleXmlDocument doc;
 
-        progress = new ProgressBar(options);
-        parser.getOptions().setProgressMonitor(progress);
-
-        if (cmain.inputFile != null) {
-            if ("-".equals(cmain.inputFile)) {
-                options.getLogger().debug(logcategory, "Reading standard input");
-                doc = parser.parse(System.in, "UTF-8");
-            } else {
-                URI inputURI = URIUtils.resolve(URIUtils.cwd(), cmain.inputFile);
-                options.getLogger().debug(logcategory, "Loading input: %s", inputURI);
-                doc = parser.parse(inputURI);
-            }
-        } else {
-            options.getLogger().trace(logcategory, "Input: %s", input);
-            doc = parser.parse(input);
+        if (inputRecords.size() > 1 && (recordNumber % 10 == 0)) {
+            progress.progressRecord(recordNumber);
         }
 
-        if (cmain.timing) {
+        options.getLogger().trace(logcategory, "Input: %s", input);
+        doc = parser.parse(input);
+
+        if (cmain.timing && inputRecords.size() == 1) {
             showTime(doc.parseTime());
         }
 
@@ -429,6 +600,8 @@ class Main {
         boolean infambig = false;
         if (doc.succeeded()) {
             infambig = doc.getResult().isInfinitelyAmbiguous();
+        } else {
+            parseError = true;
         }
 
         if (doc.getNumberOfParses() > 1 || infambig) {
@@ -455,97 +628,130 @@ class Main {
         NopContentHandler handler = new NopContentHandler();
         eventBuilder.setHandler(handler);
 
-        if (!cmain.suppressOutput) {
-            for (int pos = 1; pos < startingParse; pos++) {
-                doc.getTree(eventBuilder);
-                if (!doc.moreParses()) {
-                    System.out.printf("Ran out of parses after %d.%n", pos);
-                    return 1;
-                }
-            }
+        int startingParse;
+        if (cmain.parse <= 0) {
+            options.getLogger().warn(logcategory, "Ignoring absurd parse number: %d", cmain.parse);
+            startingParse = 1;
+        } else {
+            startingParse = cmain.parse;
+        }
 
-            eventBuilder.verbose = cmain.describeAmbiguity;
-
-            PrintStream output = System.out;
-            if (cmain.outputFile != null) {
-                output = new PrintStream(Files.newOutputStream(Paths.get(cmain.outputFile)));
-            }
-
-            if (parseCount > 1 || allparses) {
-                if (outputFormat == OutputFormat.CSV) {
-                    System.err.println("Cannot output multiple parses as CSV");
-                    return 1;
-                }
-
-                String state = "";
-                if (!doc.getOptions().isSuppressedState("ambiguous")) {
-                    state = "ambiguous";
-                }
-                if (doc.getResult().prefixSucceeded() && !doc.getOptions().isSuppressedState("prefix")) {
-                    if ("".equals(state)) {
-                        state = "prefix";
-                    } else {
-                        state += " prefix";
-                    }
-                }
-
-                doc.getOptions().suppressState("prefix");
-                doc.getOptions().suppressState("ambiguous");
-
-                if (outputFormat == OutputFormat.JSON_DATA || outputFormat == OutputFormat.JSON_TREE) {
-                    if (allparses) {
-                        output.printf("{\"ixml\":{\"parses\":\"all\",%n");
-                    } else {
-                        output.printf("{\"ixml\":{\"parses\":%d,%n", parseCount);
-                    }
-                    if (!"".equals(state)) {
-                        output.printf("\"ixml:state\": \"%s\",%n", state);
-                    }
-                    output.println("\"trees\":[");
-                } else {
-                    output.print("<ixml-parses");
-                    if (!"".equals(state)) {
-                        output.printf(" xmlns:ixml='http://invisiblexml.org/NS' ixml:state='%s'", state);
-                    }
-                    output.printf(" requested-parses='%s'>%n", allparses ? "all" : "" + parseCount);
-                }
-
-                boolean more = true;
-                int pos = 1;
-                while (more) {
-                    if ((outputFormat == OutputFormat.JSON_DATA || outputFormat == OutputFormat.JSON_TREE)
-                         && pos > 1) {
-                        output.println(",");
-                    }
-                    if (outputFormat == OutputFormat.XML) {
-                        output.printf("<ixml parse='%d'>", pos);
-                    }
-                    serialize(output, doc, outputFormat);
-                    if (outputFormat == OutputFormat.XML) {
-                        output.printf("</ixml>%n");
-                    }
-                    pos++;
-                    more = doc.succeeded() && eventBuilder.moreParses();
-                    more = more && (allparses || pos <= parseCount);
-                }
-
-                if (outputFormat == OutputFormat.JSON_DATA || outputFormat == OutputFormat.JSON_TREE) {
-                    output.println("]}}");
-                } else {
-                    output.println("</ixml-parses>");
-                }
+        long parseCount = 0;
+        boolean allparses = false;
+        if (cmain.parseCount != null) {
+            if (cmain.parseCount.equals("all")) {
+                allparses = true;
             } else {
-                serialize(output, doc, outputFormat);
-                if (options.getTrailingNewlineOnOutput()) {
-                    output.println();
+                parseCount = Integer.parseInt(cmain.parseCount);
+                if (parseCount < 1) {
+                    options.getLogger().warn(logcategory, "Ignoring absurd parse count: %d", parseCount);
+                    parseCount = 1;
                 }
             }
         }
 
+        for (int pos = 1; pos < startingParse; pos++) {
+            doc.getTree(eventBuilder);
+            if (!doc.moreParses()) {
+                System.out.printf("Ran out of parses after %d.%n", pos);
+                return 1;
+            }
+        }
+
+        eventBuilder.verbose = cmain.describeAmbiguity;
+
+        StringBuilder xoutput = new StringBuilder();
+
+        if (parseCount > 1 || allparses) {
+            if (outputFormat == OutputFormat.CSV) {
+                System.err.println("Cannot output multiple parses as CSV");
+                return 1;
+            }
+
+            String state = "";
+            if (!doc.getOptions().isSuppressedState("ambiguous")) {
+                state = "ambiguous";
+            }
+            if (doc.getResult().prefixSucceeded() && !doc.getOptions().isSuppressedState("prefix")) {
+                if ("".equals(state)) {
+                    state = "prefix";
+                } else {
+                    state += " prefix";
+                }
+            }
+
+            doc.getOptions().suppressState("prefix");
+            doc.getOptions().suppressState("ambiguous");
+
+            if (outputFormat == OutputFormat.JSON_DATA || outputFormat == OutputFormat.JSON_TREE) {
+                if (allparses) {
+                    xoutput.append("{\"ixml\":{\"parses\":\"all\",\n");
+                } else {
+                    xoutput.append("{\"ixml\":{\"parses\":").append(parseCount).append(",\n");
+                }
+                if (!"".equals(state)) {
+                    xoutput.append("\"ixml:state\": \"").append(state).append("\",\n");
+                }
+                xoutput.append("\"trees\":[");
+            } else {
+                xoutput.append("<ixml-parses");
+                if (!"".equals(state)) {
+                    xoutput.append(" xmlns:ixml='http://invisiblexml.org/NS' ixml:state='").append(state).append("'");
+
+                }
+                xoutput.append(" requested-parses='").append(allparses ? "all" : parseCount).append("'>\n");
+            }
+
+            boolean more = true;
+            int pos = 1;
+            while (more) {
+                if ((outputFormat == OutputFormat.JSON_DATA || outputFormat == OutputFormat.JSON_TREE)
+                        && pos > 1) {
+                    xoutput.append(",");
+                }
+                if (outputFormat == OutputFormat.XML) {
+                    xoutput.append("<ixml parse='").append(pos).append("'>");
+                }
+
+                String result = serialize(doc, outputFormat);
+                if (result == null) {
+                    return 3;
+                }
+
+                xoutput.append(result);
+                if (outputFormat == OutputFormat.XML) {
+                    xoutput.append("</ixml>\n");
+                }
+                pos++;
+                more = doc.succeeded() && eventBuilder.moreParses();
+                more = more && (allparses || pos <= parseCount);
+            }
+
+            if (outputFormat == OutputFormat.JSON_DATA || outputFormat == OutputFormat.JSON_TREE) {
+                xoutput.append("]}}");
+            } else {
+                xoutput.append("</ixml-parses>");
+            }
+        } else {
+            String result = serialize(doc, outputFormat);
+            if (result == null) {
+                return 3;
+            }
+            xoutput.append(result);
+            if (options.getTrailingNewlineOnOutput()) {
+                xoutput.append("\n");
+            }
+        }
+
+        outputRecords.add(xoutput.toString());
+
         return 0;
     }
 
-    private void serialize(PrintStream output, InvisibleXmlDocument doc, OutputFormat outputFormat) {
+    private String serialize(InvisibleXmlDocument doc, OutputFormat outputFormat) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream output = new PrintStream(baos);
+
         DataTreeBuilder dataBuilder;
         SimpleTreeBuilder simpleBuilder;
         DataTree dataTree;
@@ -561,7 +767,7 @@ class Main {
                 List<CsvColumn> columns = dataTree.prepareCsv();
                 if (columns == null) {
                     System.err.println("Result cannot be serialized as CSV");
-                    return;
+                    return null;
                 }
                 output.print(dataTree.asCSV(columns));
                 break;
@@ -585,6 +791,13 @@ class Main {
                 StringTreeBuilder handler = new StringTreeBuilder(options, output);
                 eventBuilder.setHandler(handler);
                 doc.getTree(eventBuilder);
+        }
+
+        try {
+            return baos.toString("UTF-8");
+        } catch (UnsupportedEncodingException ex) {
+            // This can't happen.
+            return null;
         }
     }
 
@@ -780,6 +993,18 @@ class Main {
 
         @Parameter(names = {"--earley"}, description = "Use the Earley parser")
         public boolean earleyParser = false;
+
+        @Parameter(names = {"--records"}, description = "Process the input as a set of records")
+        public boolean records = false;
+
+        @Parameter(names = {"--record-end", "-re"}, description = "Specify the end record separator (regex)")
+        public String recordend = null;
+
+        @Parameter(names = {"--record-start", "-rs"}, description = "Specify the start record separator (regex)")
+        public String recordstart = null;
+
+        @Parameter(names = {"--encoding"}, description = "Input encoding")
+        public String encoding = "UTF-8";
 
         @Parameter(description = "The input")
         public List<String> inputText = new ArrayList<>();

@@ -37,6 +37,9 @@ import com.nwalsh.gradle.saxon.SaxonXsltTask
 import com.nwalsh.gradle.relaxng.validate.RelaxNGValidateTask
 import com.nwalsh.gradle.docker.DockerContainer
 
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"
+
 repositories {
   mavenLocal()
   mavenCentral()
