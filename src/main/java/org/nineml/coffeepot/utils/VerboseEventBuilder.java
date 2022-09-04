@@ -1,10 +1,8 @@
 package org.nineml.coffeepot.utils;
 
 import org.nineml.coffeefilter.ParserOptions;
-import org.nineml.coffeefilter.utils.EventBuilder;
-import org.nineml.coffeegrinder.parser.NonterminalSymbol;
-import org.nineml.coffeegrinder.parser.RuleChoice;
-import org.nineml.coffeegrinder.parser.Symbol;
+import org.nineml.coffeefilter.util.EventBuilder;
+import org.nineml.coffeegrinder.parser.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -30,9 +28,7 @@ public class VerboseEventBuilder extends EventBuilder {
 
         if (verbose && alternatives.size() > 1) {
             StringBuilder sb = new StringBuilder();
-            sb.append("From ").append(alternatives.get(0).getLeftExtent());
-            sb.append("-").append(alternatives.get(0).getRightExtent());
-            sb.append(" at ");
+            sb.append("At ");
 
             for (int index = 0; index < symbolStack.size(); index++) {
                 StackFrame frame = symbolStack.get(index);
@@ -48,7 +44,32 @@ public class VerboseEventBuilder extends EventBuilder {
 
             for (int index = 0; index < alternatives.size(); index++) {
                 RuleChoice choice = alternatives.get(index);
+
+                ForestNode left = choice.getLeftNode();
+                ForestNode right = choice.getRightNode();
+
                 sb = new StringBuilder();
+
+                if (right == null) {
+                    // ε
+                    sb.append("ε");
+                } else {
+                    if (left != null) {
+                        // Left and right side
+                        if (left.state == null) {
+                            sb.append(left);
+                        } else {
+                            showState(sb, left);
+                        }
+                        sb.append(" / ");
+                    }
+                    if (right.state == null) {
+                        sb.append(right);
+                    } else {
+                        showState(sb, right);
+                    }
+                }
+/*
                 sb.append(choice.getSymbol());
                 String priority = choice.getSymbol().getAttributesMap().getOrDefault("priority", null);
                 if (priority != null) {
@@ -70,12 +91,33 @@ public class VerboseEventBuilder extends EventBuilder {
                         pos++;
                     }
                 }
-
+*/
                 System.out.printf("\t%s %s%n", (index == selected ? "X" : " "), sb);
             }
         }
 
         return selected;
+    }
+
+    private void showState(StringBuilder sb, ForestNode node) {
+        State state = node.getState();
+        sb.append(state.symbol);
+        sb.append(" «");
+        sb.append(node.leftExtent);
+        sb.append("-");
+        sb.append(node.rightExtent);
+        sb.append("» => ");
+
+        if (state.position == 0) {
+            sb.append("ε");
+        } else {
+            sb.append(state.rhs.get(0));
+        }
+
+        for (int pos = 1; pos < state.position; pos++) {
+            sb.append(", ");
+            sb.append(state.rhs.get(pos));
+        }
     }
 
     @Override
