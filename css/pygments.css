@@ -1,4 +1,4 @@
-/* DocBook xslTNG version 1.8.1
+/* DocBook xslTNG version 1.11.1
  *
  * This is pygments.css. This file is generated with Pygments.
  *
@@ -136,6 +136,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 .materials-dark .highlight .nt { color: #cccccc } /* Name.Tag */
 .materials-dark .highlight .nv { color: #7AB4DB; font-weight: bold } /* Name.Variable */
 .materials-dark .highlight .ow { color: #cccccc } /* Operator.Word */
+.materials-dark .highlight .pm { color: #cccccc } /* Punctuation.Marker */
 .materials-dark .highlight .w { color: #bbbbbb } /* Text.Whitespace */
 .materials-dark .highlight .mb { color: #4FB8CC } /* Literal.Number.Bin */
 .materials-dark .highlight .mf { color: #4FB8CC } /* Literal.Number.Float */
