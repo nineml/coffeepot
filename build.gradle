@@ -10,7 +10,7 @@ buildscript {
       force 'xml-apis:xml-apis:1.4.01',
         "${saxonGroup}:${saxonEdition}:${saxonVersion}",
         "org.xmlresolver:xmlresolver:${xmlresolverVersion}",
-        'com.nwalsh:sinclude:4.0.0'
+        'com.nwalsh:sinclude:4.2.1'
     }
   }
 
@@ -51,7 +51,7 @@ configurations.all {
     force 'xml-apis:xml-apis:1.4.01',
       "${saxonGroup}:${saxonEdition}:${saxonVersion}",
       "org.xmlresolver:xmlresolver:${xmlresolverVersion}",
-      'com.nwalsh:sinclude:4.0.0'
+      'com.nwalsh:sinclude:4.2.1'
   }
 }
 
