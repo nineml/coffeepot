@@ -1,6 +1,6 @@
-/* DocBook xslTNG version 1.11.1, https://xsltng.docbook.org */
-@import url("https://fonts.googleapis.com/css2?family=B612+Mono:wght@400;700&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=B612+Mono:ital,wght@1,400;1,700&display=swap");
+/* DocBook xslTNG version 2.0.4, https://xsltng.docbook.org */
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@1,400;1,700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@1,400;1,700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&display=swap");
@@ -9,7 +9,7 @@
   --symbol-fonts: "Arial Unicode", "Apple Symbols", "Symbol", "Symbola_hint";
   --body-family: "Noto Serif", serif, var(--symbol-fonts);
   --title-family: "Noto Sans", sans-serif, var(--symbol-fonts);
-  --mono-family: "B612 Mono", monospace, var(--symbol-fonts);
+  --mono-family: "JetBrains Mono", monospace, var(--symbol-fonts);
 }
 
 :root {
@@ -259,6 +259,10 @@ span.remark {
   margin: 0;
   font-size: 85%;
   box-shadow: var(--keycap-box-shadow);
+}
+
+.keycombo .keycap + .keycap {
+  margin-left: 0.4em;
 }
 
 code {
@@ -513,12 +517,34 @@ ul.toc,
   margin-top: 1em;
 }
 
+.iso690 .author {
+  text-transform: uppercase;
+}
+
+.iso690.article .part .firstname,
+.iso690.article .part .givenname {
+  text-transform: none;
+}
+
+.iso690.patent .country, .iso690.patent .patenttype {
+  font-style: italic;
+}
+
+.iso690 .title {
+  font-weight: inherit;
+  font-family: inherit;
+  color: inherit;
+  background-color: inherit;
+  margin-bottom: inherit;
+}
+
 /* ============================================================ */
-.generated-index ul {
+.index-list ul {
   list-style: none;
   padding-left: 2rem;
 }
 
+.index-list > ul,
 .generated-index > ul,
 .generated-indexdiv > ul {
   padding-left: 0;
@@ -1067,14 +1093,14 @@ table.verbatim tr td pre {
   display: table-row;
 }
 
-.qandaentry .question .label,
-.qandaentry .answer .label {
+.qandaentry .question > .label,
+.qandaentry .answer > .label {
   display: table-cell;
   width: 3em;
 }
 
-.qandaentry .question .body,
-.qandaentry .answer .body {
+.qandaentry .question > .body,
+.qandaentry .answer > .body {
   display: table-cell;
 }
 
@@ -1171,6 +1197,10 @@ blockquote p + .attribution {
 }
 
 /* ============================================================ */
+.formalobject + .formalobject {
+  margin-top: 1rem;
+}
+
 .figure,
 .example,
 .equation {
@@ -1546,6 +1576,7 @@ html {
   line-height: 1.75rem;
   font-size: 13.5pt;
   scroll-padding-top: 40px;
+  height: 100%;
 }
 
 /* https://www.smashingmagazine.com/2020/07/css-techniques-legibility/ */
@@ -1555,6 +1586,7 @@ html {
   }
 }
 body {
+  height: 100%;
   min-height: 100%;
   padding-left: 0;
   padding-right: 0;
@@ -1582,9 +1614,10 @@ footer {
 
 /* If the screen is wide, center. If you do this unconditionally,
    strange things happen when the screen is narrow. */
-@media screen and (min-width: 768px) {
+@media screen and (min-width: 58rem) {
   main,
-footer {
+  footer {
+    width: 50rem;
     margin-left: auto;
     margin-right: auto;
   }
@@ -1719,6 +1752,7 @@ nav.bottom table .next {
 
 nav.top {
   position: fixed;
+  top: 0;
   width: 100%;
   background-color: var(--nav-background-color);
   opacity: 1;

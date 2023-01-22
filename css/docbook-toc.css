@@ -1,4 +1,4 @@
-/* DocBook xslTNG version 1.11.1, https://xsltng.docbook.org */
+/* DocBook xslTNG version 2.0.4, https://xsltng.docbook.org */
 /* This is used for persistent-tocs. */
 nav.tocopen {
   position: fixed;
@@ -26,6 +26,12 @@ nav.toc {
   font-size: 12pt;
   opacity: 1;
   padding-left: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+nav.toc > div {
+  flex: 1;
 }
 
 @media only screen {
@@ -43,15 +49,24 @@ nav.toc header {
   font-size: 1.25em;
 }
 
+nav.toc ul.nav-title li:first-child {
+  margin-top: 1em;
+  border-top: 1px solid var(--primary-variant-color);
+}
+
+nav.toc li.nav-title {
+  margin-top: 0;
+  padding-top: 0;
+  padding-bottom: 0.25em;
+  font-family: var(--title-family);
+  font-size: 1.25em;
+}
+
 nav.toc header .close {
   float: right;
   cursor: pointer;
   font-weight: bold;
   font-size: 16pt;
-}
-
-nav.toc div {
-  height: calc(100% - 4rem);
 }
 
 @media only screen {

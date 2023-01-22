@@ -12,6 +12,7 @@
     --title-family: "Oxygen", sans-serif, var(--symbol-fonts);
     --mono-family: "B612 Mono", monospace, var(--symbol-fonts);
     --theme-background: #899DAA;
+    --focused-color: var(--theme-background);
     max-width: inherit;
 }
 
@@ -68,6 +69,12 @@ html {
 .book header .author,
 .book header .copyright {
     display: none;
+}
+
+main > div > header > h1, 
+main > div > header > h2, 
+main > div > header > h3 {
+    padding-top: 3rem;
 }
 
 .book header .versions p {
@@ -133,6 +140,19 @@ nav .title {
     color: #ffffff;
 }
 
+nav.toc {
+    color: #ffffff;
+}
+
+nav.toc header {
+    font-size: 1.5em;
+}
+
+nav.toc header span:first-child {
+    display: inline-block;
+    margin-top: 0.5rem;
+}
+
 nav.top {
     margin-left: 0;
     margin-right: 0;
@@ -174,7 +194,6 @@ nav.bottom {
     margin-left: 0;
     margin-right: 0;
     margin-top: 3rem;
-    min-height: 1.0rem;
     padding-bottom: 10px;
     padding-left: 4rem;
     padding-right: 4rem;
