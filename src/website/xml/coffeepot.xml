@@ -13,7 +13,7 @@
 <author>
   <personname>Norm Tovey Walsh</personname>
 </author>
-<copyright><year>2022</year><holder>Norm Tovey-Walsh</holder></copyright>
+<copyright><year>2022</year><year>2023</year><holder>Norm Tovey-Walsh</holder></copyright>
 <productname>coffeepot</productname>
 <productnumber>@@VERSION@@</productnumber>
 <bibliomisc role="coffeegrinder">@@GRINDERVERSION@@</bibliomisc>
