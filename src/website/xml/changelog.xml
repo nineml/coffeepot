@@ -7,6 +7,7 @@
 
 <revhistory>
 <revision>
+  <revnumber>1.1.0</revnumber>
   <date>2022-04-16</date>
   <revdescription>
     <para>Support for the 15 April 2022 specification, version 1.1.0</para>
@@ -37,6 +38,7 @@
   </revdescription>
 </revision>
 <revision>
+  <revnumber>1.0.0</revnumber>
   <date>2022-03-20</date>
   <revremark>Initial release, version 1.0.0</revremark>
 </revision>
