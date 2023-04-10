@@ -9,8 +9,7 @@ buildscript {
     resolutionStrategy {
       force 'xml-apis:xml-apis:1.4.01',
         "${saxonGroup}:${saxonEdition}:${saxonVersion}",
-        "org.xmlresolver:xmlresolver:${xmlresolverVersion}",
-        'com.nwalsh:sinclude:4.2.1'
+        "org.xmlresolver:xmlresolver:${xmlresolverVersion}"
     }
   }
 
@@ -25,10 +24,10 @@ plugins {
   id "java"
   id "maven-publish"
   id "signing"
-  id 'com.github.gmazzo.buildconfig' version "3.0.3"
-  id 'com.nwalsh.gradle.saxon.saxon-gradle' version '0.9.3'
-  id 'com.nwalsh.gradle.relaxng.validate' version '0.0.8'
-  id 'com.nwalsh.gradle.docker.container' version '0.0.3'
+  id 'com.github.gmazzo.buildconfig' version "3.1.0"
+  id 'com.nwalsh.gradle.saxon.saxon-gradle' version '0.10.5'
+  id 'com.nwalsh.gradle.relaxng.validate' version '0.10.3'
+  id 'com.nwalsh.gradle.docker.container' version '0.0.5'
 }
 
 import java.text.DateFormat
@@ -50,8 +49,7 @@ configurations.all {
   resolutionStrategy {
     force 'xml-apis:xml-apis:1.4.01',
       "${saxonGroup}:${saxonEdition}:${saxonVersion}",
-      "org.xmlresolver:xmlresolver:${xmlresolverVersion}",
-      'com.nwalsh:sinclude:4.2.1'
+      "org.xmlresolver:xmlresolver:${xmlresolverVersion}"
   }
 }
 
@@ -86,11 +84,6 @@ dependencies {
 
 ext {
   c_coffeepot = "coffeepot"
-}
-
-saxon.configure {
-  classpath configurations.transform
-  initializer 'org.docbook.xsltng.extensions.Register'
 }
 
 docker_container.configure {
@@ -219,6 +212,7 @@ task manual_xinclude(type: SaxonXsltTask, dependsOn: ["copyResources"]) {
   input "${projectDir}/src/website/xml/coffeepot.xml"
   stylesheet "${projectDir}/website/xinclude.xsl"
   output "${buildDir}/tmp/coffeepot.xml"
+  args(['-init:org.docbook.xsltng.extensions.Register'])
 }
 
 task manual_validate(type: RelaxNGValidateTask, dependsOn: ["manual_xinclude"]) {
@@ -247,7 +241,7 @@ task website(type: SaxonXsltTask, dependsOn: ["manual_augment"]) {
   input manual_augment.outputs.files.singleFile
   output "${buildDir}/website/index.html"
   stylesheet "${projectDir}/tools/docbook.xsl"
-  initializer 'org.docbook.xsltng.extensions.Register'
+  args(['-init:org.docbook.xsltng.extensions.Register'])
   parameters (
     'mediaobject-input-base-uri': "file:${buildDir}/aug/",
     'mediaobject-output-base-uri': "/",
