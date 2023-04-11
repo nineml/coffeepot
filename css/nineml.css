@@ -162,6 +162,7 @@ nav.top {
     background-color: var(--theme-background);
     color: #fffff8;
     text-align: center;
+    z-index: 2; /* make sure floating elements go under it! */
 }
 
 nav.top .nav {
