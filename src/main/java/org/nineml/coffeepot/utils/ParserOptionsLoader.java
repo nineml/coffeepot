@@ -33,6 +33,7 @@ public class ParserOptionsLoader {
         PROPERTY_NAMES.add("default-log-level");
         PROPERTY_NAMES.add("graphviz");
         PROPERTY_NAMES.add("ignore-trailing-whitespace");
+        PROPERTY_NAMES.add("ignore-bom");
         PROPERTY_NAMES.add("log-levels");
         PROPERTY_NAMES.add("pedantic");
         PROPERTY_NAMES.add("prefix-parsing");
@@ -121,6 +122,7 @@ public class ParserOptionsLoader {
 
         options.setPrettyPrint(getBooleanProperty("pretty-print"));
         options.setIgnoreTrailingWhitespace(getBooleanProperty("ignore-trailing-whitespace"));
+        options.setIgnoreBOM(getBooleanProperty("ignore-bom"));
         options.setTrailingNewlineOnOutput(getBooleanProperty("trailing-newline-on-output", true));
         options.setPedantic(getBooleanProperty("pedantic"));
         options.setAssertValidXmlNames(getBooleanProperty("assert-valid-xml-names", true));
