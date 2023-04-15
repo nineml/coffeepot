@@ -41,6 +41,7 @@ class Main {
     boolean parseError = false;
     InvisibleXmlParser parser;
     OutputFormat outputFormat;
+    private static final int UnicodeBOM = 0xFEFF;
 
     public static void main(String[] args) {
         Main driver = new Main();
@@ -420,12 +421,18 @@ class Main {
 
                 // I'm not confident this is the most efficient way to do this, but...
                 StringBuilder sb = new StringBuilder(1024);
+                boolean ignoreBOM = options.getIgnoreBOM() && "utf-8".equalsIgnoreCase(cmain.encoding);
                 int inputchar = reader.read();
+                if (inputchar != -1) {
+                    if (!ignoreBOM || inputchar != UnicodeBOM) {
+                        sb.append((char) inputchar);
+                    }
+                    inputchar = reader.read();
+                }
                 while (inputchar != -1) {
                     sb.append((char) inputchar);
                     inputchar = reader.read();
                 }
-
                 input = sb.toString();
             } catch (IOException ex) {
                 System.err.println("Failed to read input: " + cmain.inputFile);

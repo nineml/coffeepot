@@ -7,6 +7,28 @@
 
 <revhistory>
 <revision>
+  <revnumber>2.0.3</revnumber>
+  <date>2023-04-15</date>
+  <revdescription>
+    <itemizedlist>
+      <listitem>
+        <para>Updated to use CoffeeFilter version 2.0.3 which corrects errors in
+        the serialization of control characters in attributes and text content (and changes
+        the serialization of <literal>&gt;</literal> to always be <literal>&amp;gt;</literal>).
+        </para>
+      </listitem>
+      <listitem>
+        <para>If a UTF-8 grammar or input file begins with a byte-order-mark (BOM), the
+        BOM is ignored. A new configuration property <literal>ignore-bom</literal> can be
+        set to <literal>false</literal> to disable this behavior.</para>
+      </listitem>
+      <listitem>
+        <para>The build system has been updated to use Gradle version 8.0.2.</para>
+      </listitem>
+    </itemizedlist>
+  </revdescription>
+</revision>
+<revision>
   <revnumber>2.0.0</revnumber>
   <date>2023-04-10</date>
   <revremark>Making the 2.x code base the current release.</revremark>
