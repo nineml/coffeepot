@@ -194,12 +194,12 @@ task zipDist(type: Zip) {
 dist.finalizedBy zipDist
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
-  classifier = 'javadoc'
+  archiveClassifier = 'javadoc'
   from javadoc.destinationDir
 }
 
 task sourcesJar(type: Jar, dependsOn: ['generateBuildConfig']) {
-  classifier = 'sources'
+  archiveClassifier = 'sources'
   from sourceSets.main.allSource
 }
 
