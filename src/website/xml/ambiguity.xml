@@ -142,4 +142,112 @@ if you have a nonterminal that matches zero or more whitespace characters,
 make sure it isn’t possible for it to match in two different places.
 </para>
 
+<section xml:id="describe-ambiguity">
+<title>Describing ambiguity</title>
+
+<para>Ambiguity can be described in one of three ways: using a compact, text format;
+using a minimal XML format; or using the full XML format that will be used when
+<link xlink:href="choose-alternative">choosing alternatives</link> with a function or
+XPath expression.</para>
+
+<para>In the examples below, the parse output is from the numbers grammar and input
+introduced in <xref linkend="choose-alternative"/>.</para>
+
+<section xml:id="describe-text">
+<title>Textual ambiguity descriptions</title>
+<para>The text format identifies the location in the result tree with a simple XPath
+expression and then lists each option in the form “nonterminal =&gt; right-hand-side”.
+An “X” marks the selected alternative.</para>
+
+<para>For example:</para>
+
+<programlisting><![CDATA[At /number-list[1]/number[3]
+	X hex «9-11» => $2_hex-digit-plus
+	  decimal «9-11» => $3_decimal-digit-plus
+]]></programlisting>
+
+<para>This indicates that at the third “number” element, there are two choices “hex” or “decimal”.
+Both span input tokens 9-11. The nonterminals on the right hand side are from the
+<link xlink:href="https://coffeesacks.nineml.org/ch07.html#grammar-details">BNF version</link>
+of the grammar. The “hex” alternative has been selected.
+</para>
+</section>
+
+<section xml:id="describe-xml">
+<title>XML ambiguity descriptions</title>
+<para>The XML format presents two small XML fragments that represent
+the parse trees under consideration. (Within the XML, some nonterminal
+names are rewritten to make them valid XML element names. It is
+possible, though probably unlikely, that the rewritten names could be
+the same as actual nonterminals in the grammar.)</para>
+
+<para>For example:</para>
+
+<programlisting><![CDATA[At /number-list[1]/number[3]
+Alternative 1 of 2 (selected):
+<number mark="-" from="9-11">
+   <hex from="9-11">
+      <_2_hex-digit-plus mark="-">…</_2_hex-digit-plus>
+   </hex>
+</number>
+Alternative 2 of 2:
+<number mark="-" from="9-11">
+   <decimal from="9-11">
+      <_3_decimal-digit-plus mark="-">…</_3_decimal-digit-plus>
+   </decimal>
+</number>]]></programlisting>
+
+<para>As before, this indicates that at the third “number” element,
+there are two choices “hex” or “decimal” and the first choice has been selected.
+</para>
+</section>
+
+<section xml:id="describe-api-xml">
+<title>API XML ambiguity descriptions</title>
+<para>The “API” XML format is designed to provide as much information as possible
+such that it’s easy to write XPath expressions to analyze it. The result is somewhat
+less easy to read.</para>
+
+<para>These are the XML alternatives that function libraries and XPath expressions are
+evaluated against. Here, the entire document is shown, but the actual context item
+in each case is the element with the <tag class="attribute">alternative</tag> attribute.
+</para>
+
+<para>For example:</para>
+
+<programlisting><![CDATA[At /number-list[1]/number[3]
+Alternative 1 of 2 (selected):
+<number-list xmlns:a="https://nineml.org/ns/describe-ambiguity"
+              a:version="1.0"
+              name="number-list"
+              mark="^">
+   <number name="number"/>
+   <number name="number"/>
+   <number alternative="1" name="number" from="9" to="11" mark="-">
+      <hex name="hex" from="9" to="11" mark="^">
+         <a:nonterminal name="$2_hex-digit-plus" mark="-">…</a:nonterminal>
+      </hex>
+   </number>
+</number-list>
+Alternative 2 of 2:
+<number-list xmlns:a="https://nineml.org/ns/describe-ambiguity"
+              a:version="1.0"
+              name="number-list"
+              mark="^">
+   <number name="number"/>
+   <number name="number"/>
+   <number alternative="2" name="number" from="9" to="11" mark="-">
+      <decimal name="decimal" from="9" to="11" mark="^">
+         <a:nonterminal name="$3_decimal-digit-plus" mark="-">…</a:nonterminal>
+      </decimal>
+   </number>
+</number-list>]]></programlisting>
+
+<para>As before, this indicates that at the third “number” element,
+there are two choices “hex” or “decimal” and the first choice has been selected.
+</para>
+
+</section>
+</section>
+
 </chapter>

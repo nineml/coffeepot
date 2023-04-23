@@ -62,9 +62,10 @@ dependencies {
   implementation (
     [group: 'org.nineml', name: grinderName, version: grinderVersion],
     [group: 'org.nineml', name: filterName, version: filterVersion],
+    [group: 'org.nineml', name: sacksName, version: sacksVersion],
     [group: 'com.beust', name: 'jcommander', version: '1.81' ],
     [group: 'org.fusesource.jansi', name: 'jansi', version: '2.4.0'],
-    [group: 'net.sf.saxon', name: 'Saxon-HE', version: saxonVersion]
+    [group: saxonGroup, name: saxonEdition, version: saxonVersion]
   )
   testImplementation (
     [group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.4.2'],

@@ -52,6 +52,7 @@ into requests against the underlying libraries.</para>
 <xi:include href="how.xml"/>
 <xi:include href="debugging.xml"/>
 <xi:include href="ambiguity.xml"/>
+<xi:include href="alternatives.xml"/>
 <xi:include href="configuration.xml"/>
 <xi:include href="output.xml"/>
 <xi:include href="pragmas.xml"/>
