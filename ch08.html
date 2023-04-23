@@ -1,71 +1,160 @@
-<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" class="no-js"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><script>(function(H){H.className=H.className.replace(/\bno-js\b/,'js')})(document.documentElement)</script><title>Chapter 8. Pragmas</title><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link href="https://purl.org/dc/elements/1.1/" rel="schema.dc"/><meta name="dc.modified" content="2023-04-23T14:46:06Z"/><meta name="generator" content="DocBook xslTNG version 2.1.2 / c75a917 / SAXON HE 11.5"/><link href="/css/docbook-toc.css" rel="stylesheet"/><link href="/css/docbook.css" rel="stylesheet" media="screen"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><script src="https://kit.fontawesome.com/498b6706f0.js" type="text/javascript" crossorigin="anonymous"></script><link href="icon/CoffeePot.png" rel="shortcut icon"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link href="css/nineml.css" rel="stylesheet"/><link href="css/coffeepot.css" rel="stylesheet"/><link rel="prev" href="ch07.html"/><link rel="next" href="ch09.html"/><link rel="up" href="index.html"/><link rel="home" href="index.html"/><script src="/js/persistent-toc.js" defer="defer"></script><script src="/js/copy-verbatim.js" defer="defer"></script><script src="/js/chunk-nav.js" defer="defer"></script></head><body><nav class="top"><span class="nav"><a title="CoffeePot" href="index.html"><i class="fas fa-home"></i></a> <a href="ch07.html" title="Chapter  7 .  Output formats"><i class="fas fa-arrow-left"></i></a> <a title="CoffeePot" href="index.html"><i class="fas fa-arrow-up"></i></a> <a title="Chapter  9 .  Parsing records" href="ch09.html"><i class="fas fa-arrow-right"></i></a></span><span class="title"><i class="title">CoffeePot</i></span></nav><main><section id="pragmas" db-chunk="ch08.html" db-id="d92e871" class="chapter component"><header><h2>Chapter <span class="label">8</span><span class="sep">. </span>Pragmas</h2></header><p>It’s possible to influence the behavior of the processor by placing
-pragmas in your grammar.</p><div class="admonition important"><div><div class="icon">☝</div><div class="body"><header><div class="title">Experimental</div></header><div><p>Pragmas are a separate feature; they are not part of Invisible XML 1.0.
-As of 4 September 2022, the pragma syntax accepted by
-<a href="https://coffeefilter.nineml.org/" class="link">CoffeeFilter</a> (and
-<span class="application">CoffeePot</span>) has been updated to the grammar described in
-<i class="citetitle"><a href="https://balisage.net/Proceedings/vol27/html/Sperberg-McQueen01/BalisageVol27-Sperberg-McQueen01.html">Designing for change: Pragmas in Invisible XML as an extensibility
-mechanism</a></i> presented at
-<a href="https://balisage.net/" class="link">Balisage</a>, 2022.</p><p>If you run <span class="application">CoffeePot</span> with the
-<code class="option">--pedantic</code> option, you cannot use pragmas.</p></div></div></div></div><p>A pragma begins with “<code>{[</code>” and is followed by a pragma
-name, pragma data (which may be empty), and closes with
-“<code>]}</code>”. The pragma name is a shortcut for a URI which provides
-the “real” identity of the pragma. This mechanism leverages URI space to achieve
-distributed extensibility.</p><p>The mapping from names to URIs is done with the
-“<code>pragma</code>” pragma at the top of your grammar. This, for example,
-declares the name “<code>nineml</code>” as the pragma identified by the
-URI “<code>https://nineml.org/ns/pragma/</code>”:</p><div class="pre-wrap" db-startinglinenumber="1" db-numberoflines="1"><pre class="language-none numbered programlisting verbatim verblines"><span class="line" db-line="1"><span class="ln">  <span class="nsep">|</span></span><span class="ld"><code>{[+pragma nineml "https://nineml.org/ns/pragma/"]}</code></span></span>
-</pre></div><p><span class="application">CoffeePot</span> ignores any pragmas it does
-not recognize. The rest of this document assumes that you have
-declared the pragma name “<code>nineml</code>” as shown above. You
-must do this in every grammar file where you use pragmas.</p><p>Pragmas can be associated with the entire grammar or with a rule,
-a nonterminal symbol, or a terminal symbol:</p><ol class="orderedlist" type="1"><li><p>A pragma placed before a symbol applies to the symbol that follows it:
-</p><div class="pre-wrap" db-startinglinenumber="1" db-numberoflines="2"><pre class="language-none numbered programlisting verbatim verblines"><span class="line" db-line="1"><span class="ln">  <span class="nsep">|</span></span><span class="ld"><code>rule: {[pragma applies to “A”]} A,</code></span></span>
-<span class="line" db-line="2"><span class="ln">  <span class="nsep">|</span></span><span class="ld"><code>      {[pragma applies to “b”]} 'b'.</code></span></span>
-</pre></div></li><li><p>A pragma placed before a rule, applies to the rule that follows it:
-</p><div class="pre-wrap" db-startinglinenumber="1" db-numberoflines="3"><pre class="language-none numbered programlisting verbatim verblines"><span class="line" db-line="1"><span class="ln">  <span class="nsep">|</span></span><span class="ld"><code>{[pragma applies to “rule”]}</code></span></span>
-<span class="line" db-line="2"><span class="ln">  <span class="nsep">|</span></span><span class="ld"><code>rule: {[pragma applies to “A”]} A,</code></span></span>
-<span class="line" db-line="3"><span class="ln">  <span class="nsep">|</span></span><span class="ld"><code>      {[pragma applies to “b”]} 'b'.</code></span></span>
-</pre></div></li><li><p>To apply a pragma to the entire grammar, it must precede the first rule
-and it must be followed by a full stop:</p><div class="pre-wrap" db-startinglinenumber="1" db-numberoflines="5"><pre class="language-none long numbered programlisting verbatim verblines"><span class="line" db-line="1"><span class="ln">1 <span class="nsep">|</span></span><span class="ld"><code>{[pragma applies to whole grammar]} .</code></span></span>
-<span class="line" db-line="2"><span class="ln">  <span class="nsep">|</span></span><span class="ld"><code> </code></span></span>
-<span class="line" db-line="3"><span class="ln">  <span class="nsep">|</span></span><span class="ld"><code>{[pragma applies to “rule”]}</code></span></span>
-<span class="line" db-line="4"><span class="ln">  <span class="nsep">|</span></span><span class="ld"><code>rule: {[pragma applies to “A”]} A,</code></span></span>
-<span class="line" db-line="5"><span class="ln">5 <span class="nsep">|</span></span><span class="ld"><code>      {[pragma applies to “b”]} 'b'.</code></span></span>
-</pre></div></li></ol><p>More than one pragma can appear at any of those locations:</p><div class="pre-wrap" db-startinglinenumber="1" db-numberoflines="10"><pre class="language-none long numbered programlisting verbatim verblines"><span class="line" db-line="1"><span class="ln"> 1 <span class="nsep">|</span></span><span class="ld"><code>{[pragma applies to whole grammar]} .</code></span></span>
-<span class="line" db-line="2"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>{[second pragma applies to whole grammar ]} .</code></span></span>
+<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" class="no-js"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><script>(function(H){H.className=H.className.replace(/\bno-js\b/,'js')})(document.documentElement)</script><title>Chapter 8. Output formats</title><link href="/css/pygments.css" rel="stylesheet"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link href="https://purl.org/dc/elements/1.1/" rel="schema.dc"/><meta name="dc.modified" content="2023-04-23T16:15:03Z"/><meta name="generator" content="DocBook xslTNG version 2.1.2 / c75a917 / SAXON EE 11.5"/><link href="/css/docbook-toc.css" rel="stylesheet"/><link href="/css/docbook.css" rel="stylesheet" media="screen"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><script src="https://kit.fontawesome.com/498b6706f0.js" type="text/javascript" crossorigin="anonymous"></script><link href="icon/CoffeePot.png" rel="shortcut icon"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link href="css/nineml.css" rel="stylesheet"/><link href="css/coffeepot.css" rel="stylesheet"/><link rel="prev" href="ch07.html"/><link rel="next" href="ch09.html"/><link rel="up" href="index.html"/><link rel="home" href="index.html"/><script src="/js/persistent-toc.js" defer="defer"></script><script src="/js/copy-verbatim.js" defer="defer"></script><script src="/js/chunk-nav.js" defer="defer"></script></head><body><nav class="top"><span class="nav"><a title="CoffeePot" href="index.html"><i class="fas fa-home"></i></a> <a href="ch07.html" title="Chapter  7 .  Configuration"><i class="fas fa-arrow-left"></i></a> <a title="CoffeePot" href="index.html"><i class="fas fa-arrow-up"></i></a> <a title="Chapter  9 .  Pragmas" href="ch09.html"><i class="fas fa-arrow-right"></i></a></span><span class="title"><i class="title">CoffeePot</i></span></nav><main><section id="output-formats" db-chunk="ch08.html" db-id="d92e989" class="chapter component"><header><h2>Chapter <span class="label">8</span><span class="sep">. </span>Output formats</h2></header><p><span class="application">CoffeePot</span> can produce XML or JSON output of any
+parse tree and CSV output of trees that are “simple enough”.
+</p><p>Here’s a small grammar for a “contacts file”:</p><div class="pre-wrap" db-startinglinenumber="1" db-numberoflines="12"><pre class="language-none long numbered programlisting verbatim verblines"><span class="line" db-line="1"><span class="ln"> 1 <span class="nsep">|</span></span><span class="ld"><code>contacts: (contact, NL*)+ .</code></span></span>
+<span class="line" db-line="2"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>contact: name, NL, (email, NL)?, (phone, NL)? .</code></span></span>
 <span class="line" db-line="3"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code> </code></span></span>
-<span class="line" db-line="4"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>{[pragma applies to “rule”]}</code></span></span>
-<span class="line" db-line="5"><span class="ln"> 5 <span class="nsep">|</span></span><span class="ld"><code>{[second pragma applies to “rule”]}</code></span></span>
-<span class="line" db-line="6"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>rule:</code></span></span>
-<span class="line" db-line="7"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>   {[pragma applies to “A”]}</code></span></span>
-<span class="line" db-line="8"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>   {[second pragma applies to “A”]} A,</code></span></span>
-<span class="line" db-line="9"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>   {[pragma applies to “b”]}</code></span></span>
-<span class="line" db-line="10"><span class="ln">10 <span class="nsep">|</span></span><span class="ld"><code>   {[second pragma applies to “b”]} 'b'.</code></span></span>
-</pre></div><p>If a pragma is not recognized, or does not apply, it is ignored.
-<span class="application">CoffeePot</span> will generate debug-level log messages to alert you to
-pragmas that it is ignoring.</p><section id="pragmas-grammar" class="section"><header><h2><span class="label">8<span class="sep">.</span>1</span><span class="sep">. </span>Grammar pragmas</h2></header><p>There are three pragmas that apply to a grammar as a whole.</p><section id="pragma-csv-columns" class="section"><header><h3><span class="label">8<span class="sep">.</span>1<span class="sep">.</span>1</span><span class="sep">. </span>csv-columns</h3></header><p>Identifies the columns to be output when
-<a href="ch07.html#output-csv" class="link">CSV output</a> is selected.</p><p>Usage:</p><div class="pre-wrap"><pre class="synopsis verbatim verblines"><span class="line" db-line="1"><span class="ln">  <span class="nsep">|</span></span><span class="ld"><code>{[nineml csv-columns <em class="replaceable">list,of,names</em>]}</code></span></span>
-</pre></div><p>Ordinarily, CSV formatted output includes all the columns in (roughly)
-the order they occur in the XML. This pragma allows you to list the
-columns you want output and the order in which you want them output.</p><p>If a column requested does not exist in the document, it is
-ignored. An empty column is not produced.</p></section><section id="pragma-import" class="section"><header><h3><span class="label">8<span class="sep">.</span>1<span class="sep">.</span>2</span><span class="sep">. </span>import</h3></header><p>Usage:</p><div class="pre-wrap"><pre class="synopsis verbatim verblines"><span class="line" db-line="1"><span class="ln">  <span class="nsep">|</span></span><span class="ld"><code>{[nineml import "grammar-uri"]}</code></span></span>
-</pre></div></section><section id="pragma-ns" class="section"><header><h3><span class="label">8<span class="sep">.</span>1<span class="sep">.</span>3</span><span class="sep">. </span>ns</h3></header><p>Usage:</p><div class="pre-wrap"><pre class="synopsis verbatim verblines"><span class="line" db-line="1"><span class="ln">  <span class="nsep">|</span></span><span class="ld"><code>{[nineml ns "namespace-uri"]}</code></span></span>
-</pre></div></section><section id="pragma-record-end" class="section"><header><h3><span class="label">8<span class="sep">.</span>1<span class="sep">.</span>4</span><span class="sep">. </span>record-end</h3></header><p>The <code>record-end</code> pragma enables record-oriented processing by
-default. It’s value is the regular expression that marks record ends. Unlike the
-other pragmas, this one has a different URI binding. It is a grammar option and
-must be placed at the beginning of your grammar:
-</p><p>Usage:</p><div class="pre-wrap"><pre class="synopsis verbatim verblines"><span class="line" db-line="1"><span class="ln">  <span class="nsep">|</span></span><span class="ld"><code>{[+pragma opt "https://nineml.org/ns/pragma/options/"]}</code></span></span>
-<span class="line" db-line="2"><span class="ln">  <span class="nsep">|</span></span><span class="ld"><code>{[+opt record-end "\n([^ ])"]}</code></span></span>
-</pre></div></section><section id="pragma-record-start" class="section"><header><h3><span class="label">8<span class="sep">.</span>1<span class="sep">.</span>5</span><span class="sep">. </span>record-start</h3></header><p>The <code>record-start</code> pragma enables record-oriented processing by
-default. It’s value is the regular expression that marks record starts. Unlike the
-other pragmas, this one has a different URI binding. It is a grammar option and
-must be placed at the beginning of your grammar:
-</p><p>Usage:</p><div class="pre-wrap"><pre class="synopsis verbatim verblines"><span class="line" db-line="1"><span class="ln">  <span class="nsep">|</span></span><span class="ld"><code>{[+pragma opt "https://nineml.org/ns/pragma/options/"]}</code></span></span>
-<span class="line" db-line="2"><span class="ln">  <span class="nsep">|</span></span><span class="ld"><code>{[+opt record-start "([^\\])\n"]}</code></span></span>
-</pre></div></section></section><section id="pragmas-rules" class="section"><header><h2><span class="label">8<span class="sep">.</span>2</span><span class="sep">. </span>Rule pragmas</h2></header><p>There are four pragmas that apply to a rules.</p><section id="pragma-csv-heading" class="section"><header><h3><span class="label">8<span class="sep">.</span>2<span class="sep">.</span>1</span><span class="sep">. </span>csv-heading</h3></header><p>Usage:</p><div class="pre-wrap"><pre class="synopsis verbatim verblines"><span class="line" db-line="1"><span class="ln">  <span class="nsep">|</span></span><span class="ld"><code>{[nineml xmlns "Heading Title"]}</code></span></span>
-</pre></div></section><section id="pragma-discard-empty" class="section"><header><h3><span class="label">8<span class="sep">.</span>2<span class="sep">.</span>2</span><span class="sep">. </span>discard-empty</h3></header><p>Usage:</p><div class="pre-wrap"><pre class="synopsis verbatim verblines"><span class="line" db-line="1"><span class="ln">  <span class="nsep">|</span></span><span class="ld"><code>{[nineml discard empty]}</code></span></span>
-</pre></div></section><section id="pragma-combine" class="section"><header><h3><span class="label">8<span class="sep">.</span>2<span class="sep">.</span>3</span><span class="sep">. </span>combine</h3></header><p>Usage:</p><div class="pre-wrap"><pre class="synopsis verbatim verblines"><span class="line" db-line="1"><span class="ln">  <span class="nsep">|</span></span><span class="ld"><code>{[nineml combine]}</code></span></span>
-</pre></div></section><section id="pragma-regex" class="section"><header><h3><span class="label">8<span class="sep">.</span>2<span class="sep">.</span>4</span><span class="sep">. </span>regex</h3></header><p>Usage:</p><div class="pre-wrap"><pre class="synopsis verbatim verblines"><span class="line" db-line="1"><span class="ln">  <span class="nsep">|</span></span><span class="ld"><code>{[nineml regex "regular expression"]}</code></span></span>
-</pre></div></section></section><section id="pragmas-symbols" class="section"><header><h2><span class="label">8<span class="sep">.</span>3</span><span class="sep">. </span>Symbol pragmas</h2></header><p>There are two pragmas that apply to a symbols.</p><section id="pragma-rename" class="section"><header><h3><span class="label">8<span class="sep">.</span>3<span class="sep">.</span>1</span><span class="sep">. </span>rename</h3></header><p>Usage:</p><div class="pre-wrap"><pre class="synopsis verbatim verblines"><span class="line" db-line="1"><span class="ln">  <span class="nsep">|</span></span><span class="ld"><code>{[nineml rename newname]}</code></span></span>
-</pre></div></section><section id="pragma-rewrite" class="section"><header><h3><span class="label">8<span class="sep">.</span>3<span class="sep">.</span>2</span><span class="sep">. </span>rewrite</h3></header><p>Usage:</p><div class="pre-wrap"><pre class="synopsis verbatim verblines"><span class="line" db-line="1"><span class="ln">  <span class="nsep">|</span></span><span class="ld"><code>{[nineml rewrite "new literal"]}</code></span></span>
-</pre></div></section></section></section></main><nav class="bottom"><div class="navrow"><div class="navleft"><a title="Chapter  7 .  Output formats" href="ch07.html"><i class="fas fa-arrow-left"></i></a></div><div class="navmiddle"><a title="CoffeePot" href="index.html"><i class="fas fa-home"></i></a></div><div class="navright"><a title="Chapter  9 .  Parsing records" href="ch09.html"><i class="fas fa-arrow-right"></i></a></div></div><div class="navrow"><div class="navleft navtitle">Chapter  7 .  Output formats</div><div class="navmiddle"><a title="CoffeePot" href="index.html"><i class="fas fa-arrow-up"></i></a></div><div class="navright navtitle">Chapter  9 .  Parsing records</div></div><div class="infofooter"><span class="copyrightfooter">Copyright © 2022–2023 Norman Walsh.</span></div><nav class="tocopen"></nav><nav class="toc"></nav><!-- Hide ToC details from user agents that don’t support JS --><script type="text/html" class="tocopen"><i class="far fa-book"></i></script><script type="text/html" class="toc"><header><span>Table of Contents</span><span class="close"><i class="far fa-window-close"></i></span><p class="ptoc-search"><input class="ptoc-search" placeholder="Search" style="width: 80%"/></p></header><div db-persistent-toc="persistent-toc.html" db-prefix="">Loading…</div></script></nav></body></html>
+<span class="line" db-line="4"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>name: letter, ~[#a; "@"]* .</code></span></span>
+<span class="line" db-line="5"><span class="ln"> 5 <span class="nsep">|</span></span><span class="ld"><code>email: username, "@", domainname .</code></span></span>
+<span class="line" db-line="6"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>phone: ["+0123456789()- "]+ .</code></span></span>
+<span class="line" db-line="7"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code> </code></span></span>
+<span class="line" db-line="8"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>-username: (letter; ["+-."])+ .</code></span></span>
+<span class="line" db-line="9"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>-domainname: (letter; ["+-."])+ .</code></span></span>
+<span class="line" db-line="10"><span class="ln">10 <span class="nsep">|</span></span><span class="ld"><code> </code></span></span>
+<span class="line" db-line="11"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>-letter: [L] .</code></span></span>
+<span class="line" db-line="12"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>-NL: -#a ; -#d, -#a .</code></span></span>
+</pre></div><p>Contacts are names, email addresses, and phone numbers on separate
+lines. Contacts are separated by a blank line. For example:</p><div class="pre-wrap"><pre class="language-none programlisting verbatim verblines"><span class="line" db-line="1"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>John Doe</code></span></span>
+<span class="line" db-line="2"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>john@example.com</code></span></span>
+<span class="line" db-line="3"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>555-0100</code></span></span>
+<span class="line" db-line="4"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code> </code></span></span>
+<span class="line" db-line="5"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>Mary Smith</code></span></span>
+<span class="line" db-line="6"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>m.smith@estaff.example.com</code></span></span>
+<span class="line" db-line="7"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>+1-222-555-0102</code></span></span>
+<span class="line" db-line="8"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code> </code></span></span>
+<span class="line" db-line="9"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>Jane Doe</code></span></span>
+<span class="line" db-line="10"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>(512) 555-0105</code></span></span>
+<span class="line" db-line="11"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code> </code></span></span>
+<span class="line" db-line="12"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>Nancy Jones</code></span></span>
+<span class="line" db-line="13"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>nancy@example.org</code></span></span>
+</pre></div><section id="output-xml" class="section"><header><h2><span class="label">8<span class="sep">.</span>1</span><span class="sep">. </span>XML</h2></header><p>A conformant Invisible XML processor, parsing this data with the
+grammar above, produces XML:</p><div class="pre-wrap"><pre class="language-none programlisting verbatim verblines"><span class="line" db-line="1"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>&lt;contacts&gt;</code></span></span>
+<span class="line" db-line="2"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>   &lt;contact&gt;</code></span></span>
+<span class="line" db-line="3"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>      &lt;name&gt;John Doe&lt;/name&gt;</code></span></span>
+<span class="line" db-line="4"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>      &lt;email&gt;john@example.com&lt;/email&gt;</code></span></span>
+<span class="line" db-line="5"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>      &lt;phone&gt;555-0100&lt;/phone&gt;</code></span></span>
+<span class="line" db-line="6"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>   &lt;/contact&gt;</code></span></span>
+<span class="line" db-line="7"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>   &lt;contact&gt;</code></span></span>
+<span class="line" db-line="8"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>      &lt;name&gt;Mary Smith&lt;/name&gt;</code></span></span>
+<span class="line" db-line="9"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>      &lt;email&gt;m.smith@estaff.example.com&lt;/email&gt;</code></span></span>
+<span class="line" db-line="10"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>      &lt;phone&gt;+1-222-555-0102&lt;/phone&gt;</code></span></span>
+<span class="line" db-line="11"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>   &lt;/contact&gt;</code></span></span>
+<span class="line" db-line="12"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>   &lt;contact&gt;</code></span></span>
+<span class="line" db-line="13"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>      &lt;name&gt;Jane Doe&lt;/name&gt;</code></span></span>
+<span class="line" db-line="14"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>      &lt;phone&gt;(512) 555-0105&lt;/phone&gt;</code></span></span>
+<span class="line" db-line="15"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>   &lt;/contact&gt;</code></span></span>
+<span class="line" db-line="16"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>   &lt;contact&gt;</code></span></span>
+<span class="line" db-line="17"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>      &lt;name&gt;Nancy Jones&lt;/name&gt;</code></span></span>
+<span class="line" db-line="18"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>      &lt;email&gt;nancy@example.org&lt;/email&gt;</code></span></span>
+<span class="line" db-line="19"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>   &lt;/contact&gt;</code></span></span>
+<span class="line" db-line="20"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>&lt;/contacts&gt;</code></span></span>
+</pre></div></section><section id="output-json" class="section"><header><h2><span class="label">8<span class="sep">.</span>2</span><span class="sep">. </span>JSON</h2></header><p>Today, there are lots of services that prefer JSON to XML, so
+<span class="application">coffeepot</span> provides an option to produce JSON,
+<code>--format:json</code>:</p><div class="pre-wrap"><pre class="language-none programlisting verbatim verblines"><span class="line" db-line="1"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>{</code></span></span>
+<span class="line" db-line="2"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>  "contacts": {</code></span></span>
+<span class="line" db-line="3"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>    "contact": [</code></span></span>
+<span class="line" db-line="4"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>      {</code></span></span>
+<span class="line" db-line="5"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>        "name": "John Doe",</code></span></span>
+<span class="line" db-line="6"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>        "email": "john@example.com",</code></span></span>
+<span class="line" db-line="7"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>        "phone": "555-0100"</code></span></span>
+<span class="line" db-line="8"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>      },</code></span></span>
+<span class="line" db-line="9"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>      {</code></span></span>
+<span class="line" db-line="10"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>        "name": "Mary Smith",</code></span></span>
+<span class="line" db-line="11"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>        "email": "m.smith@estaff.example.com",</code></span></span>
+<span class="line" db-line="12"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>        "phone": "+1-222-555-0102"</code></span></span>
+<span class="line" db-line="13"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>      },</code></span></span>
+<span class="line" db-line="14"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>      {</code></span></span>
+<span class="line" db-line="15"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>        "name": "Jane Doe",</code></span></span>
+<span class="line" db-line="16"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>        "phone": "(512) 555-0105"</code></span></span>
+<span class="line" db-line="17"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>      },</code></span></span>
+<span class="line" db-line="18"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>      {</code></span></span>
+<span class="line" db-line="19"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>        "name": "Nancy Jones",</code></span></span>
+<span class="line" db-line="20"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>        "email": "nancy@example.org"</code></span></span>
+<span class="line" db-line="21"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>      }</code></span></span>
+<span class="line" db-line="22"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>    ]</code></span></span>
+<span class="line" db-line="23"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>  }</code></span></span>
+<span class="line" db-line="24"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>}</code></span></span>
+</pre></div><p>There are, in fact, two different JSON output options,
+<code>json-data</code> and <code>json-tree</code>. In “data” mode,
+the names of nonterminals become the names of properties and siblings
+are wrapped in an array.</p><p>The “tree” mode, JSON serialization produces a literal rendering
+of the tree structure:</p><div class="pre-wrap"><pre class="language-none programlisting verbatim verblines"><span class="line" db-line="1"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>{</code></span></span>
+<span class="line" db-line="2"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>  "content": {</code></span></span>
+<span class="line" db-line="3"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>    "name": "contacts",</code></span></span>
+<span class="line" db-line="4"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>    "content": [</code></span></span>
+<span class="line" db-line="5"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>      {</code></span></span>
+<span class="line" db-line="6"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>        "name": "contact",</code></span></span>
+<span class="line" db-line="7"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>        "content": [</code></span></span>
+<span class="line" db-line="8"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>          {</code></span></span>
+<span class="line" db-line="9"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>            "name": "name",</code></span></span>
+<span class="line" db-line="10"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>            "content": "John Doe"</code></span></span>
+<span class="line" db-line="11"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>          },</code></span></span>
+<span class="line" db-line="12"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>          {</code></span></span>
+<span class="line" db-line="13"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>            "name": "email",</code></span></span>
+<span class="line" db-line="14"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>            "content": "john@example.com"</code></span></span>
+<span class="line" db-line="15"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>          },</code></span></span>
+<span class="line" db-line="16"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>          {</code></span></span>
+<span class="line" db-line="17"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>            "name": "phone",</code></span></span>
+<span class="line" db-line="18"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>            "content": "555-0100"</code></span></span>
+<span class="line" db-line="19"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>          }</code></span></span>
+<span class="line" db-line="20"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>        ]</code></span></span>
+<span class="line" db-line="21"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>      },</code></span></span>
+<span class="line" db-line="22"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>      {</code></span></span>
+<span class="line" db-line="23"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>        "name": "contact",</code></span></span>
+<span class="line" db-line="24"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>        "content": [</code></span></span>
+<span class="line" db-line="25"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>          {</code></span></span>
+<span class="line" db-line="26"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>            "name": "name",</code></span></span>
+<span class="line" db-line="27"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>            "content": "Mary Smith"</code></span></span>
+<span class="line" db-line="28"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>          },</code></span></span>
+<span class="line" db-line="29"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>          {</code></span></span>
+<span class="line" db-line="30"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>            "name": "email",</code></span></span>
+<span class="line" db-line="31"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>            "content": "m.smith@estaff.example.com"</code></span></span>
+<span class="line" db-line="32"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>          },</code></span></span>
+<span class="line" db-line="33"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>          {</code></span></span>
+<span class="line" db-line="34"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>            "name": "phone",</code></span></span>
+<span class="line" db-line="35"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>            "content": "+1-222-555-0102"</code></span></span>
+<span class="line" db-line="36"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>          }</code></span></span>
+<span class="line" db-line="37"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>        ]</code></span></span>
+<span class="line" db-line="38"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>      },</code></span></span>
+<span class="line" db-line="39"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>      {</code></span></span>
+<span class="line" db-line="40"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>        "name": "contact",</code></span></span>
+<span class="line" db-line="41"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>        "content": [</code></span></span>
+<span class="line" db-line="42"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>          {</code></span></span>
+<span class="line" db-line="43"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>            "name": "name",</code></span></span>
+<span class="line" db-line="44"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>            "content": "Jane Doe"</code></span></span>
+<span class="line" db-line="45"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>          },</code></span></span>
+<span class="line" db-line="46"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>          {</code></span></span>
+<span class="line" db-line="47"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>            "name": "phone",</code></span></span>
+<span class="line" db-line="48"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>            "content": "(512) 555-0105"</code></span></span>
+<span class="line" db-line="49"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>          }</code></span></span>
+<span class="line" db-line="50"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>        ]</code></span></span>
+<span class="line" db-line="51"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>      },</code></span></span>
+<span class="line" db-line="52"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>      {</code></span></span>
+<span class="line" db-line="53"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>        "name": "contact",</code></span></span>
+<span class="line" db-line="54"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>        "content": [</code></span></span>
+<span class="line" db-line="55"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>          {</code></span></span>
+<span class="line" db-line="56"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>            "name": "name",</code></span></span>
+<span class="line" db-line="57"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>            "content": "Nancy Jones"</code></span></span>
+<span class="line" db-line="58"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>          },</code></span></span>
+<span class="line" db-line="59"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>          {</code></span></span>
+<span class="line" db-line="60"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>            "name": "email",</code></span></span>
+<span class="line" db-line="61"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>            "content": "nancy@example.org"</code></span></span>
+<span class="line" db-line="62"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>          }</code></span></span>
+<span class="line" db-line="63"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>        ]</code></span></span>
+<span class="line" db-line="64"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>      }</code></span></span>
+<span class="line" db-line="65"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>    ]</code></span></span>
+<span class="line" db-line="66"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>  }</code></span></span>
+<span class="line" db-line="67"><span class="ln">   <span class="nsep">|</span></span><span class="ld"><code>}</code></span></span>
+</pre></div></section><section id="output-csv" class="section"><header><h2><span class="label">8<span class="sep">.</span>3</span><span class="sep">. </span>CSV</h2></header><p>If the tree structure that results from the parse has a very
+specific structure, it can be rendered into
+<a href="https://en.wikipedia.org/wiki/Comma-separated_values" class="link">CSV</a>.
+The document must contain no mixed content (ignoring whitespace-only text nodes)
+and exactly three levels of hierarchy: a root element,
+its children, and its grandchildren.</p><p>The names of the root node’s children are irrelevant, each one becomes
+a row in the output. The names of the grandchildren elements become the names of columns.
+There will be one column for each such unique name, even if not every child
+contains the same grandchildren elements.</p><p>The contacts output satisfies these constraints, so it can be rendered in CSV:</p><div class="pre-wrap"><pre class="language-none programlisting verbatim verblines"><span class="line" db-line="1"><span class="ln">  <span class="nsep">|</span></span><span class="ld"><code>"name","email","phone"</code></span></span>
+<span class="line" db-line="2"><span class="ln">  <span class="nsep">|</span></span><span class="ld"><code>"John Doe","john@example.com","555-0100"</code></span></span>
+<span class="line" db-line="3"><span class="ln">  <span class="nsep">|</span></span><span class="ld"><code>"Mary Smith","m.smith@estaff.example.com","+1-222-555-0102"</code></span></span>
+<span class="line" db-line="4"><span class="ln">  <span class="nsep">|</span></span><span class="ld"><code>"Jane Doe",,"(512) 555-0105"</code></span></span>
+<span class="line" db-line="5"><span class="ln">  <span class="nsep">|</span></span><span class="ld"><code>"Nancy Jones","nancy@example.org",</code></span></span>
+</pre></div></section></section></main><nav class="bottom"><div class="navrow"><div class="navleft"><a title="Chapter  7 .  Configuration" href="ch07.html"><i class="fas fa-arrow-left"></i></a></div><div class="navmiddle"><a title="CoffeePot" href="index.html"><i class="fas fa-home"></i></a></div><div class="navright"><a title="Chapter  9 .  Pragmas" href="ch09.html"><i class="fas fa-arrow-right"></i></a></div></div><div class="navrow"><div class="navleft navtitle">Chapter  7 .  Configuration</div><div class="navmiddle"><a title="CoffeePot" href="index.html"><i class="fas fa-arrow-up"></i></a></div><div class="navright navtitle">Chapter  9 .  Pragmas</div></div><div class="infofooter"><span class="copyrightfooter">Copyright © 2022–2023 Norman Walsh.</span></div><nav class="tocopen"></nav><nav class="toc"></nav><!-- Hide ToC details from user agents that don’t support JS --><script type="text/html" class="tocopen"><i class="far fa-book"></i></script><script type="text/html" class="toc"><header><span>Table of Contents</span><span class="close"><i class="far fa-window-close"></i></span><p class="ptoc-search"><input class="ptoc-search" placeholder="Search" style="width: 80%"/></p></header><div db-persistent-toc="persistent-toc.html" db-prefix="">Loading…</div></script></nav></body></html>
