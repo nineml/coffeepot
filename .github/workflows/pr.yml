@@ -50,8 +50,11 @@ jobs:
       CI_TAG: ${{ needs.check_branch.outputs.tag }}
       CI_PULL: ${{ github.event.number }}
     steps:
-      - name: Checkout the branch
+      - name: Checkout the pull request
         uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
 
       - name: Build and test
         run: |
