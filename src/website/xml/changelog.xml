@@ -7,6 +7,15 @@
 
 <revhistory>
 <revision>
+  <revnumber>2.1.0</revnumber>
+  <date>2023-04-23</date>
+  <revdescription>
+    <para>Added <link linkend="choose-alternative">support</link>
+    for choosing between ambiguous parses using either an extension function or
+    XPath expressions.</para>
+  </revdescription>
+</revision>
+<revision>
   <revnumber>2.0.3</revnumber>
   <date>2023-04-15</date>
   <revdescription>
