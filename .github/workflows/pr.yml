@@ -50,12 +50,6 @@ jobs:
       CI_TAG: ${{ needs.check_branch.outputs.tag }}
       CI_PULL: ${{ github.event.number }}
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup SSH key
-        uses: webfactory/ssh-agent@v0.8.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
       - name: Checkout the branch
         uses: actions/checkout@v3
 

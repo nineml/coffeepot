@@ -1,3 +1,3 @@
 [submodule "website"]
 	path = website
-	url = git@github.com:nineml/website.git
+	url = https://github.com/nineml/website.git

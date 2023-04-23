@@ -1,4 +1,4 @@
-name: build-branch
+name: build-pot
 on: push
 
 jobs:
@@ -38,6 +38,8 @@ jobs:
     env:
       HAVE_ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN != '' }}
       HAVE_GPGKEYURI: ${{ secrets.ACCESS_TOKEN != '' && secrets.GPGKEYURI != '' }}
+      HAVE_SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY != '' }}
+      CAN_PUBLISH: ${{ secrets.ACCESS_TOKEN != '' && secrets.GPGKEYURI != '' && secrets.SSH_PRIVATE_KEY != '' }}
       CIWORKFLOW: yes
       CI_SHA1: ${{ github.sha }}
       CI_BUILD_NUM: ${{ github.run_number }}
@@ -48,6 +50,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Setup SSH key
+        if: ${{ env.HAVE_SSH_PRIVATE_KEY == 'true' }}
         uses: webfactory/ssh-agent@v0.8.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -62,8 +65,8 @@ jobs:
           ./gradlew dist website
 
       - name: Deploy main to gh-pages
-        if: ${{ env.HAVE_ACCESS_TOKEN == 'true' && env.CI_BRANCH == 'main' }}
         uses: JamesIves/github-pages-deploy-action@v4
+        if: ${{ env.CAN_PUBLISH == 'true' && env.CI_BRANCH == 'main' }}
         with:
           folder: build/website
           token: ${{ secrets.ACCESS_TOKEN }}
@@ -72,7 +75,7 @@ jobs:
 
       - name: Publish release
         uses: softprops/action-gh-release@v1
-        if: ${{ env.HAVE_ACCESS_TOKEN == 'true' && env.CI_BRANCH == 'main' && env.CI_TAG != '' }}
+        if: ${{ env.CAN_PUBLISH == 'true' && env.CI_BRANCH == 'main' && env.CI_TAG != '' }}
         with:
           draft: false
           prerelease: false
@@ -81,7 +84,7 @@ jobs:
             build/distributions/coffeepot-${{ env.CI_TAG }}.zip
 
       - name: Publish to Sonatype
-        if: ${{ env.HAVE_GPGKEYURI == 'true' && env.CI_BRANCH == 'main' && env.CI_TAG != '' }}
+        if: ${{ env.CAN_PUBLISH == 'true' && env.CI_BRANCH == 'main' && env.CI_TAG != '' }}
         run: |
           curl -s -o secret.gpg ${{ secrets.GPGKEYURI }}
           ./gradlew -PsonatypeUsername=${{ secrets.SONATYPEUSER }} \
