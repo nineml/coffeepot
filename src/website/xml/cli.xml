@@ -91,6 +91,14 @@ are taken as the input, separated by single spaces.
 <para>The following additional options are also available:</para>
 
 <variablelist>
+<varlistentry>
+<term><option>--choose:<replaceable>XPath-expression</replaceable></option></term>
+<listitem>
+<para>Use the XPath expression to select among ambiguous alternatives.
+See <xref linkend="choose-alternative"/>.
+</para>
+</listitem>
+</varlistentry>
 <varlistentry xml:id="compiled-grammar-option">
 <term><option>--compiled-grammar:<replaceable>file</replaceable></option></term>
 <listitem>
@@ -103,7 +111,25 @@ specified file.
 <term><option>--describe-ambiguity</option></term>
 <listitem>
 <para>Requests a desription of where in the parse forest ambiguity arose.
-This option only applies to ambiguous parses.
+This option only applies to ambiguous parses. See also, <xref linkend="describe-ambiguity"/>.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term><option>--describe-ambiguity-with:<replaceable>format</replaceable></option></term>
+<listitem>
+<para>Selects how ambiguity will be described. Implies <option>--describe-ambiguity</option>.
+</para>
+<para>The options are <code>text</code>, <code>xml</code>, and <code>api-xml</code>.
+See <xref linkend="describe-ambiguity"/>.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term><option>--function-library:<replaceable>library</replaceable></option></term>
+<listitem>
+<para>Load a function library to select among ambiguous alternatives.
+See <xref linkend="choose-alternative"/>.
 </para>
 </listitem>
 </varlistentry>

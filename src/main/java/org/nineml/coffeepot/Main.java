@@ -41,6 +41,7 @@ class Main {
     boolean parseError = false;
     InvisibleXmlParser parser;
     OutputFormat outputFormat;
+    private final Processor processor;
     private static final int UnicodeBOM = 0xFEFF;
 
     public static void main(String[] args) {
@@ -55,6 +56,16 @@ class Main {
             System.err.println(ex.getMessage());
             System.exit(2);
         }
+    }
+
+    public Main() {
+        Processor localProcessor = null;
+        try {
+            localProcessor = new Processor(true);
+        } catch (Exception ex) {
+            // nevermind
+        }
+        processor = localProcessor;
     }
 
     private int run(String[] args) throws IOException {
@@ -145,6 +156,35 @@ class Main {
             options.setParserType("Earley");
         }
 
+        if (cmain.describeAmbiguityWith != null) {
+            if ("apixml".equals(cmain.describeAmbiguityWith)) {
+                cmain.describeAmbiguityWith = "api-xml";
+            }
+
+            if ("xml".equals(cmain.describeAmbiguityWith) || "api-xml".equals(cmain.describeAmbiguityWith)) {
+                if (processor == null) {
+                    options.getLogger().error(logcategory, "Cannot describe ambiguity with XML, no Saxon processor available");
+                    cmain.describeAmbiguityWith = null;
+                }
+                cmain.describeAmbiguity = true;
+            } else {
+                if (!"text".equals(cmain.describeAmbiguityWith)) {
+                    options.getLogger().error(logcategory, "Ignoring unrecognized ambiguity description type: " + cmain.describeAmbiguityWith);
+                }
+                cmain.describeAmbiguityWith = null;
+            }
+        }
+
+        if (cmain.functionLibrary != null && processor == null) {
+            options.getLogger().error(logcategory, "Cannot resolve ambiguity with a function library, no Saxon processor available");
+            cmain.functionLibrary = null;
+        }
+
+        if (cmain.choose.size() > 0 && processor == null) {
+            options.getLogger().error(logcategory, "Cannot resolve ambiguity with a XPath expressions, no Saxon processor available");
+            cmain.choose.clear();
+        }
+
         if (cmain.version) {
             if (options.getPedantic()) {
                 System.out.printf("%s version %s (pedantic).%n", BuildConfig.TITLE, BuildConfig.VERSION);
@@ -184,9 +224,7 @@ class Main {
                 options.getLogger().error(logcategory, "Cannot output SVG; GraphViz is not configured.");
                 cmain.graphSvg = null;
             } else {
-                try {
-                    new Processor(false);
-                } catch (Exception ex) {
+                if (processor == null) {
                     options.getLogger().error(logcategory, "Cannot output SVG; failed to find Saxon on the classpath.");
                     cmain.graphSvg = null;
                 }
@@ -574,7 +612,14 @@ class Main {
     }
 
     private int parse(String input, int recordNumber) {
-        eventBuilder = new VerboseEventBuilder(parser.getIxmlVersion(), options);
+        eventBuilder = new VerboseEventBuilder(parser.getIxmlVersion(), options, processor);
+        for (String expr : cmain.choose) {
+            eventBuilder.addExpression(expr);
+        }
+        if (cmain.functionLibrary != null) {
+            eventBuilder.addFunctionLibrary(cmain.functionLibrary);
+        }
+        eventBuilder.setAmbiguityDescription(cmain.describeAmbiguityWith);
 
         InvisibleXmlDocument doc;
 
@@ -623,13 +668,8 @@ class Main {
                     }
                 }
             }
-            if (cmain.describeAmbiguity) {
-                if (infambig) {
-                    System.out.println("Infinite ambiguity:");
-                } else {
-                    System.out.println("Ambiguity:");
-                }
-            }
+
+            eventBuilder.infiniteAmbiguity(infambig);
         }
 
         NopContentHandler handler = new NopContentHandler();
@@ -832,10 +872,11 @@ class Main {
     }
 
     private void graphForest(GearleyResult result, ParserOptions options, String output) {
+        assert processor != null;
+
         String stylesheet = "/org/nineml/coffeegrinder/forest2dot.xsl";
         try {
             // Get the graph as XML
-            Processor processor = new Processor(false);
             ByteArrayInputStream bais = new ByteArrayInputStream(result.getForest().serialize().getBytes(StandardCharsets.UTF_8));
             DocumentBuilder builder = processor.newDocumentBuilder();
             graphXdm(builder.build(new SAXSource(new InputSource(bais))), options, stylesheet, output);
@@ -845,10 +886,11 @@ class Main {
     }
 
     private void graphTree(ParseTree result, ParserOptions options, String output) {
+        assert processor != null;
+
         String stylesheet = "/org/nineml/coffeegrinder/tree2dot.xsl";
         try {
             // Get the graph as XML
-            Processor processor = new Processor(false);
             ByteArrayInputStream bais = new ByteArrayInputStream(result.serialize().getBytes(StandardCharsets.UTF_8));
             DocumentBuilder builder = processor.newDocumentBuilder();
             graphXdm(builder.build(new SAXSource(new InputSource(bais))), options, stylesheet, output);
@@ -859,8 +901,6 @@ class Main {
 
     private void graphXdm(XdmNode document, ParserOptions options, String resource, String output) {
         try {
-            Processor processor = document.getProcessor();
-
             // Transform the graph into dot
             InputStream stylesheet = getClass().getResourceAsStream(resource);
             if (stylesheet == null) {
@@ -921,7 +961,7 @@ class Main {
         }
     }
 
-    @Parameters(separators = ":", commandDescription = "IxmlParser options")
+    @Parameters(separators = ":", commandDescription = "CoffeePot options")
     private static class CommandMain {
         @Parameter(names = {"-help", "-h", "--help"}, help = true, description = "Display help")
         public boolean help = false;
@@ -968,6 +1008,9 @@ class Main {
         @Parameter(names = {"-D", "--describe-ambiguity"}, description = "Describe why a parse is ambiguous")
         public boolean describeAmbiguity = false;
 
+        @Parameter(names = {"--describe-ambiguity-with"}, description = "Describe why a parse is ambiguous")
+        public String describeAmbiguityWith = null;
+
         @Parameter(names = {"--show-grammar"}, description = "Show the underlying Earley grammar")
         public boolean showGrammar = false;
 
@@ -1012,6 +1055,12 @@ class Main {
 
         @Parameter(names = {"--encoding"}, description = "Input encoding")
         public String encoding = "UTF-8";
+
+        @Parameter(names = {"--choose"}, description = "XPath expressions to choose between ambiguous alternatives")
+        public List<String> choose = new ArrayList<>();
+
+        @Parameter(names = {"--function-library"}, description = "Function library to choose between ambiguous alternatives")
+        public String functionLibrary = null;
 
         @Parameter(description = "The input")
         public List<String> inputText = new ArrayList<>();
