@@ -374,7 +374,7 @@ class Main {
             }
         } else {
             if (parser.getException() != null) {
-                System.err.printf("Failed to parse grammar: %s", parser.getException().getMessage());
+                System.err.printf("Failed to parse grammar: %s%n", parser.getException().getMessage());
             } else {
                 InvisibleXmlDocument doc = parser.getFailedParse();
                 System.err.printf("Failed to parse grammar: could not match %s at line %d, column %d%n",
