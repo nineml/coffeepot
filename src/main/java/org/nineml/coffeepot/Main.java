@@ -187,9 +187,9 @@ class Main {
 
         if (cmain.version) {
             if (options.getPedantic()) {
-                System.out.printf("%s version %s (pedantic).%n", BuildConfig.TITLE, BuildConfig.VERSION);
+                System.err.printf("%s version %s (pedantic).%n", BuildConfig.TITLE, BuildConfig.VERSION);
             } else {
-                System.out.printf("%s version %s.%n", BuildConfig.TITLE, BuildConfig.VERSION);
+                System.err.printf("%s version %s.%n", BuildConfig.TITLE, BuildConfig.VERSION);
             }
         }
 
@@ -380,7 +380,7 @@ class Main {
                 System.err.printf("Failed to parse grammar: could not match %s at line %d, column %d%n",
                         doc.getResult().getLastToken(), doc.getLineNumber(), doc.getColumnNumber());
                 if (cmain.showChart) {
-                    System.out.println(doc.getTree());
+                    System.err.println(doc.getTree());
                 }
             }
 
@@ -420,17 +420,17 @@ class Main {
                 format = "%4,d";
             }
             format += ". %s%s%n";
-            System.out.printf("The %s grammar (%d rules):%n", options.getParserType(), rules.size());
+            System.err.printf("The %s grammar (%d rules):%n", options.getParserType(), rules.size());
             for (int index = 0; index < rules.size(); index++) {
                 String rule = rules.get(index);
                 String indentStr = maxIndent.substring(0, indent - rule.indexOf("::="));
-                System.out.printf(format, index+1, indentStr, rule);
+                System.err.printf(format, index+1, indentStr, rule);
             }
         }
 
         if (cmain.compiledGrammar != null) {
             if ("-".equals(cmain.compiledGrammar)) {
-                System.out.println(parser.getCompiledParser());
+                System.err.println(parser.getCompiledParser());
             } else {
                 PrintStream ps = new PrintStream(Files.newOutputStream(Paths.get(cmain.compiledGrammar)), true, "UTF-8");
                 ps.println(parser.getCompiledParser());
@@ -659,12 +659,12 @@ class Main {
         if (doc.getNumberOfParses() > 1 || infambig) {
             if (!doc.getOptions().isSuppressedState("ambiguous")) {
                 if (doc.getNumberOfParses() == 1) {
-                    System.out.println("Found 1 parse, but the grammar is infinitely ambiguous");
+                    System.err.println("Found 1 parse, but the grammar is infinitely ambiguous");
                 } else {
                     if (infambig) {
-                        System.out.printf("Found %,d possible parses (of infinitely many).%n", doc.getNumberOfParses());
+                        System.err.printf("Found %,d possible parses (of infinitely many).%n", doc.getNumberOfParses());
                     } else {
-                        System.out.printf("Found %,d possible parses.%n", doc.getNumberOfParses());
+                        System.err.printf("Found %,d possible parses.%n", doc.getNumberOfParses());
                     }
                 }
             }
@@ -700,7 +700,7 @@ class Main {
         for (int pos = 1; pos < startingParse; pos++) {
             doc.getTree(eventBuilder);
             if (!doc.moreParses()) {
-                System.out.printf("Ran out of parses after %d.%n", pos);
+                System.err.printf("Ran out of parses after %d.%n", pos);
                 return 1;
             }
         }
@@ -955,9 +955,9 @@ class Main {
             prefix = "Parsed " + filename + " in ";
         }
         if (time > 1000) {
-            System.out.println(prefix + time / 1000 + "s");
+            System.err.println(prefix + time / 1000 + "s");
         } else {
-            System.out.println(prefix + time  + "ms");
+            System.err.println(prefix + time  + "ms");
         }
     }
 
