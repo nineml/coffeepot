@@ -120,4 +120,30 @@ public class ParserOptions extends org.nineml.coffeefilter.ParserOptions {
     public void setTrailingNewlineOnOutput(boolean newline) {
         trailingNewlineOnOutput = newline;
     }
+
+    public void logOptions() {
+        String cat = "CoffeePotOptions";
+        Logger logger = getLogger();
+
+        logger.error(cat, "Parser type: %s", getParserType());
+        logger.error(cat, "Return chart: %s", getReturnChart());
+        logger.error(cat, "Prefix parsing: %s", getPrefixParsing());
+        logger.error(cat, "Expose prunable nonterminals: %s", getExposePrunableNonterminals());
+        logger.error(cat, "Progress monitor: %s", getProgressMonitor());
+        logger.error(cat, "Ignore trailing whitespace: %s", getIgnoreTrailingWhitespace());
+        logger.error(cat, "Allow undefined symbols: %s", getAllowUndefinedSymbols());
+        logger.error(cat, "Allow unreachable symbols: %s", getAllowUnreachableSymbols());
+        logger.error(cat, "Allow unproductive symbols: %s", getAllowUnproductiveSymbols());
+        logger.error(cat, "Allow multiple definitions: %s", getAllowMultipleDefinitions());
+        logger.error(cat, "Pretty print: %s", getPrettyPrint());
+        logger.error(cat, "Show chart: %s", getShowChart());
+        logger.error(cat, "Assert valid XML names: %s", getAssertValidXmlNames());
+        logger.error(cat, "Assert Valid XML characters: %s", getAssertValidXmlCharacters());
+        logger.error(cat, "Pedantic: %s", getPedantic());
+        logger.error(cat, "Show marks: %s", getShowMarks());
+        logger.error(cat, "Show BNF nonterminals: %s", getShowBnfNonterminals());
+        logger.error(cat, "Ignore BOM: %s", getIgnoreBOM());
+        logger.error(cat, "Graphviz: %s", getGraphviz());
+        logger.error(cat, "Rule rewriter: %s", getRuleRewriter());
+    }
 }
