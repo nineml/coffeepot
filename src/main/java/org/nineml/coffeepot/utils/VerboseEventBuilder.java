@@ -189,7 +189,7 @@ public class VerboseEventBuilder extends AlternativeEventBuilder {
         if (tree.symbol != null) {
             sb.append("/");
             sb.append(tree.symbol);
-            sb.append("[").append(symbolStack.get(symbolStack.size()-1).childCounts.get(tree.symbol)+1).append("]");
+            sb.append("[").append(symbolStack.get(symbolStack.size()-1).childCounts.getOrDefault(tree.symbol, 0)+1).append("]");
         }
 
         System.out.println(sb);
