@@ -57,10 +57,9 @@ rule: {[pragma applies to “A”]} A,
       {[pragma applies to “b”]} 'b'.</programlisting>
 </listitem>
 <listitem>
-<para>To apply a pragma to the entire grammar, it must precede the first rule
-and it must be followed by a full stop:</para>
+<para>To apply a pragma to the entire grammar, it must be in the prolog.</para>
 
-<programlisting>{[pragma applies to whole grammar]} .
+<programlisting>{[+pragma applies to whole grammar]}
 
 {[pragma applies to “rule”]}
 rule: {[pragma applies to “A”]} A,
@@ -70,8 +69,8 @@ rule: {[pragma applies to “A”]} A,
 
 <para>More than one pragma can appear at any of those locations:</para>
 
-<programlisting>{[pragma applies to whole grammar]} .
-{[second pragma applies to whole grammar ]} .
+<programlisting>{[+pragma applies to whole grammar]}
+{[+second pragma applies to whole grammar ]}
 
 {[pragma applies to “rule”]}
 {[second pragma applies to “rule”]}
@@ -88,7 +87,7 @@ pragmas that it is ignoring.</para>
 <section xml:id="pragmas-grammar">
 <title>Grammar pragmas</title>
 
-<para>There are three pragmas that apply to a grammar as a whole.</para>
+<para>There following pragmas apply to a grammar as a whole.</para>
 
 <section xml:id="pragma-csv-columns">
 <title>csv-columns</title>
@@ -97,7 +96,7 @@ pragmas that it is ignoring.</para>
 <link linkend="output-csv">CSV output</link> is selected.</para>
 
 <para>Usage:</para>
-<synopsis linenumbering="unnumbered">{[nineml csv-columns <replaceable>list,of,names</replaceable>]}</synopsis>
+<synopsis linenumbering="unnumbered">{[+nineml csv-columns <replaceable>list,of,names</replaceable>]}</synopsis>
 
 <para>Ordinarily, CSV formatted output includes all the columns in (roughly)
 the order they occur in the XML. This pragma allows you to list the
@@ -111,16 +110,23 @@ ignored. An empty column is not produced.</para>
 <section xml:id="pragma-import">
 <title>import</title>
 
+<para>Allows one grammar to import another.</para>
+
 <para>Usage:</para>
-<synopsis linenumbering="unnumbered">{[nineml import "grammar-uri"]}</synopsis>
+<synopsis linenumbering="unnumbered">{[+nineml import "grammar-uri"]}</synopsis>
+
+<para>In principle, this pragma allows you to combine grammars. This feature
+is experimental and no coherent semantics have yet been established.</para>
 
 </section>
 
 <section xml:id="pragma-ns">
 <title>ns</title>
 
+<para>Declares the default namespace for the output XML.</para>
+
 <para>Usage:</para>
-<synopsis linenumbering="unnumbered">{[nineml ns "namespace-uri"]}</synopsis>
+<synopsis linenumbering="unnumbered">{[+nineml ns "namespace-uri"]}</synopsis>
 
 </section>
 
@@ -129,8 +135,7 @@ ignored. An empty column is not produced.</para>
 
 <para>The <code>record-end</code> pragma enables record-oriented processing by
 default. It’s value is the regular expression that marks record ends. Unlike the
-other pragmas, this one has a different URI binding. It is a grammar option and
-must be placed at the beginning of your grammar:
+other pragmas, this one has a different URI binding:
 </para>
 
 <para>Usage:</para>
@@ -144,8 +149,7 @@ must be placed at the beginning of your grammar:
 
 <para>The <code>record-start</code> pragma enables record-oriented processing by
 default. It’s value is the regular expression that marks record starts. Unlike the
-other pragmas, this one has a different URI binding. It is a grammar option and
-must be placed at the beginning of your grammar:
+other pragmas, this one has a different URI binding:
 </para>
 
 <para>Usage:</para>
@@ -159,10 +163,13 @@ must be placed at the beginning of your grammar:
 <section xml:id="pragmas-rules">
 <title>Rule pragmas</title>
 
-<para>There are four pragmas that apply to a rules.</para>
+<para>There following pragmas apply to a rules.</para>
 
 <section xml:id="pragma-csv-heading">
 <title>csv-heading</title>
+
+<para>Specify the heading title to use in CSV output if the nonterminal defined
+by this is used as the value of a column.</para>
 
 <para>Usage:</para>
 <synopsis linenumbering="unnumbered">{[nineml xmlns "Heading Title"]}</synopsis>
@@ -172,11 +179,15 @@ must be placed at the beginning of your grammar:
 <section xml:id="pragma-discard-empty">
 <title>discard-empty</title>
 
+<para>If the nonterminal defined by this rule is empty, it will be discarded (not
+serialized at all).</para>
+
 <para>Usage:</para>
 <synopsis linenumbering="unnumbered">{[nineml discard empty]}</synopsis>
 
 </section>
 
+<!--
 <section xml:id="pragma-combine">
 <title>combine</title>
 
@@ -191,16 +202,20 @@ must be placed at the beginning of your grammar:
 <synopsis linenumbering="unnumbered">{[nineml regex "regular expression"]}</synopsis>
 
 </section>
+-->
 
 </section>
 
 <section xml:id="pragmas-symbols">
 <title>Symbol pragmas</title>
 
-<para>There are two pragmas that apply to a symbols.</para>
+<para>The following pragmas that apply to a symbols.</para>
 
 <section xml:id="pragma-rename">
 <title>rename</title>
+
+<para>This pragma changes the name used when the element is serialized. It applies
+only to nonterminals.</para>
 
 <para>Usage:</para>
 <synopsis linenumbering="unnumbered">{[nineml rename newname]}</synopsis>
@@ -210,8 +225,76 @@ must be placed at the beginning of your grammar:
 <section xml:id="pragma-rewrite">
 <title>rewrite</title>
 
+<para>This pragma changes text output when the terminal. It applies
+only to terminals.</para>
+
 <para>Usage:</para>
 <synopsis linenumbering="unnumbered">{[nineml rewrite "new literal"]}</synopsis>
+
+<para>This pragma was invented before Invisible XML added
+<link xlink:href="https://invisiblexml.org/1.0/#L649">insertions</link>. The same effects
+can be obtained with insertions (by suppressing one terminal and inserting another).
+That is the preferred approach.</para>
+
+</section>
+
+<section xml:id="pragma-priority">
+<title>priority</title>
+
+<para>This pragma associates a priority with a nonterminal.</para>
+
+<para>Usage:</para>
+<synopsis linenumbering="unnumbered">{[nineml priority 1.5]}</synopsis>
+
+<para>When an ambiguous parse is being serialized, there will be places in the
+output where a choice must be made between two or more alternatives. A priority
+can be used to control the selection. The nonterminal with the highest priority will
+be selected. If there are no priorities, or if several nonterminals have the same priority,
+no guarantees are made about which alternative will be selected. The default priority for
+all nonterminals is 0.</para>
+
+<para>Consider the following grammar:</para>
+
+<programlisting language="ixml"> number: hex | decimal .
+ hex: hex-digit+ .
+ decimal: decimal-digit+ .
+-hex-digit: ["0"-"9" | "a"-"f" | "A"-"F" ] .
+-decimal-digit: ["0"-"9" ] .</programlisting>
+
+<para>It parses numbers in either hexadecimal or decimal. In the case of a number like “42”, the
+parse is ambiguous, it matches either hex or decimal:</para>
+
+<screen><![CDATA[$ coffeepot --pretty-print -g:hex.ixml 42
+Found 2 possible parses.
+<number xmlns:ixml="http://invisiblexml.org/NS" ixml:state="ambiguous">
+   <hex>42<hex>
+</number>]]></screen>
+
+<para>You can give decimal a higher priority:</para>
+
+<programlisting language="ixml">{[+pragma nineml "https://nineml.org/ns/pragma/"]}
+
+ number: hex | {[nineml priority 2]} decimal .
+ hex: hex-digit+ .
+ decimal: decimal-digit+ .
+-hex-digit: ["0"-"9" | "a"-"f" | "A"-"F" ] .
+-decimal-digit: ["0"-"9" ] .</programlisting>
+
+<para>Now decimal will be selected:</para>
+
+<screen><![CDATA[$ coffeepot --pretty-print -g:hex.ixml 42
+Found 2 possible parses.
+<number xmlns:ixml="http://invisiblexml.org/NS" ixml:state="ambiguous">
+   <decimal>42</decimal>
+</number>]]></screen>
+
+<para>The parse is still considered ambiguous because there were two possible choices.</para>
+
+<note>
+<para>If a grammar is infinitely ambiguous, the same part of the parse may be serialized
+more than once. When this happens, the selection is always between the remaining alternatives.
+</para>
+</note>
 
 </section>
 </section>
