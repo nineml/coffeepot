@@ -232,7 +232,7 @@ public class ProgressBar implements ProgressMonitor {
             return;
         }
         if (istty) {
-            System.out.print("                                                                                               \r");
+            System.out.print("                                                                        \r");
         }
     }
 
