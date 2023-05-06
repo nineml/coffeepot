@@ -128,7 +128,6 @@ public class ParserOptions extends org.nineml.coffeefilter.ParserOptions {
         logger.error(cat, "Parser type: %s", getParserType());
         logger.error(cat, "Return chart: %s", getReturnChart());
         logger.error(cat, "Prefix parsing: %s", getPrefixParsing());
-        logger.error(cat, "Expose prunable nonterminals: %s", getExposePrunableNonterminals());
         logger.error(cat, "Progress monitor: %s", getProgressMonitor());
         logger.error(cat, "Ignore trailing whitespace: %s", getIgnoreTrailingWhitespace());
         logger.error(cat, "Allow undefined symbols: %s", getAllowUndefinedSymbols());
