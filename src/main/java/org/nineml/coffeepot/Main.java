@@ -8,10 +8,8 @@ import org.nineml.coffeefilter.InvisibleXmlParser;
 import org.nineml.coffeefilter.exceptions.IxmlException;
 import org.nineml.coffeefilter.trees.*;
 import org.nineml.coffeefilter.util.URIUtils;
-import org.nineml.coffeegrinder.parser.GearleyResult;
-import org.nineml.coffeegrinder.parser.ParseTree;
-import org.nineml.coffeegrinder.parser.Rule;
-import org.nineml.coffeegrinder.parser.SourceGrammar;
+import org.nineml.coffeegrinder.parser.*;
+import org.nineml.coffeepot.utils.ParserOptions;
 import org.nineml.coffeepot.utils.*;
 import org.xml.sax.InputSource;
 
@@ -388,11 +386,33 @@ class Main {
         }
 
         if (cmain.showGrammar) {
+            SourceGrammar resolved = parser.getGrammar().resolveDuplicates();
+
             // Let's align the ::= signs for pretty...
             ArrayList<String> rules = new ArrayList<>();
             int indent = 0;
-            for (Rule rule : parser.getGrammar().getRules()) {
-                String rulestr = rule.toString();
+            for (Rule rule : resolved.getRules()) {
+                // We implement our own version of rule.toString() so that we can include
+                // marks in the display; those attributes aren't displayed by CoffeeGrinder
+                StringBuilder sb = new StringBuilder();
+                sb.append(rule.getSymbol());
+                sb.append(" ::= ");
+                int count = 0;
+                for (Symbol symbol : rule.getRhs().symbols) {
+                    if (count > 0) {
+                        sb.append(", ");
+                    }
+                    if (symbol instanceof NonterminalSymbol) {
+                        String mark = ((NonterminalSymbol) symbol).getAttributeValue("mark", "^");
+                        if (!"^".equals(mark)) {
+                            sb.append(mark);
+                        }
+                    }
+                    sb.append(symbol.toString());
+                    count += 1;
+                }
+
+                String rulestr = sb.toString();
                 if (rule.rhs.isEmpty()) {
                     rulestr += "ε";
                 }
