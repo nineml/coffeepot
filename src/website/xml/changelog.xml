@@ -7,6 +7,18 @@
 
 <revhistory>
 <revision>
+  <revnumber>2.2.0</revnumber>
+  <date>2023-05-06</date>
+  <revdescription>
+    <para>Changed the <link linkend="cli">--show-grammar</link> option to display the
+    grammar after duplicates have been resolved. Also changed the display to include marks.
+    Documented the <literal linkend="pragma-priority">priority</literal> pragma.
+    Removed the <literal>combine</literal>
+    and <literal>regex</literal> pragmas from the documentation; I’m not convinced they work
+    correctly.</para>
+  </revdescription>
+</revision>
+<revision>
   <revnumber>2.1.0</revnumber>
   <date>2023-04-23</date>
   <revdescription>
