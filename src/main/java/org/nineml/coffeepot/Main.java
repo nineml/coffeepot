@@ -8,10 +8,8 @@ import org.nineml.coffeefilter.InvisibleXmlParser;
 import org.nineml.coffeefilter.exceptions.IxmlException;
 import org.nineml.coffeefilter.trees.*;
 import org.nineml.coffeefilter.util.URIUtils;
-import org.nineml.coffeegrinder.parser.GearleyResult;
-import org.nineml.coffeegrinder.parser.ParseTree;
-import org.nineml.coffeegrinder.parser.Rule;
-import org.nineml.coffeegrinder.parser.SourceGrammar;
+import org.nineml.coffeegrinder.parser.*;
+import org.nineml.coffeepot.utils.ParserOptions;
 import org.nineml.coffeepot.utils.*;
 import org.xml.sax.InputSource;
 
@@ -187,9 +185,9 @@ class Main {
 
         if (cmain.version) {
             if (options.getPedantic()) {
-                System.out.printf("%s version %s (pedantic).%n", BuildConfig.TITLE, BuildConfig.VERSION);
+                System.err.printf("%s version %s (pedantic).%n", BuildConfig.TITLE, BuildConfig.VERSION);
             } else {
-                System.out.printf("%s version %s.%n", BuildConfig.TITLE, BuildConfig.VERSION);
+                System.err.printf("%s version %s.%n", BuildConfig.TITLE, BuildConfig.VERSION);
             }
         }
 
@@ -374,13 +372,13 @@ class Main {
             }
         } else {
             if (parser.getException() != null) {
-                System.err.printf("Failed to parse grammar: %s", parser.getException().getMessage());
+                System.err.printf("Failed to parse grammar: %s%n", parser.getException().getMessage());
             } else {
                 InvisibleXmlDocument doc = parser.getFailedParse();
                 System.err.printf("Failed to parse grammar: could not match %s at line %d, column %d%n",
                         doc.getResult().getLastToken(), doc.getLineNumber(), doc.getColumnNumber());
                 if (cmain.showChart) {
-                    System.out.println(doc.getTree());
+                    System.err.println(doc.getTree());
                 }
             }
 
@@ -388,11 +386,33 @@ class Main {
         }
 
         if (cmain.showGrammar) {
+            SourceGrammar resolved = parser.getGrammar().resolveDuplicates();
+
             // Let's align the ::= signs for pretty...
             ArrayList<String> rules = new ArrayList<>();
             int indent = 0;
-            for (Rule rule : parser.getGrammar().getRules()) {
-                String rulestr = rule.toString();
+            for (Rule rule : resolved.getRules()) {
+                // We implement our own version of rule.toString() so that we can include
+                // marks in the display; those attributes aren't displayed by CoffeeGrinder
+                StringBuilder sb = new StringBuilder();
+                sb.append(rule.getSymbol());
+                sb.append(" ::= ");
+                int count = 0;
+                for (Symbol symbol : rule.getRhs().symbols) {
+                    if (count > 0) {
+                        sb.append(", ");
+                    }
+                    if (symbol instanceof NonterminalSymbol) {
+                        String mark = ((NonterminalSymbol) symbol).getAttributeValue("mark", "^");
+                        if (!"^".equals(mark)) {
+                            sb.append(mark);
+                        }
+                    }
+                    sb.append(symbol.toString());
+                    count += 1;
+                }
+
+                String rulestr = sb.toString();
                 if (rule.rhs.isEmpty()) {
                     rulestr += "ε";
                 }
@@ -420,17 +440,17 @@ class Main {
                 format = "%4,d";
             }
             format += ". %s%s%n";
-            System.out.printf("The %s grammar (%d rules):%n", options.getParserType(), rules.size());
+            System.err.printf("The %s grammar (%d rules):%n", options.getParserType(), rules.size());
             for (int index = 0; index < rules.size(); index++) {
                 String rule = rules.get(index);
                 String indentStr = maxIndent.substring(0, indent - rule.indexOf("::="));
-                System.out.printf(format, index+1, indentStr, rule);
+                System.err.printf(format, index+1, indentStr, rule);
             }
         }
 
         if (cmain.compiledGrammar != null) {
             if ("-".equals(cmain.compiledGrammar)) {
-                System.out.println(parser.getCompiledParser());
+                System.err.println(parser.getCompiledParser());
             } else {
                 PrintStream ps = new PrintStream(Files.newOutputStream(Paths.get(cmain.compiledGrammar)), true, "UTF-8");
                 ps.println(parser.getCompiledParser());
@@ -659,12 +679,12 @@ class Main {
         if (doc.getNumberOfParses() > 1 || infambig) {
             if (!doc.getOptions().isSuppressedState("ambiguous")) {
                 if (doc.getNumberOfParses() == 1) {
-                    System.out.println("Found 1 parse, but the grammar is infinitely ambiguous");
+                    System.err.println("Found 1 parse, but the grammar is infinitely ambiguous");
                 } else {
                     if (infambig) {
-                        System.out.printf("Found %,d possible parses (of infinitely many).%n", doc.getNumberOfParses());
+                        System.err.printf("Found %,d possible parses (of infinitely many).%n", doc.getNumberOfParses());
                     } else {
-                        System.out.printf("Found %,d possible parses.%n", doc.getNumberOfParses());
+                        System.err.printf("Found %,d possible parses.%n", doc.getNumberOfParses());
                     }
                 }
             }
@@ -700,7 +720,7 @@ class Main {
         for (int pos = 1; pos < startingParse; pos++) {
             doc.getTree(eventBuilder);
             if (!doc.moreParses()) {
-                System.out.printf("Ran out of parses after %d.%n", pos);
+                System.err.printf("Ran out of parses after %d.%n", pos);
                 return 1;
             }
         }
@@ -955,9 +975,9 @@ class Main {
             prefix = "Parsed " + filename + " in ";
         }
         if (time > 1000) {
-            System.out.println(prefix + time / 1000 + "s");
+            System.err.println(prefix + time / 1000 + "s");
         } else {
-            System.out.println(prefix + time  + "ms");
+            System.err.println(prefix + time  + "ms");
         }
     }
 

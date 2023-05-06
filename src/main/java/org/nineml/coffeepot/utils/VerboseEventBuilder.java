@@ -170,9 +170,9 @@ public class VerboseEventBuilder extends AlternativeEventBuilder {
         if (!shownHeader) {
             shownHeader = true;
             if (infiniteAmbiguity) {
-                System.out.println("Infinite ambiguity:");
+                System.err.println("Infinite ambiguity:");
             } else {
-                System.out.println("Ambiguity:");
+                System.err.println("Ambiguity:");
             }
         }
 
@@ -189,10 +189,10 @@ public class VerboseEventBuilder extends AlternativeEventBuilder {
         if (tree.symbol != null) {
             sb.append("/");
             sb.append(tree.symbol);
-            sb.append("[").append(symbolStack.get(symbolStack.size()-1).childCounts.get(tree.symbol)+1).append("]");
+            sb.append("[").append(symbolStack.get(symbolStack.size()-1).childCounts.getOrDefault(tree.symbol, 0)+1).append("]");
         }
 
-        System.out.println(sb);
+        System.err.println(sb);
 
         if (showApiXmlAmbiguity) {
             showApiXmlAmbiguity(tree, alternatives, selected);
@@ -231,7 +231,7 @@ public class VerboseEventBuilder extends AlternativeEventBuilder {
                     showState(sb, right);
                 }
             }
-            System.out.printf("\t%s %s%n", (index == selected ? "X" : " "), sb);
+            System.err.printf("\t%s %s%n", (index == selected ? "X" : " "), sb);
         }
 
         return selected;
@@ -273,11 +273,11 @@ public class VerboseEventBuilder extends AlternativeEventBuilder {
                 root = root.getParent();
             }
             if (count == selected) {
-                System.out.printf("Alternative %d of %d (selected):%n", count+1, alternatives.size());
+                System.err.printf("Alternative %d of %d (selected):%n", count+1, alternatives.size());
             } else {
-                System.out.printf("Alternative %d of %d:%n", count+1, alternatives.size());
+                System.err.printf("Alternative %d of %d:%n", count+1, alternatives.size());
             }
-            System.out.println(root);
+            System.err.println(root);
             count++;
         }
     }
@@ -293,16 +293,16 @@ public class VerboseEventBuilder extends AlternativeEventBuilder {
         int count = 0;
         for (XdmNode alt : contexts) {
             if (count == selected) {
-                System.out.printf("Alternative %d of %d (selected):%n", count+1, alternatives.size());
+                System.err.printf("Alternative %d of %d (selected):%n", count+1, alternatives.size());
             } else {
-                System.out.printf("Alternative %d of %d:%n", count+1, alternatives.size());
+                System.err.printf("Alternative %d of %d:%n", count+1, alternatives.size());
             }
 
             try {
                 Xslt30Transformer transformer = simplify.load30();
                 XdmDestination result = new XdmDestination();
                 transformer.transform(alt.asSource(), result);
-                System.out.println(result.getXdmNode());
+                System.err.println(result.getXdmNode());
             } catch (SaxonApiException err) {
                 throw new RuntimeException("Running the simplify transform failed", err);
             }
