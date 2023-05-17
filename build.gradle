@@ -53,6 +53,12 @@ configurations.all {
   }
 }
 
+if (saxonEdition == "Saxon-EE") {
+  configurations.all {
+    exclude group: 'net.sf.saxon', module: 'Saxon-HE'
+  }
+}
+
 configurations {
   transform.extendsFrom documentation
   app.extendsFrom implementation
