@@ -218,6 +218,14 @@ public class VerboseEventBuilder extends AlternativeEventBuilder {
             } else {
                 if (left != null) {
                     // Left and right side
+
+                    if (left.leftExtent > right.leftExtent) {
+                        // The other way around
+                        ForestNode temp = left;
+                        left = right;
+                        right = temp;
+                    }
+
                     if (left.state == null) {
                         sb.append(left);
                     } else {
