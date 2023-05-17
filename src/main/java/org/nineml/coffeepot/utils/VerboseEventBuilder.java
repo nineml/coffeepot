@@ -3,7 +3,6 @@ package org.nineml.coffeepot.utils;
 import net.sf.saxon.PreparedStylesheet;
 import net.sf.saxon.expr.StaticContext;
 import net.sf.saxon.functions.FunctionLibrary;
-import net.sf.saxon.om.Function;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.query.QueryModule;
 import net.sf.saxon.query.StaticQueryContext;
@@ -125,13 +124,34 @@ public class VerboseEventBuilder extends AlternativeEventBuilder {
 
             // Did you actually provide the function we need?
             SymbolicName.F fname = new SymbolicName.F(CP_CHOOSE, 1);
-            Function chooseAlternative = fl.getFunctionItem(fname, staticContext);
+            Object chooseAlternative = fl.getFunctionItem(fname, staticContext);
 
             if (chooseAlternative == null) {
                 throw new IllegalArgumentException("Function library does not provide suitable function: " + functionLibrary);
             }
 
-            FunctionItemType ftype = chooseAlternative.getFunctionItemType();
+            // Make this code work for either Saxon 11 or Saxon 12
+            Class<?> klass = null;
+            try {
+                // Saxon 11
+                klass = Class.forName("net.sf.saxon.om.Function");
+            } catch (ClassNotFoundException ex11) {
+                try {
+                    // Saxon 12
+                    klass = Class.forName("net.sf.saxon.om.FunctionItem");
+                } catch (ClassNotFoundException ex12) {
+                    throw new RuntimeException(ex12);
+                }
+            }
+
+            final FunctionItemType ftype;
+            try {
+                Method getFit = klass.getMethod("getFunctionItemType");
+                ftype = (FunctionItemType) getFit.invoke(chooseAlternative);
+            } catch (IllegalAccessException | IllegalArgumentException ex) {
+                throw new RuntimeException(ex);
+            }
+
             if (ftype.getResultType().getPrimaryType() != BuiltInAtomicType.INTEGER) {
                 throw new IllegalArgumentException("The choose-alternative() function must return an xs:integer");
             }

@@ -7,6 +7,15 @@
 
 <revhistory>
 <revision>
+  <revnumber>2.2.2</revnumber>
+  <date>2023-05-17</date>
+  <revdescription>
+    <para>Fixed bug where CoffeePot had a runtime dependency on
+    Saxon EE. (It can use Saxon EE, and EE is needed for loading dynamic function
+    libraries, but EE isn’t required for basic functionality.)</para>
+  </revdescription>
+</revision>
+<revision>
   <revnumber>2.2.1</revnumber>
   <date>2023-05-17</date>
   <revdescription>
