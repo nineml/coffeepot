@@ -7,6 +7,17 @@
 
 <revhistory>
 <revision>
+  <revnumber>2.2.1</revnumber>
+  <date>2023-05-17</date>
+  <revdescription>
+    <para>Fixed bug where choices were not always presented in a
+    logical order (earlier matches before later matches) when
+    displaying alternatives. Updated CoffeeGrinder and fixed
+    stylesheet so that marks on nonterminals are included when
+    describing ambiguity.</para>
+  </revdescription>
+</revision>
+<revision>
   <revnumber>2.2.0</revnumber>
   <date>2023-05-06</date>
   <revdescription>
