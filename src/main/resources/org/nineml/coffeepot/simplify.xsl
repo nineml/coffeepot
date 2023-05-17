@@ -37,6 +37,9 @@
 
 <xsl:template match="a:literal">
   <_>
+    <xsl:if test="@mark != '^'">
+      <xsl:copy-of select="@mark"/>
+    </xsl:if>
     <xsl:apply-templates/>
   </_>
 </xsl:template>
