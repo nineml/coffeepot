@@ -1,4 +1,4 @@
-/* DocBook xslTNG version 2.1.2, https://xsltng.docbook.org */
+/* DocBook xslTNG version 2.1.6, https://xsltng.docbook.org */
 /* No embedded fonts by default. */
 :root {
   --symbol-fonts: "Arial Unicode", "Apple Symbols", "Symbol", "Symbola_hint";
@@ -32,6 +32,8 @@
   --sidebar-color: var(--primary-color);
   --on-sidebar-color: var(--on-primary-color);
   --table-border-style: 1px solid var(--primary-color);
+  --default-font-size: 13.5pt;
+  --default-line-height: 1.75rem;
   --line-number-width: 4em;
   --numbered-separator-style: 1px solid var(--primary-color);
   --numbered-number-color: var(--on-surface-color);
@@ -228,7 +230,6 @@ span.error.broken-link::after {
 }
 
 .remark {
-  page-break-inside: avoid;
   border: var(--remark-border-style);
   border-radius: 3px;
   padding-left: 4px;
@@ -419,18 +420,22 @@ h6 {
   margin-bottom: 0.5em;
 }
 
+cite.title {
+  font-weight: inherit;
+  font-family: inherit;
+}
+
 .book > .list-of-titles > .lot > .title,
 .part > .list-of-titles > .lot > .title {
   font-weight: 400;
   font-size: 1.5rem;
   margin-top: 2rem;
   margin-bottom: 1rem;
-  line-height: 1;
+  line-height: 1rem;
 }
 
 header {
   page-break-after: avoid;
-  page-break-inside: avoid;
 }
 
 header .authorgroup {
@@ -688,7 +693,7 @@ span > .viewport-table {
 
 .viewport-cell > span {
   display: block;
-  line-height: 1;
+  line-height: 1rem;
 }
 
 .viewport {
@@ -712,7 +717,6 @@ span > .viewport-table {
 }
 
 .admonition {
-  page-break-inside: avoid;
   border-radius: 0.5rem;
   min-height: 3rem;
   padding-top: 0;
@@ -885,7 +889,6 @@ pre {
   margin-bottom: 0;
   margin-left: 0.5em;
   margin-right: 0.5em;
-  page-break-inside: avoid;
 }
 
 pre sup {
@@ -910,7 +913,7 @@ pre.monospaced {
 
 pre.programlisting,
 pre.screen {
-  line-height: 1.25em;
+  line-height: 1.25rem;
 }
 
 pre.verblines .nsep {
@@ -1214,7 +1217,6 @@ blockquote p + .attribution {
 .figure,
 .example,
 .equation {
-  page-break-inside: avoid;
   padding-top: 1em;
 }
 
@@ -1291,6 +1293,14 @@ blockquote p + .attribution {
   font-family: var(--mono-family);
 }
 
+.calloutlist {
+  margin-bottom: 1em;
+}
+
+.calloutlist dl {
+  margin-bottom: 0;
+}
+
 .calloutlist dl dt {
   clear: both;
   float: left;
@@ -1304,6 +1314,10 @@ blockquote p + .attribution {
 
 .calloutlist dd > p:first-child {
   margin-top: 0;
+}
+
+.calloutlist dd:last-child > p:last-child {
+  margin-bottom: 0;
 }
 
 a.callout-bug,
@@ -1574,7 +1588,8 @@ a.annomark:visited {
   --margin-outer: 1in;
   --margin-above: 1in;
   --margin-below: 1in;
-  font-size: 12pt;
+  font-size: var(--default-font-size);
+  line-height: var(--default-line-height);
 }
 
 html.article-style.A4 {
@@ -2329,22 +2344,35 @@ html.article-style .list-of-titles div .title {
   break-before: always;
 }
 
+:root {
+  --background-color: inherit;
+  hyphens: auto;
+}
+
+body {
+  margin-left: 0;
+  margin-right: 0;
+}
+
 .book > header {
   padding: 0;
   border: inherit;
 }
 
-.division > header > h1,
+.division > header > h1 {
+  string-set: DocumentTitle content(), DivisionTitle content(), ComponentTitle "", SectionTitle "";
+}
+
 .component > header > h1 {
-  string-set: DocumentTitle content(), DivisionTitle content(), ComponentTitle content();
+  string-set: DocumentTitle content(), DivisionTitle content(), ComponentTitle content(), SectionTitle "";
 }
 
 .division > header > h2 {
-  string-set: DivisionTitle content();
+  string-set: DivisionTitle content(), ComponentTitle "", SectionTitle "";
 }
 
 .component > header > h2 {
-  string-set: ComponentTitle content();
+  string-set: ComponentTitle content(), SectionTitle "";
 }
 
 .section > header > h1,
@@ -2353,8 +2381,26 @@ html.article-style .list-of-titles div .title {
   string-set: SectionTitle content();
 }
 
-header {
+.page-break-avoid {
   page-break-inside: avoid;
+}
+
+h1 {
+  bookmark-level: 1;
+  bookmark-state: closed;
+}
+
+h2 {
+  bookmark-level: 2;
+  bookmark-state: closed;
+}
+
+.article > header > h2 {
+  bookmark-level: none;
+}
+
+.verbatim {
+  hyphens: none;
 }
 
 .example header {
@@ -2379,6 +2425,16 @@ header {
   font-size: 1rem;
   font-weight: normal;
   font-family: "Noto Serif", serif, "Arial Unicode";
+}
+
+.table-footnotes {
+  padding-top: 0.25rem;
+}
+
+.table-footnotes .footnote {
+  float: none;
+  text-indent: -0.75rem;
+  margin-left: 0.75rem;
 }
 
 .indexref::before {
@@ -2437,7 +2493,6 @@ span.error.broken-link::after {
 
 .admonition {
   background-color: inherit;
-  page-break-inside: avoid;
 }
 
 .admonition .icon {
@@ -2448,7 +2503,7 @@ span.error.broken-link::after {
   padding-top: 3.5rem;
 }
 
-body > header .copyright {
+.division body > header .copyright {
   float: bottom;
 }
 

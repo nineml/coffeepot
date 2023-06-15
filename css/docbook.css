@@ -1,4 +1,4 @@
-/* DocBook xslTNG version 2.1.2, https://xsltng.docbook.org */
+/* DocBook xslTNG version 2.1.6, https://xsltng.docbook.org */
 @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@1,400;1,700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap");
@@ -37,6 +37,8 @@
   --sidebar-color: var(--primary-color);
   --on-sidebar-color: var(--on-primary-color);
   --table-border-style: 1px solid var(--primary-color);
+  --default-font-size: 13.5pt;
+  --default-line-height: 1.75rem;
   --line-number-width: 4em;
   --numbered-separator-style: 1px solid var(--primary-color);
   --numbered-number-color: var(--on-surface-color);
@@ -233,7 +235,6 @@ span.error.broken-link::after {
 }
 
 .remark {
-  page-break-inside: avoid;
   border: var(--remark-border-style);
   border-radius: 3px;
   padding-left: 4px;
@@ -424,18 +425,22 @@ h6 {
   margin-bottom: 0.5em;
 }
 
+cite.title {
+  font-weight: inherit;
+  font-family: inherit;
+}
+
 .book > .list-of-titles > .lot > .title,
 .part > .list-of-titles > .lot > .title {
   font-weight: 400;
   font-size: 1.5rem;
   margin-top: 2rem;
   margin-bottom: 1rem;
-  line-height: 1;
+  line-height: 1rem;
 }
 
 header {
   page-break-after: avoid;
-  page-break-inside: avoid;
 }
 
 header .authorgroup {
@@ -693,7 +698,7 @@ span > .viewport-table {
 
 .viewport-cell > span {
   display: block;
-  line-height: 1;
+  line-height: 1rem;
 }
 
 .viewport {
@@ -717,7 +722,6 @@ span > .viewport-table {
 }
 
 .admonition {
-  page-break-inside: avoid;
   border-radius: 0.5rem;
   min-height: 3rem;
   padding-top: 0;
@@ -890,7 +894,6 @@ pre {
   margin-bottom: 0;
   margin-left: 0.5em;
   margin-right: 0.5em;
-  page-break-inside: avoid;
 }
 
 pre sup {
@@ -915,7 +918,7 @@ pre.monospaced {
 
 pre.programlisting,
 pre.screen {
-  line-height: 1.25em;
+  line-height: 1.25rem;
 }
 
 pre.verblines .nsep {
@@ -1219,7 +1222,6 @@ blockquote p + .attribution {
 .figure,
 .example,
 .equation {
-  page-break-inside: avoid;
   padding-top: 1em;
 }
 
@@ -1296,6 +1298,14 @@ blockquote p + .attribution {
   font-family: var(--mono-family);
 }
 
+.calloutlist {
+  margin-bottom: 1em;
+}
+
+.calloutlist dl {
+  margin-bottom: 0;
+}
+
 .calloutlist dl dt {
   clear: both;
   float: left;
@@ -1309,6 +1319,10 @@ blockquote p + .attribution {
 
 .calloutlist dd > p:first-child {
   margin-top: 0;
+}
+
+.calloutlist dd:last-child > p:last-child {
+  margin-bottom: 0;
 }
 
 a.callout-bug,
@@ -1595,8 +1609,8 @@ html {
   color: var(--on-background-color);
   background-color: var(--background-color);
   width: 100%;
-  line-height: 1.75rem;
-  font-size: 13.5pt;
+  line-height: var(--default-line-height);
+  font-size: var(--default-font-size);
   scroll-padding-top: 40px;
   height: 100%;
 }
@@ -1781,6 +1795,7 @@ nav.top {
   width: 100%;
   background-color: var(--nav-background-color);
   opacity: 1;
+  z-index: 2; /* make sure floating elements go under it! */
 }
 
 body.home nav.top {
@@ -1952,54 +1967,6 @@ nav.top div {
   border: solid 2px var(--error-color);
   padding: 1rem;
   border-radius: 4px;
-}
-
-/* ============================================================ */
-/* For progressive reveals in chunked content. */
-.reveal {
-  display: none;
-}
-
-ul.reveal,
-ol.reveal {
-  display: block;
-}
-
-.reveal > li {
-  display: none;
-}
-
-.reveal > li:first-child {
-  display: list-item;
-}
-
-.noreveal {
-  display: inherit;
-}
-
-.speaker-notes .reveal {
-  display: inherit;
-  background-color: #ffeeee;
-}
-
-.speaker-notes ul.reveal,
-.speaker-notes ol.reveal {
-  display: block;
-  background-color: #ffeeee;
-}
-
-.speaker-notes .reveal > li {
-  display: list-item;
-  background-color: #ffeeee;
-}
-
-.speaker-notes li.reveal {
-  display: list-item;
-  background-color: #ffeeee;
-}
-
-.speaker-notes .transitory {
-  display: none;
 }
 
 /* ============================================================ */
