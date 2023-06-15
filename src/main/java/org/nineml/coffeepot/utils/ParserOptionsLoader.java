@@ -40,6 +40,8 @@ public class ParserOptionsLoader {
         PROPERTY_NAMES.add("pretty-print");
         PROPERTY_NAMES.add("progress-bar");
         PROPERTY_NAMES.add("suppress-states");
+        PROPERTY_NAMES.add("disable-pragmas");
+        PROPERTY_NAMES.add("enable-pragmas");
         PROPERTY_NAMES.add("trailing-newline-on-output");
     }
 
@@ -148,6 +150,24 @@ public class ParserOptionsLoader {
             for (String state : value.split(",")) {
                 if (!"".equals(state.trim())) {
                     options.suppressState(state.trim());
+                }
+            }
+        }
+
+        value = getProperty("disable-pragmas", null);
+        if (value != null) {
+            for (String pragma : value.split(",")) {
+                if (!"".equals(pragma.trim())) {
+                    options.disablePragma(pragma.trim());
+                }
+            }
+        }
+
+        value = getProperty("enable-pragmas", null);
+        if (value != null) {
+            for (String pragma : value.split(",")) {
+                if (!"".equals(pragma.trim())) {
+                    options.enablePragma(pragma.trim());
                 }
             }
         }

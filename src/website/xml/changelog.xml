@@ -7,11 +7,36 @@
 
 <revhistory>
 <revision>
+  <revnumber>2.2.3</revnumber>
+  <date>2023-06-15</date>
+  <revdescription>
+    <itemizedlist>
+    <listitem>
+    <para>Support <code>disable-pragmas</code> and <code>enable-pragmas</code> in the
+    options property file and <code>--disable-pragma</code> and <code>--enable-pragma</code>
+    on the command line.</para>
+    </listitem>
+    <listitem>
+    <para>Support <code>--graph-svg-option</code> on the command line to set options for
+    the SVG graph output.</para>
+    </listitem>
+    <listitem>
+    <para>Improved support for reporting infinitely ambiguous
+    grammars. A loop that extends through several non-terminals will
+    now be detected and reported <emphasis>if</emphasis> the parse
+    tree generated attempted to traverse that loop. The processor
+    doesn’t enumerate every possible parse, so it may fail to detect
+    loops that are on branches it does not explore.</para>
+    </listitem>
+    </itemizedlist>
+  </revdescription>
+</revision>
+<revision>
   <revnumber>2.2.2</revnumber>
   <date>2023-05-17</date>
   <revdescription>
     <para>Fixed bug where CoffeePot had a runtime dependency on
-    Saxon EE. (It can use Saxon EE, and EE is needed for loading dynamic function
+    Saxon EE. (It can use Saxon EE, and EE is required for loading dynamic function
     libraries, but EE isn’t required for basic functionality.)</para>
   </revdescription>
 </revision>

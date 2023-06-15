@@ -300,6 +300,14 @@ class Main {
         URI grammarURI;
         URI cachedURI;
 
+        for (String pragma : cmain.disabledPragmas) {
+            options.disablePragma(pragma);
+        }
+
+        for (String pragma : cmain.enabledPragmas) {
+            options.enablePragma(pragma);
+        }
+
         InvisibleXml invisibleXml = new InvisibleXml(options);
         try {
             if (cmain.grammar == null) {
@@ -719,6 +727,10 @@ class Main {
 
         for (int pos = 1; pos < startingParse; pos++) {
             doc.getTree(eventBuilder);
+            if (!infambig && eventBuilder.isInfinitelyAmbiguous() && !doc.getOptions().isSuppressedState("ambiguous")) {
+                System.err.println("Loop found; grammar is infinitely ambiguous.");
+                infambig = true;
+            }
             if (!doc.moreParses()) {
                 System.err.printf("Ran out of parses after %d.%n", pos);
                 return 1;
@@ -810,6 +822,10 @@ class Main {
             }
         }
 
+        if (!infambig && eventBuilder.isInfinitelyAmbiguous() && !doc.getOptions().isSuppressedState("ambiguous")) {
+            System.err.println("Loop found; grammar is infinitely ambiguous.");
+        }
+
         outputRecords.add(xoutput.toString());
 
         return 0;
@@ -899,27 +915,52 @@ class Main {
             // Get the graph as XML
             ByteArrayInputStream bais = new ByteArrayInputStream(result.getForest().serialize().getBytes(StandardCharsets.UTF_8));
             DocumentBuilder builder = processor.newDocumentBuilder();
-            graphXdm(builder.build(new SAXSource(new InputSource(bais))), options, stylesheet, output);
+            HashMap<String,String> styleopts = new HashMap<>();
+
+            // The defaults at the time of writing...
+            styleopts.put("label-color", "none");
+            styleopts.put("show-states", "false");
+            styleopts.put("elide-root", "true");
+            styleopts.put("rankdir", "TB");
+            styleopts.put("terminal-shape", "house");
+            styleopts.put("subgraph-color", "none");
+            for (String opt : cmain.graphOptions) {
+                final int pos;
+                if (opt.contains("=")) {
+                    pos = opt.indexOf("=");
+                } else if (opt.contains(":")) {
+                    pos = opt.indexOf(":");
+                } else {
+                    pos = -1;
+                }
+
+                final String name;
+                final String value;
+                if (pos >= 0) {
+                    name = opt.substring(0, pos).trim();
+                    value = opt.substring(pos+1).trim();
+                } else {
+                    name = null;
+                    value = null;
+                }
+
+                if (name == null) {
+                    System.err.println("Unparsable SVG option: " + opt);
+                } else {
+                    if (!styleopts.containsKey(name)) {
+                        System.err.println("Unrecognized SVG option: " + name);
+                    }
+                    styleopts.put(name, value);
+                }
+            }
+
+            graphXdm(builder.build(new SAXSource(new InputSource(bais))), options, stylesheet, styleopts, output);
         } catch (Exception ex) {
             System.err.println("Failed to create SVG: " + ex.getMessage());
         }
     }
 
-    private void graphTree(ParseTree result, ParserOptions options, String output) {
-        assert processor != null;
-
-        String stylesheet = "/org/nineml/coffeegrinder/tree2dot.xsl";
-        try {
-            // Get the graph as XML
-            ByteArrayInputStream bais = new ByteArrayInputStream(result.serialize().getBytes(StandardCharsets.UTF_8));
-            DocumentBuilder builder = processor.newDocumentBuilder();
-            graphXdm(builder.build(new SAXSource(new InputSource(bais))), options, stylesheet, output);
-        } catch (Exception ex) {
-            System.err.println("Failed to create SVG: " + ex.getMessage());
-        }
-    }
-
-    private void graphXdm(XdmNode document, ParserOptions options, String resource, String output) {
+    private void graphXdm(XdmNode document, ParserOptions options, String resource, Map<String,String> styleopts, String output) {
         try {
             // Transform the graph into dot
             InputStream stylesheet = getClass().getResourceAsStream(resource);
@@ -933,6 +974,13 @@ class Main {
                 transformer.setInitialContextNode(document);
                 XdmDestination destination = new XdmDestination();
                 transformer.setDestination(destination);
+
+                for (String key : styleopts.keySet()) {
+                    XdmValue value = new XdmAtomicValue(styleopts.get(key));
+                    QName name = new QName(key);
+                    transformer.setParameter(name, value);
+                }
+
                 transformer.transform();
 
                 // Store the dot file somewhere
@@ -998,6 +1046,9 @@ class Main {
         @Parameter(names = {"-G", "--graph-svg"}, description = "Output an SVG graph of the forest")
         public String graphSvg = null;
 
+        @Parameter(names = {"--graph-svg-option"}, description = "Options (parameters) for the graph SVG stylesheet")
+        public List<String> graphOptions = new ArrayList<>();
+
         @Parameter(names = {"-i", "--input"}, description = "The input")
         public String inputFile = null;
 
@@ -1042,6 +1093,12 @@ class Main {
 
         @Parameter(names = {"--suppress"}, description = "States to ignore in the output")
         public String suppress = null;
+
+        @Parameter(names = {"--disable-pragma"}, description = "Pragmas to disable")
+        public List<String> disabledPragmas = new ArrayList<>();
+
+        @Parameter(names = {"--enable-pragma"}, description = "Pragmas to enable")
+        public List<String> enabledPragmas = new ArrayList<>();
 
         @Parameter(names = {"--version"}, description = "Show the version")
         public boolean version = false;
