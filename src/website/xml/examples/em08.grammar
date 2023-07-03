@@ -1,18 +1,26 @@
-$$ ⇒ s
-s ⇒ $2, |$1?, $8ⁿ
-a ⇒ 'a'
-b ⇒ 'b'
-|$1 ⇒ $10ⁿ
-|$1 ⇒ $5
-$2 ⇒ a, $3ⁿ
-$3ⁿ ⇒ $4?
-$4 ⇒ a, $3ⁿ
-$5 ⇒ b, $6ⁿ
-$6ⁿ ⇒ $7?
-$7 ⇒ '.', b, $7?
-$8ⁿ ⇒ $9?
-$9 ⇒ a, $9?
-$10ⁿ ⇒ $11?
-$11 ⇒ b, $12ⁿ
-$12ⁿ ⇒ $13?
-$13 ⇒ '-', b, $12ⁿ
+                $$ ::= s
+                 s ::= $8_a-plus, $12_$1_alt-optionⁿ, $5_a-starⁿ
+                 a ::= 'a'
+                 b ::= 'b'
+            $1_alt ::= $2_b-star-sepⁿ
+            $1_alt ::= $3_b-plus-sep
+    $2_b-star-sepⁿ ::= ε
+    $2_b-star-sepⁿ ::= $4_b-plus-sep
+     $3_b-plus-sep ::= b, $6_L.-starⁿ
+     $4_b-plus-sep ::= b, $7_L--starⁿ
+        $5_a-starⁿ ::= ε
+        $5_a-starⁿ ::= $9_a-plus
+       $6_L.-starⁿ ::= ε
+       $6_L.-starⁿ ::= $10_L.-plus
+       $7_L--starⁿ ::= ε
+       $7_L--starⁿ ::= $11_L--plus
+         $8_a-plus ::= a
+         $8_a-plus ::= a, $8_a-plus
+         $9_a-plus ::= a
+         $9_a-plus ::= a, $9_a-plus
+       $10_L.-plus ::= '.', b
+       $10_L.-plus ::= '.', b, $10_L.-plus
+       $11_L--plus ::= '-', b
+       $11_L--plus ::= '-', b, $11_L--plus
+$12_$1_alt-optionⁿ ::= ε
+$12_$1_alt-optionⁿ ::= $1_alt

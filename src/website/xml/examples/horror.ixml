@@ -1,0 +1,14 @@
+{ An absurd grammar to stress-test ambiguity handling. }
+S = A .
+A = B | C | X .
+B = D | E .
+C = F | G | A .
+D = H | A .
+E = I .
+F = I .
+G = A .
+H = D | K .
+I = "t" | K | G .
+K = A .
+X = A .
+

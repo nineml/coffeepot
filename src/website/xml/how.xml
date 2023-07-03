@@ -91,11 +91,14 @@ prohibition on multiple rules for the same nonterminal.</para>
 </programlisting>
 </example>
 
-<para>Earlier, I said the Earley grammar had no direct support for optionality.
-That’s true. But the <package>CoffeeGrinder</package> implementation does allow
-a symbol to be marked as optional. This will ultimately get transformed into two
-rules (<code>s ⇒ a, b, a</code> and <code>s ⇒ a, a</code>), it’s simply marked
-with a question mark in the displayed grammar.</para>
+<para>Optionality is implemented by having a new rule where the right
+hand side is either “nothing” symbolized by the greek letter ε or the
+other alternative. When CoffeeGrinder has to introduce new symbols, it
+names them things like “$1_b-optionⁿ”. The leading “$1_” (or “$2_”,
+“$3_”, etc.) just makes the name unique. What follows is an attempt to
+describe the rule “b-option”. The superscript “ⁿ” tells you that this
+rule can match nothing. (Rules that match nothing are a common source
+of ambiguity, so it’s handy to be able to see them at a glance.)</para>
 
 <example xml:id="em03g">
 <title>The Earley grammar</title>
@@ -106,6 +109,7 @@ with a question mark in the displayed grammar.</para>
 
 </section>
 
+<!--
 <section xml:id="earleymapping03b">
 <title>Mapping “(x1, x2)?”</title>
 
@@ -133,6 +137,7 @@ which have drawbacks of their own.</para>
 </example>
 
 </section>
+-->
 
 <section xml:id="earleymapping04">
 <title>Mapping “x*”</title>
@@ -147,9 +152,7 @@ zero or more times.</para>
 </programlisting>
 </example>
 
-<para>This requires a couple of new nonterminals. The superscript “n”
-next to <code>$1</code> indicates that it is “nullable”. That is to say,
-it is possible for it to match the empty string, sometimes called “ε”.</para>
+<para>This requires a couple of new nonterminals.</para>
 
 <para>Pay particular attention to nullable nonterminals, either your own or
 ones introduced by rewriting. The most common source of ambiguity in a grammar is
@@ -177,7 +180,7 @@ one or more times.</para>
 </programlisting>
 </example>
 
-<para>This requires three new nonterminals.</para>
+<para>Requires this new nonterminal.</para>
 
 <example xml:id="em05g">
 <title>The Earley grammar</title>

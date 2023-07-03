@@ -17,12 +17,7 @@ of them.</para>
 
 <para>Consider this simple, ambiguous grammar:</para>
 
-<programlisting language="ixml"> number-list: (number, -#a)+, number? .
--number: hex | decimal .
- hex: hex-digit+ .
- decimal: decimal-digit+ .
--hex-digit: ["0"-"9" | "a"-"f" | "A"-"F" ] .
--decimal-digit: ["0"-"9" ] .</programlisting>
+<programlisting language="ixml"><xi:include href="numbers.ixml" parse="text"/></programlisting>
 
 <para>If we parse the following input,</para>
 
@@ -64,8 +59,8 @@ if the function library does not select an alternative.</para>
 
 <para>To use a function library, you must provide an XSLT stylesheet or XQuery module
 that defines a function named <function>choose-alternative</function> in the
-namespace <uri>https://coffeepot.nineml.org/ns/functions</uri>. The function must accept
-a single argument, a sequence of elements, and must return a <type>xs:integer</type>.
+namespace <uri>https://coffeepot.nineml.org/ns/functions</uri>. The function must 
+two parameters: an element and a map. It must return a map.
 </para>
 
 <para>Here is an example of an XSLT function library that will always select the
@@ -123,7 +118,21 @@ the alternative to which it was applied.</para>
 <para>For example:</para>
 
 <screen><computeroutput>$ </computeroutput><userinput>coffeepot -g:numbers.ixml -i:numbers.txt \
-            --pretty-print --choose decimal</userinput>
+            --pretty-print --choose symbol[@name='decimal']</userinput>
+<computeroutput>Found 2 possible parses.
+<![CDATA[<number-list>
+   <hex>bad</hex>
+   <hex>cafe</hex>
+   <decimal>42</decimal>
+</number-list>]]></computeroutput>
+</screen>
+
+<para>Observe that because a unique choice was made, the result is not marked as ambiguous.
+You can override that with the <option linkend="_strict-ambiguity">--strict-ambiguity</option>
+option:</para>
+
+<screen><computeroutput>$ </computeroutput><userinput>coffeepot -g:numbers.ixml -i:numbers.txt \
+            --pretty-print --strict-ambiguity --choose symbol[@name='decimal']</userinput>
 <computeroutput>Found 2 possible parses.
 <![CDATA[<number-list xmlns:ixml="http://invisiblexml.org/NS" ixml:state="ambiguous">
    <hex>bad</hex>
@@ -131,9 +140,6 @@ the alternative to which it was applied.</para>
    <decimal>42</decimal>
 </number-list>]]></computeroutput>
 </screen>
-
-<para>The namespace prefix “<code>a</code>” is bound to the namespace
-“<uri>https://nineml.org/ns/describe-ambiguity</uri>” in the context for each XPath expression.</para>
 
 </section>
 </chapter>

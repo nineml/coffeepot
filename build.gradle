@@ -9,6 +9,9 @@ buildscript {
     resolutionStrategy {
       force 'xml-apis:xml-apis:1.4.01',
         "${saxonGroup}:${saxonEdition}:${saxonVersion}",
+        "org.nineml:${grinderName}:${grinderVersion}",
+        "org.nineml:${filterName}:${filterVersion}",
+        "org.nineml:${sacksName}:${sacksVersion}",
         "org.xmlresolver:xmlresolver:${xmlresolverVersion}"
     }
   }
@@ -49,6 +52,9 @@ configurations.all {
   resolutionStrategy {
     force 'xml-apis:xml-apis:1.4.01',
       "${saxonGroup}:${saxonEdition}:${saxonVersion}",
+      "org.nineml:${grinderName}:${grinderVersion}",
+      "org.nineml:${filterName}:${filterVersion}",
+      "org.nineml:${sacksName}:${sacksVersion}",
       "org.xmlresolver:xmlresolver:${xmlresolverVersion}"
   }
 }
@@ -71,7 +77,8 @@ dependencies {
     [group: 'org.nineml', name: sacksName, version: sacksVersion],
     [group: 'com.beust', name: 'jcommander', version: '1.81' ],
     [group: 'org.fusesource.jansi', name: 'jansi', version: '2.4.0'],
-    [group: saxonGroup, name: saxonEdition, version: saxonVersion]
+    [group: saxonGroup, name: saxonEdition, version: saxonVersion],
+    fileTree(dir: "${projectDir}/lib", include: '*.jar')
   )
   testImplementation (
     [group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.4.2'],

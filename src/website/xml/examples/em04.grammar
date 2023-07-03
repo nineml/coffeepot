@@ -1,6 +1,8 @@
-$$ ⇒ s
-s ⇒ a, $1ⁿ, a
-a ⇒ 'a'
-b ⇒ 'b'
-$1ⁿ ⇒ $2?
-$2 ⇒ b, $2?
+        $$ ::= s
+         s ::= a, $1_b-starⁿ, a
+         a ::= 'a'
+         b ::= 'b'
+$1_b-starⁿ ::= ε
+$1_b-starⁿ ::= $2_b-plus
+ $2_b-plus ::= b
+ $2_b-plus ::= b, $2_b-plus

@@ -1,0 +1,14 @@
+{[+pragma n "https://nineml.org/ns/pragma/"]}
+
+                 deadline = -'due', -' '+, date .
+                     date = usdate | eudate | isodate .
+{[n priority 4]}  -usdate = month, -'/', day, -'/', {[n rename year]} anyyear .
+{[n priority 3]}  -eudate = day, -'/', month, -'/', year .
+                 -isodate = year, -'-', month, -'-', day .
+                    month = '0'?, d | '10' | '11' | '12' .
+                      day = ['0'-'2']?, d | '30' | '31' .
+                  anyyear = d, d, d, d .
+                     year = newer | older .
+{[n priority 2]}   -newer = '2', d, d, d .
+                   -older = '1', d, d, d .
+                       -d = ['0'-'9'] .

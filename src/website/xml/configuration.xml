@@ -15,8 +15,7 @@ class path.</para>
 
 <para>An example <filename>nineml.properties</filename> file:</para>
 
-<programlisting>cache=/home/ndw/.config/nineml.org/thermos
-default-log-level=info
+<programlisting>default-log-level=info
 graphviz=/usr/bin/dot
 ignore-trailing-whitespace=true
 log-levels=CoffeePot:trace,Parser:info
@@ -27,12 +26,6 @@ progress-bar=tty</programlisting>
 following options are read from it:</para>
 
 <variablelist>
-<varlistentry xml:id="config.cache"><term><property>cache</property> (directory name)</term>
-<listitem>
-<para>The location of the <link linkend="caching">cache</link>.
-</para>
-</listitem>
-</varlistentry>
 <varlistentry><term><property>default-log-level</property> (string)</term>
 <listitem>
 <para>The default log level: “trace”, “debug”, “info”, “warning”, “error”,

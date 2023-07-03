@@ -1,0 +1,7 @@
+table = row+ .
+row   = year, sep, month, sep, day, EOL .
+year  = ~[","|#a|#d]+ .
+month = ~[","|#a|#d]+ .
+day   = ~[","|#a|#d]+ .
+-sep   = -"," .
+-EOL = -[#a|#d]+ .

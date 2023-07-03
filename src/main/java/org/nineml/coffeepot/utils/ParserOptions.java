@@ -7,10 +7,10 @@ import org.nineml.logging.Logger;
  * Parser options.
  */
 public class ParserOptions extends org.nineml.coffeefilter.ParserOptions {
-    private String cacheDir = null;
     private String progressBar = "false";
     private String barCharacters = ".#";
     private boolean trailingNewlineOnOutput = true;
+    private boolean asciiOnly = false;
 
     /**
      * Create the parser options.
@@ -29,22 +29,12 @@ public class ParserOptions extends org.nineml.coffeefilter.ParserOptions {
         super(logger);
     }
 
-    /**
-     * The cache directory.
-     * <p>If this is not null, it should be the name of a directory on the
-     * local filesystem that can be used as a cache location.</p>
-     * @return the cache directory
-     */
-    public String getCacheDir() {
-        return cacheDir;
-    };
-
-    /**
-     * Set the {@link #getCacheDir()} property.
-     * @param dir the cache directory
-     */
-    public void setCacheDir(String dir) {
-        cacheDir = dir;
+    public ParserOptions(ParserOptions copy) {
+        super(copy);
+        progressBar = copy.progressBar;
+        barCharacters = copy.barCharacters;
+        trailingNewlineOnOutput = copy.trailingNewlineOnOutput;
+        asciiOnly = copy.asciiOnly;
     }
 
     /**
@@ -119,6 +109,26 @@ public class ParserOptions extends org.nineml.coffeefilter.ParserOptions {
      */
     public void setTrailingNewlineOnOutput(boolean newline) {
         trailingNewlineOnOutput = newline;
+    }
+
+    /**
+     * Use only ASCII characters in output?
+     * <p>If this option is true, punctuation in output like the ambiguity description
+     * will include only ASCII characters. (Note: this has no effect on the output of the
+     * parse.)
+     * </p>
+     * @return the ASCII only setting.
+     */
+    public boolean getAsciiOnly() {
+        return asciiOnly;
+    }
+
+    /**
+     * Set the {@link #getAsciiOnly()} ()} property.
+     * @param ascii only ASCII output?
+     */
+    public void setAsciiOnly(boolean ascii) {
+        asciiOnly = ascii;
     }
 
     public void logOptions() {
