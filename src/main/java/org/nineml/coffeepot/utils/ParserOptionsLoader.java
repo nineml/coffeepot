@@ -43,6 +43,8 @@ public class ParserOptionsLoader {
         PROPERTY_NAMES.add("disable-pragmas");
         PROPERTY_NAMES.add("enable-pragmas");
         PROPERTY_NAMES.add("trailing-newline-on-output");
+        PROPERTY_NAMES.add("ascii-only");
+        PROPERTY_NAMES.add("strict-ambiguity");
     }
 
     private static final String propfn = "nineml.properties";
@@ -88,7 +90,6 @@ public class ParserOptionsLoader {
             }
 
             propfile = new File(fn);
-            //System.err.println("FN1:" + fn);
             if (propfile.exists() && propfile.canRead()) {
                 options.getLogger().debug("CoffeePot", "Loading properties: %s", fn);
                 return loadFromFile(propfile);
@@ -120,12 +121,13 @@ public class ParserOptionsLoader {
         prop.load(stream);
 
         options.setGraphviz(getProperty("graphviz", null));
-        options.setCacheDir(getProperty("cache", null));
 
         options.setPrettyPrint(getBooleanProperty("pretty-print"));
         options.setIgnoreTrailingWhitespace(getBooleanProperty("ignore-trailing-whitespace"));
         options.setIgnoreBOM(getBooleanProperty("ignore-bom"));
         options.setTrailingNewlineOnOutput(getBooleanProperty("trailing-newline-on-output", true));
+        options.setAsciiOnly(getBooleanProperty("ascii-only", false));
+        options.setStrictAmbiguity(getBooleanProperty("strict-ambiguity", false));
         options.setPedantic(getBooleanProperty("pedantic"));
         options.setAssertValidXmlNames(getBooleanProperty("assert-valid-xml-names", true));
         options.setPrefixParsing(getBooleanProperty("prefix-parsing"));

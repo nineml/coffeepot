@@ -1,0 +1,4 @@
+{ This grammar must be saved in the iso-latin-1 encoding. }
+S                 = Copyright, CopyrightSymbol, -#a? .
+-Copyright        = -'Copyright', +'©' .
+-CopyrightSymbol  = -'©', +" (C)" .

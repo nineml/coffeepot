@@ -64,13 +64,13 @@ all with <option>--parse-count:all</option>:</para>
 <programlisting linenumbering="unnumbered"
 ><![CDATA[$ coffeepot -pp -g:examples/ambig01.ixml --describe-ambiguity --no-output Shimmer
 Found 2 possible parses.
-Ambiguity:
-At 
-	X dessert-topping «0-7» => 'S', 'h', 'i', 'm', 'm', 'e', 'r'
-	  floor-wax «0-7» => 'S', 'h', 'i', 'm', 'm', 'e', 'r']]></programlisting>
+At /$$[1]
+      ✔ product «1,7» ⇒ dessert-topping
+        product «1,7» ⇒ floor-wax]]></programlisting>
 
-<para>This indicates that the characters from 0 to 7 in the input can be matched
-as “dessert-topping” or “floor-wax”. This is another case where the forest graph
+<para>This indicates that the characters from 1 to 8 in the input can be matched
+as a <literal>product</literal> containing a <literal>dessert-topping</literal> or
+a <literal>floor-wax</literal>. This is another case where the forest graph
 can be useful.</para>
 
 <figure xml:id="ambig01-shimmer.svg">
@@ -91,27 +91,25 @@ this trivial grammar:</para>
   >expr: expr ; 'a' .</programlisting>
 </example>
 
-<para>There’s no practical way for <application>coffeepot</application> to enumerate
-infinitely many parses, so it essentially ignores those edges in the graph.
-Parsing “a” yields:</para>
+<para>There’s no practical way for
+<application>coffeepot</application> to enumerate infinitely many
+parses, so it essentially ignores edges in the graph if it encounters
+them a second time. Parsing “a” yields:</para>
 
 <programlisting linenumbering="unnumbered"
 ><![CDATA[$ coffeepot -pp -g:examples/ambig02.ixml a
-There are 2 possible parses.
-<expr xmlns:ixml="http://invisiblexml.org/NS" ixml:state="ambiguous">
-   <expr>a</expr>
-</expr>]]></programlisting>
+Found 2 possible parses (of infinitely many).
+<expr xmlns:ixml="http://invisiblexml.org/NS" ixml:state="ambiguous">a</expr>]]></programlisting>
 
-<para>There are 2 parses because that’s what can be rendered. A description of
+<para>There are 2 parses because there’s one choice of two paths in the graph. A description of
 the ambiguity, reveals that there are infinitely many parses:</para>
 
 <programlisting linenumbering="unnumbered"
 ><![CDATA[$ coffeepot -pp -g:examples/ambig02.ixml --describe-ambiguity --no-output a
 Found 2 possible parses (of infinitely many).
-Infinite ambiguity:
-At
-	X 'a', 0, 1
-	  expr «0-1» => 'a']]></programlisting>
+At /$$[1]
+      ✔ expr «1,1» ⇒ 'a'
+        expr «1,1» ⇒ expr]]></programlisting>
 
 <para>This is also evident in the graph:</para>
 
@@ -129,12 +127,61 @@ At
 
 <programlisting linenumbering="unnumbered"
 ><![CDATA[$ coffeepot -pp -g:examples/ambig02.ixml --parse-count:all a
-<ixml parses='2' totalParses='2'>
+Found 2 possible parses (of infinitely many).
+<ixml parses="2" totalParses="2" infinitelyAmbiguous="true">
+<expr xmlns:ixml="http://invisiblexml.org/NS" ixml:state="ambiguous">a</expr>
 <expr xmlns:ixml="http://invisiblexml.org/NS" ixml:state="ambiguous">
    <expr>a</expr>
 </expr>
-<expr xmlns:ixml="http://invisiblexml.org/NS" ixml:state="ambiguous">a</expr>
-</ixml>]]></programlisting>
+</ixml>
+]]></programlisting>
+
+<para>The default “sequential” tree selector will choose every node
+and ever edge at least once. For graphs without loops, this matches
+the number of parses reported. Tree construction from graphs that
+contain loops is challenging. The total number of parses reported does
+not take loops into consideration. The tree selector tries to follow
+all of the paths once, but it may not always succeed. Consider:</para>
+
+<programlisting language="ixml"><xi:include href="examples/horror.ixml" parse="text"/></programlisting>
+
+<para>The only input that parses is the single letter “t”:</para>
+
+<screen><![CDATA[coffeepot -g:src/website/xml/examples/horror.ixml --pretty-print t
+Found 12 possible parses (of infinitely many).
+<S xmlns:ixml="http://invisiblexml.org/NS" ixml:state="ambiguous">
+   <A>
+      <B>
+         <E>
+            <I>t</I>
+         </E>
+      </B>
+   </A>
+</S>]]></screen>
+
+<para>The claim of 12 parses is based on the number of choices in the graph.
+But the graph is pernicously looped:</para>
+
+<figure>
+<title>A perniciously looped graph</title>
+<mediaobject>
+<imageobject>
+  <imagedata fileref="images/horror.svg"/>
+</imageobject>
+<caption><para>An absurd grammar to test ambiguity handling.</para></caption>
+</mediaobject>
+</figure>
+
+<para>Asking for <emphasis>all</emphasis> of the parses will return 57 different parses.
+That’s not all of them, even by the criteria that
+<productname>coffeepot</productname> is using. The processor tries to follow
+all of the unique paths, but also tries to avoid falling into an
+infinite loop.</para>
+
+<para>The priority tree selector will always choose the path with the
+highest priority (if there is one). If all choices are made by a
+uniquely highest priority in each case, this fact is recorded.
+CoffeePot will not report such a parse as ambiguous.</para>
 
 <para>If you’re trying to eliminate ambiguity from a grammar that you think
 should be unambiguous, look for multiple ways to match “nothing”. For example,
@@ -161,47 +208,40 @@ An “X” marks the selected alternative.</para>
 
 <para>For example:</para>
 
-<programlisting><![CDATA[At /number-list[1]/number[3]
-	X hex «9-11» => $2_hex-digit-plus
-	  decimal «9-11» => $3_decimal-digit-plus
-]]></programlisting>
+<programlisting><![CDATA[At /$$[1]/number-list[1]/$1_number-plus[3]
+      ✔ number «10,2» ⇒ hex
+        number «10,2» ⇒ decimal]]></programlisting>
 
-<para>This indicates that at the third “number” element, there are two choices “hex” or “decimal”.
-Both span input tokens 9-11. The nonterminals on the right hand side are from the
-<link xlink:href="https://coffeesacks.nineml.org/ch07.html#grammar-details">BNF version</link>
-of the grammar. The “hex” alternative has been selected.
+<para>This indicates that at the “number” element, in the third item of the number list,
+there are two choices “hex” or “decimal”.
+Both span input tokens 10-11. The “hex” alternative has been selected.
 </para>
 </section>
 
 <section xml:id="describe-xml">
 <title>XML ambiguity descriptions</title>
-<para>The XML format presents two small XML fragments that represent
-the parse trees under consideration. (Within the XML, some nonterminal
-names are rewritten to make them valid XML element names. It is
-possible, though probably unlikely, that the rewritten names could be
-the same as actual nonterminals in the grammar.)</para>
+<para>The XML format presents the same information in a small XML
+fragments that represent the parse trees under consideration.</para>
 
 <para>For example:</para>
 
-<programlisting><![CDATA[At /number-list[1]/number[3]
-Alternative 1 of 2 (selected):
-<number mark="-" from="9-11">
-   <hex from="9-11">
-      <_2_hex-digit-plus mark="-">…</_2_hex-digit-plus>
-   </hex>
-</number>
-Alternative 2 of 2:
-<number mark="-" from="9-11">
-   <decimal from="9-11">
-      <_3_decimal-digit-plus mark="-">…</_3_decimal-digit-plus>
-   </decimal>
-</number>]]></programlisting>
+<programlisting><![CDATA[At /$$[1]/number-list[1]/$1_number-plus[3] (selected C3464)
+<symbol name="number" id="N3694" mark="^" start="10" length="2">
+   <parent ref="N3699">$1_number-plus</parent>
+   <children id="C3464" priority="0">
+      <symbol name="hex" ref="N3692" start="10" length="2"/>
+   </children>
+   <children id="C3465" priority="0">
+      <symbol name="decimal" ref="N3693" start="10" length="2"/>
+   </children>
+</symbol>]]></programlisting>
 
-<para>As before, this indicates that at the third “number” element,
-there are two choices “hex” or “decimal” and the first choice has been selected.
+<para>As before, this indicates that at the “number” element,
+there are two choices, represented by separate <tag>children</tag> elements.
 </para>
 </section>
 
+<!--
 <section xml:id="describe-api-xml">
 <title>API XML ambiguity descriptions</title>
 <para>The “API” XML format is designed to provide as much information as possible
@@ -248,6 +288,7 @@ there are two choices “hex” or “decimal” and the first choice has been s
 </para>
 
 </section>
+-->
 </section>
 
 </chapter>

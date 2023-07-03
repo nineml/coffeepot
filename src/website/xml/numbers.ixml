@@ -1,6 +1,6 @@
-number-list: (number, -#a)+, number? .
--number: hex | decimal .
-hex: hex-digit+ .
-decimal: decimal-digit+ .
--hex-digit: ["0"-"9" | "a"-"f" | "A"-"F" ] .
--decimal-digit: ["0"-"9" ] .
+   number-list = (number, -#a)+, number? .
+        number = hex | decimal .
+           hex = hex-digit+ .
+       decimal = decimal-digit+ .
+    -hex-digit = ["0"-"9" | "a"-"f" | "A"-"F" ] .
+-decimal-digit = ["0"-"9" ] .

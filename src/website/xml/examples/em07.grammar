@@ -1,7 +1,9 @@
-$$ ⇒ s
-s ⇒ a, $1, a
-a ⇒ 'a'
-b ⇒ 'b'
-$1 ⇒ b, $2ⁿ
-$2ⁿ ⇒ $3?
-$3 ⇒ '.', b, $3?
+           $$ ::= s
+            s ::= a, $1_b-plus-sep, a
+            a ::= 'a'
+            b ::= 'b'
+$1_b-plus-sep ::= b, $2_L.-starⁿ
+  $2_L.-starⁿ ::= ε
+  $2_L.-starⁿ ::= $3_L.-plus
+   $3_L.-plus ::= '.', b
+   $3_L.-plus ::= '.', b, $3_L.-plus

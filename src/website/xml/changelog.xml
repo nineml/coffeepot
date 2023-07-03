@@ -7,6 +7,63 @@
 
 <revhistory>
 <revision>
+<revnumber>3.0.0a</revnumber>
+<date>2023-07-03</date>
+<revdescription>
+<para>This is a beta release for version 3.0.0. There are a lot of
+changes in this release, but most of them are “behind the scenes” for CoffeePot.</para>
+
+<orderedlist>
+<listitem><para>Includes all of the updates in CoffeeGrinder, CoffeeFilter, and
+CoffeeSacks 3.0.0a.
+</para></listitem>
+<listitem><para>Added an option to analyze the grammar for ambiguity
+with Anders Møller’s <link
+xlink:href="https://www.brics.dk/grammar/">ambiguity analyzer</link>.
+</para>
+</listitem>
+<listitem>
+<para>Support for compiled grammars and grammar compilation has been removed.
+</para>
+</listitem>
+<listitem>
+<para>New options:
+<option linkend="_analyze-ambiguity">--analyze-ambiguity</option>,
+<option linkend="_bnf">--bnf</option>,
+<option linkend="_config">--config</option>,
+<option linkend="_disable-pragma">--disable-pragma</option>,
+<option linkend="_earley">--earley</option>,
+<option linkend="_gll">--gll</option>,
+<option linkend="_grammar-encoding">--grammar-encoding</option>,
+<option linkend="_graph-svg-option">--graph-svg-option</option>,
+<option linkend="_omit-csv-headers">--omit-csv-headers</option>,
+<option linkend="_priority-style">--priority-style</option>,
+<option linkend="_show-hidden-nonterminals">--show-hidden-nonterminals</option>,
+<option linkend="_show-marks">--show-marks</option>,
+<option linkend="_strict-ambiguity">--strict-ambiguity</option>,
+<option linkend="_time-records">--time-records</option>.
+</para>
+</listitem>
+<listitem>
+<para>Removed options:
+<option>--no-cache</option>,
+<option>--tree-svg</option>,
+<option>--tree-xml</option>.
+</para>
+</listitem>
+<listitem>
+<para>There’s been a whole lot of refactoring and reorganizing. The application is
+much more testable now and more tested by the build process.</para>
+</listitem>
+<listitem>
+<para>The bundled version of Saxon-HE has been updated to 12.2. You can still use an
+version of Saxon 11 or 12 that you prefer, just put it on the classpath first.</para>
+</listitem>
+</orderedlist>
+</revdescription>
+</revision>
+
+<revision>
   <revnumber>2.2.3</revnumber>
   <date>2023-06-15</date>
   <revdescription>
