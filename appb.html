@@ -1,14 +1,89 @@
-<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" class="no-js"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><script>(function(H){H.className=H.className.replace(/\bno-js\b/,'js')})(document.documentElement)</script><title>Appendix B. Caching</title><link href="/css/pygments.css" rel="stylesheet"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link href="https://purl.org/dc/elements/1.1/" rel="schema.dc"/><meta name="dc.modified" content="2023-06-15T16:52:49Z"/><meta name="generator" content="DocBook xslTNG version 2.1.6 / cf0b935 / SAXON HE 11.5"/><link href="/css/docbook-toc.css" rel="stylesheet"/><link href="/css/docbook.css" rel="stylesheet" media="screen"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><script src="https://kit.fontawesome.com/498b6706f0.js" type="text/javascript" crossorigin="anonymous"></script><link href="icon/CoffeePot.png" rel="shortcut icon"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link href="css/nineml.css" rel="stylesheet"/><link href="css/coffeepot.css" rel="stylesheet"/><link rel="prev" href="appa.html"/><link rel="next" href="appc.html"/><link rel="up" href="index.html"/><link rel="home" href="index.html"/><script src="/js/persistent-toc.js" defer="defer"></script><script src="/js/chunk-nav.js" defer="defer"></script></head><body><nav class="top"><span class="nav"><a title="CoffeePot" href="index.html"><i class="fas fa-home"></i></a> <a href="appa.html" title="Appendix  A .  Property files"><i class="fas fa-arrow-left"></i></a> <a title="CoffeePot" href="index.html"><i class="fas fa-arrow-up"></i></a> <a title="Appendix  C .  Change log" href="appc.html"><i class="fas fa-arrow-right"></i></a></span><span class="title"><i class="title">CoffeePot</i></span></nav><main><section id="caching" db-chunk="appb.html" db-id="d93e1466" class="appendix component"><header><h2>Appendix <span class="label">B</span><span class="sep">. </span>Caching</h2></header><p>Grammar parsing can be time consuming, but after development is
-finished, they change infrequently.
-<span class="application">CoffeePot</span> can automatically cache compiled
-versions of grammars and use them automatically if they are
-up-to-date (based on last modified time).</p><p>(You can do this manually, by saving the compiled grammars and loading
-them explicitly, but using a cache saves a little time and effort.)</p><p>The location of cached grammars is controlled by <a href="ch07.html#config.cache" class="link">cache</a> setting in the configuration file.
-If the cache is a relative location (such as
-<code>.grammar-cache</code>), the compiled grammars are stored in the
-cache with the same filename as the original grammar except that the
-extension is changed. If the location is absolute (begins with a "/";
-such as <code>/home/user/.config/nineml/grammar-cache</code>), the
-name of the cached file is a cryptographic hash of the original
-absolute filename.</p><p>The cache directory must be configured; if it's unconfigured, no
-caching is performed.</p></section></main><nav class="bottom"><div class="navrow"><div class="navleft"><a title="Appendix  A .  Property files" href="appa.html"><i class="fas fa-arrow-left"></i></a></div><div class="navmiddle"><a title="CoffeePot" href="index.html"><i class="fas fa-home"></i></a></div><div class="navright"><a title="Appendix  C .  Change log" href="appc.html"><i class="fas fa-arrow-right"></i></a></div></div><div class="navrow"><div class="navleft navtitle">Appendix  A .  Property files</div><div class="navmiddle"><a title="CoffeePot" href="index.html"><i class="fas fa-arrow-up"></i></a></div><div class="navright navtitle">Appendix  C .  Change log</div></div><div class="infofooter"><span class="copyrightfooter">Copyright © 2022–2023 Norman Walsh.</span></div><nav class="tocopen"></nav><nav class="toc"></nav><!-- Hide ToC details from user agents that don’t support JS --><script type="text/html" class="tocopen"><i class="far fa-book"></i></script><script type="text/html" class="toc"><header><span>Table of Contents</span><span class="close"><i class="far fa-window-close"></i></span><p class="ptoc-search"><input class="ptoc-search" placeholder="Search" style="width: 80%"/></p></header><div db-persistent-toc="persistent-toc.html" db-prefix="">Loading…</div></script></nav></body></html>
+<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" class="no-js"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><script>(function(H){H.className=H.className.replace(/\bno-js\b/,'js')})(document.documentElement)</script><title>Appendix B. Change log</title><link href="/css/pygments.css" rel="stylesheet"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link href="https://purl.org/dc/elements/1.1/" rel="schema.dc"/><meta name="dc.modified" content="2023-07-03T13:47:42Z"/><meta name="generator" content="DocBook xslTNG version 2.1.6 / cf0b935 / SAXON EE 12.2"/><link href="/css/docbook-toc.css" rel="stylesheet"/><link href="/css/docbook.css" rel="stylesheet" media="screen"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><script src="https://kit.fontawesome.com/498b6706f0.js" type="text/javascript" crossorigin="anonymous"></script><link href="icon/CoffeePot.png" rel="shortcut icon"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link href="css/nineml.css" rel="stylesheet"/><link href="css/coffeepot.css" rel="stylesheet"/><link rel="prev" href="ch11.html"/><link rel="up" href="index.html"/><link rel="home" href="index.html"/><script src="/js/persistent-toc.js" defer="defer"></script><script src="/js/chunk-nav.js" defer="defer"></script></head><body><nav class="top"><span class="nav"><a title="CoffeePot" href="index.html"><i class="fas fa-home"></i></a> <a href="ch11.html" title="Chapter  11 .  Diagrams"><i class="fas fa-arrow-left"></i></a> <a title="CoffeePot" href="index.html"><i class="fas fa-arrow-up"></i></a> <span class="inactive"><i class="fas fa-arrow-right"></i></span></span><span class="title"><i class="title">CoffeePot</i></span></nav><main><section id="changelog" db-chunk="appb.html" db-id="d94e1565" class="appendix component"><header><h2>Appendix <span class="label">B</span><span class="sep">. </span>Change log</h2></header><div class="revhistory"><header><div class="title">Revision History</div></header><ul><li class="revision"><div class="revnumber"><span class="revnumber">3.0.0a</span>, <span class="date" time="2023-07-03">03 Jul 2023</span></div><div class="description"><div class="revdescription">
+<p>This is a beta release for version 3.0.0. There are a lot of
+changes in this release, but most of them are “behind the scenes” for CoffeePot.</p>
+
+<ol class="orderedlist" type="1"><li><p>Includes all of the updates in CoffeeGrinder, CoffeeFilter, and
+CoffeeSacks 3.0.0a.
+</p></li><li><p>Added an option to analyze the grammar for ambiguity
+with Anders Møller’s <a href="https://www.brics.dk/grammar/" class="link">ambiguity analyzer</a>.
+</p></li><li><p>Support for compiled grammars and grammar compilation has been removed.
+</p></li><li><p>New options:
+<code class="option"><a href="ch02.html#_analyze-ambiguity">--analyze-ambiguity</a></code>,
+<code class="option"><a href="ch02.html#_bnf">--bnf</a></code>,
+<code class="option"><a href="ch02.html#_config">--config</a></code>,
+<code class="option"><a href="ch02.html#_disable-pragma">--disable-pragma</a></code>,
+<code class="option"><a href="ch02.html#_earley">--earley</a></code>,
+<code class="option"><a href="ch02.html#_gll">--gll</a></code>,
+<code class="option"><a href="ch02.html#_grammar-encoding">--grammar-encoding</a></code>,
+<code class="option"><a href="ch02.html#_graph-svg-option">--graph-svg-option</a></code>,
+<code class="option"><a href="ch02.html#_omit-csv-headers">--omit-csv-headers</a></code>,
+<code class="option"><a href="ch02.html#_priority-style">--priority-style</a></code>,
+<code class="option"><a href="ch02.html#_show-hidden-nonterminals">--show-hidden-nonterminals</a></code>,
+<code class="option"><a href="ch02.html#_show-marks">--show-marks</a></code>,
+<code class="option"><a href="ch02.html#_strict-ambiguity">--strict-ambiguity</a></code>,
+<code class="option"><a href="ch02.html#_time-records">--time-records</a></code>.
+</p></li><li><p>Removed options:
+<code class="option">--no-cache</code>,
+<code class="option">--tree-svg</code>,
+<code class="option">--tree-xml</code>.
+</p></li><li><p>There’s been a whole lot of refactoring and reorganizing. The application is
+much more testable now and more tested by the build process.</p></li><li><p>The bundled version of Saxon-HE has been updated to 12.2. You can still use an
+version of Saxon 11 or 12 that you prefer, just put it on the classpath first.</p></li></ol>
+</div></div></li><li class="revision"><div class="revnumber"><span class="revnumber">2.2.3</span>, <span class="date" time="2023-06-15">15 Jun 2023</span></div><div class="description"><div class="revdescription">
+    <ul class="itemizedlist"><li><p>Support <code>disable-pragmas</code> and <code>enable-pragmas</code> in the
+    options property file and <code>--disable-pragma</code> and <code>--enable-pragma</code>
+    on the command line.</p></li><li><p>Support <code>--graph-svg-option</code> on the command line to set options for
+    the SVG graph output.</p></li><li><p>Improved support for reporting infinitely ambiguous
+    grammars. A loop that extends through several non-terminals will
+    now be detected and reported <em>if</em> the parse
+    tree generated attempted to traverse that loop. The processor
+    doesn’t enumerate every possible parse, so it may fail to detect
+    loops that are on branches it does not explore.</p></li></ul>
+  </div></div></li><li class="revision"><div class="revnumber"><span class="revnumber">2.2.2</span>, <span class="date" time="2023-05-17">17 May 2023</span></div><div class="description"><div class="revdescription">
+    <p>Fixed bug where CoffeePot had a runtime dependency on
+    Saxon EE. (It can use Saxon EE, and EE is required for loading dynamic function
+    libraries, but EE isn’t required for basic functionality.)</p>
+  </div></div></li><li class="revision"><div class="revnumber"><span class="revnumber">2.2.1</span>, <span class="date" time="2023-05-17">17 May 2023</span></div><div class="description"><div class="revdescription">
+    <p>Fixed bug where choices were not always presented in a
+    logical order (earlier matches before later matches) when
+    displaying alternatives. Updated CoffeeGrinder and fixed
+    stylesheet so that marks on nonterminals are included when
+    describing ambiguity.</p>
+  </div></div></li><li class="revision"><div class="revnumber"><span class="revnumber">2.2.0</span>, <span class="date" time="2023-05-06">06 May 2023</span></div><div class="description"><div class="revdescription">
+    <p>Changed the <a href="ch02.html#cli" class="link">--show-grammar</a> option to display the
+    grammar after duplicates have been resolved. Also changed the display to include marks.
+    Documented the <code class="literal"><a href="ch09.html#pragma-priority">priority</a></code> pragma.
+    Removed the <code class="literal">combine</code>
+    and <code class="literal">regex</code> pragmas from the documentation; I’m not convinced they work
+    correctly.</p>
+  </div></div></li><li class="revision"><div class="revnumber"><span class="revnumber">2.1.0</span>, <span class="date" time="2023-04-23">23 Apr 2023</span></div><div class="description"><div class="revdescription">
+    <p>Added <a href="ch06.html" class="link">support</a>
+    for choosing between ambiguous parses using either an extension function or
+    XPath expressions.</p>
+  </div></div></li><li class="revision"><div class="revnumber"><span class="revnumber">2.0.3</span>, <span class="date" time="2023-04-15">15 Apr 2023</span></div><div class="description"><div class="revdescription">
+    <ul class="itemizedlist"><li><p>Updated to use CoffeeFilter version 2.0.3 which corrects errors in
+        the serialization of control characters in attributes and text content (and changes
+        the serialization of <code class="literal">&gt;</code> to always be <code class="literal">&amp;gt;</code>).
+        </p></li><li><p>If a UTF-8 grammar or input file begins with a byte-order-mark (BOM), the
+        BOM is ignored. A new configuration property <code class="literal">ignore-bom</code> can be
+        set to <code class="literal">false</code> to disable this behavior.</p></li><li><p>The build system has been updated to use Gradle version 8.0.2.</p></li></ul>
+  </div></div></li><li class="revision"><div class="revnumber"><span class="revnumber">2.0.0</span>, <span class="date" time="2023-04-10">10 Apr 2023</span></div><div class="description"><p class="revremark">Making the 2.x code base the current release.</p></div></li><li class="revision"><div class="revnumber"><span class="revnumber">1.1.0</span>, <span class="date" time="2022-04-16">16 Apr 2022</span></div><div class="description"><div class="revdescription">
+    <p>Support for the 15 April 2022 specification, version 1.1.0</p>
+    <p>The most significant changes are:</p>
+    <ol class="orderedlist" type="1"><li><p>The “<span class="symbol">repeat0</span>” and “<span class="symbol">repeat1</span>”
+      separator characters are now doubled: “<code class="literal">item*','</code>” becomes
+      “<code class="literal">item**','</code>”, and “<code class="literal">item+','</code>” becomes
+      “<code class="literal">item++','</code>”.</p></li><li><p>The semantics of “^” before a literal have changed. It now
+      signals an insertion. The grammar fragment “<code class="literal">'a', ^'-', 'b'</code>”
+      matches an “a” followed <em>immediately</em> by a “b”, but the
+      XML output will be “a-b”. The text marked “^” matches nothing but is inserted
+      in the output. The insertion character
+      <a href="https://github.com/invisibleXML/ixml/issues/72" class="link">may change</a>.
+    </p></li><li><p>At least one whitespace character or comment is required
+      between rules. (This is very unlikely to have any practical consequence
+      since most grammar authors start a new rule on a new line. But where
+      “<code class="literal">a:'1'.b:'2'.</code> used to be allowed, you must now
+      write “<code class="literal">a:'1'. b:'2'.</code>. This avoids
+      <a href="https://github.com/invisibleXML/ixml/issues/48" class="link">an ambiguity</a>
+      in the grammar.)</p></li></ol>
+  </div></div></li><li class="revision"><div class="revnumber"><span class="revnumber">1.0.0</span>, <span class="date" time="2022-03-20">20 Mar 2022</span></div><div class="description"><p class="revremark">Initial release, version 1.0.0</p></div></li></ul></div></section></main><nav class="bottom"><div class="navrow"><div class="navleft"><a title="Chapter  11 .  Diagrams" href="ch11.html"><i class="fas fa-arrow-left"></i></a></div><div class="navmiddle"><a title="CoffeePot" href="index.html"><i class="fas fa-home"></i></a></div><div class="navright"></div></div><div class="navrow"><div class="navleft navtitle">Chapter  11 .  Diagrams</div><div class="navmiddle"><a title="CoffeePot" href="index.html"><i class="fas fa-arrow-up"></i></a></div><div class="navright navtitle"></div></div><div class="infofooter"><span class="copyrightfooter">Copyright © 2022–2023 Norman Walsh.</span></div><nav class="tocopen"></nav><nav class="toc"></nav><!-- Hide ToC details from user agents that don’t support JS --><script type="text/html" class="tocopen"><i class="far fa-book"></i></script><script type="text/html" class="toc"><header><span>Table of Contents</span><span class="close"><i class="far fa-window-close"></i></span><p class="ptoc-search"><input class="ptoc-search" placeholder="Search" style="width: 80%"/></p></header><div db-persistent-toc="persistent-toc.html" db-prefix="">Loading…</div></script></nav></body></html>
