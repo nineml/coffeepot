@@ -3,6 +3,9 @@ package org.nineml.coffeepot.utils;
 import org.nineml.logging.DefaultLogger;
 import org.nineml.logging.Logger;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Parser options.
  */
@@ -11,6 +14,7 @@ public class ParserOptions extends org.nineml.coffeefilter.ParserOptions {
     private String barCharacters = ".#";
     private boolean trailingNewlineOnOutput = true;
     private boolean asciiOnly = false;
+    private final HashMap<String,String> graphOptions;
 
     /**
      * Create the parser options.
@@ -19,6 +23,7 @@ public class ParserOptions extends org.nineml.coffeefilter.ParserOptions {
      */
     public ParserOptions() {
         super();
+        graphOptions = new HashMap<>();
     }
 
     /**
@@ -27,6 +32,7 @@ public class ParserOptions extends org.nineml.coffeefilter.ParserOptions {
      */
     public ParserOptions(Logger logger) {
         super(logger);
+        graphOptions = new HashMap<>();
     }
 
     public ParserOptions(ParserOptions copy) {
@@ -35,6 +41,7 @@ public class ParserOptions extends org.nineml.coffeefilter.ParserOptions {
         barCharacters = copy.barCharacters;
         trailingNewlineOnOutput = copy.trailingNewlineOnOutput;
         asciiOnly = copy.asciiOnly;
+        graphOptions = new HashMap<>(copy.graphOptions);
     }
 
     /**
@@ -131,6 +138,41 @@ public class ParserOptions extends org.nineml.coffeefilter.ParserOptions {
         asciiOnly = ascii;
     }
 
+    /**
+     * Get the default graph options.
+     *
+     * @return the options.
+     */
+    public Map<String,String> getGraphOptions() {
+        return new HashMap<>(graphOptions);
+    }
+
+    /**
+     * Add a graph option.
+     * @param name the option (parameter) name
+     * @param value the option value
+     * @throws NullPointerException if either name or value is null.
+     */
+    public void addGraphOption(String name, String value) {
+        if (name == null) {
+            throw new NullPointerException("Name must not be null.");
+        }
+        if (value == null) {
+            throw new NullPointerException("Value must not be null.");
+        }
+        graphOptions.put(name, value);
+    }
+
+    /**
+     * Remove a graph option.
+     * @param name the option (parameter) name
+     */
+    public void removeGraphOption(String name) {
+        if (name != null) {
+            graphOptions.remove(name);
+        }
+    }
+
     public void logOptions() {
         String cat = "CoffeePotOptions";
         Logger logger = getLogger();
@@ -154,5 +196,7 @@ public class ParserOptions extends org.nineml.coffeefilter.ParserOptions {
         logger.error(cat, "Ignore BOM: %s", getIgnoreBOM());
         logger.error(cat, "Graphviz: %s", getGraphviz());
         logger.error(cat, "Rule rewriter: %s", getRuleRewriter());
+        logger.error(cat, "ASCII only: %s", getAsciiOnly());
+        logger.error(cat, "Strict ambiguity: %s", getStrictAmbiguity());
     }
 }

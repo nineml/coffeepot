@@ -45,6 +45,7 @@ public class ParserOptionsLoader {
         PROPERTY_NAMES.add("trailing-newline-on-output");
         PROPERTY_NAMES.add("ascii-only");
         PROPERTY_NAMES.add("strict-ambiguity");
+        PROPERTY_NAMES.add("graph-options");
     }
 
     private static final String propfn = "nineml.properties";
@@ -202,9 +203,24 @@ public class ParserOptionsLoader {
             }
         }
 
-        value = getProperty("progress-bar-characters", "null");
+        //value = getProperty("progress-bar-characters", null);
 
-
+        value = getProperty("graph-options", null);
+        if (value != null) {
+            for (String pair : value.split(",\\s*")) {
+                int pos = pair.indexOf(":");
+                if (pos < 0) {
+                    pos = pair.indexOf("=");
+                }
+                if (pos > 0) {
+                    String pname = pair.substring(0, pos);
+                    String pvalue = pair.substring(pos+1);
+                    options.addGraphOption(pname, pvalue);
+                } else {
+                    options.getLogger().warn("CoffeePot", "Cannot parse graph-option: %s", pair);
+                }
+            }
+        }
 
         for (String name : prop.stringPropertyNames()) {
             if (!PROPERTY_NAMES.contains(name)) {
