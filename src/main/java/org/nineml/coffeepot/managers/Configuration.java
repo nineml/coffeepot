@@ -141,7 +141,7 @@ public class Configuration {
         } else {
             options.setPedantic(false);
             options.setAllowMultipleDefinitions(true);
-            options.setAllowUndefinedSymbols(true);
+            options.setAllowUndefinedSymbols(false);   // this is just too problematic
             options.setAllowUnproductiveSymbols(true);
             options.setAllowUnreachableSymbols(true);
         }
