@@ -10,11 +10,21 @@
 
 <revhistory>
 <revision>
-<revnumber>3.0.0b</revnumber>
+<revnumber>3.0.0c</revnumber>
 <date>2023-07-09</date>
 <revdescription>
 <para>This is a beta release for version 3.0.0. There are a lot of
 changes in this release, but most of them are “behind the scenes” for CoffeePot.</para>
+
+<para>Version 3.0.0c depends on CoffeeGrinder, CoffeeFilter, and CoffeeSacks 3.0.0c which fix a bug
+where a regular expression pragma would not successfully parse when
+the regular expression matched the empty string.</para>
+</revdescription>
+</revision>
+<revision>
+<revnumber>3.0.0b</revnumber>
+<date>2023-07-09</date>
+<revdescription>
 
 <orderedlist>
 <listitem><para>Includes all of the updates in CoffeeGrinder, CoffeeFilter, and
