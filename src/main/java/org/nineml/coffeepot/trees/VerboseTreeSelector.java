@@ -4,7 +4,6 @@ import net.sf.saxon.PreparedStylesheet;
 import net.sf.saxon.expr.StaticContext;
 import net.sf.saxon.functions.FunctionLibrary;
 import net.sf.saxon.ma.map.MapType;
-import net.sf.saxon.om.FunctionItem;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.pattern.NodeKindTest;
 import net.sf.saxon.query.QueryModule;
@@ -137,7 +136,9 @@ public class VerboseTreeSelector extends PriorityTreeSelector {
 
             // Did you actually provide the function we need?
             SymbolicName.F fname = new SymbolicName.F(CP_CHOOSE, 2);
-            FunctionItem chooseAlternative = fl.getFunctionItem(fname, staticContext);
+
+            // Object so it works with either Saxon 11 or Saxon 12. See below.
+            Object chooseAlternative = fl.getFunctionItem(fname, staticContext);
 
             if (chooseAlternative == null) {
                 throw new IllegalArgumentException("Function library does not provide suitable function: " + functionLibrary);

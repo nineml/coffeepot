@@ -36,8 +36,9 @@ public class Configuration {
     public final String recordStart;
     public final String recordEnd;
     public final boolean suppressOutput;
-    public final String graphXml;
-    public final String graphSvg;
+    public final String forest;
+    public final String graph;
+    public final String graphFormat;
     public final List<String> graphOptions;
     public final int parse;
     public final int parseCount;
@@ -130,7 +131,21 @@ public class Configuration {
         }
 
         options.setPrettyPrint(options.getPrettyPrint() || cmain.prettyPrint);
-        options.setPedantic(options.getPedantic() || cmain.pedantic);
+
+        if (options.getPedantic() || cmain.pedantic) {
+            options.setPedantic(true);
+            options.setAllowMultipleDefinitions(false);
+            options.setAllowUndefinedSymbols(false);
+            options.setAllowUnproductiveSymbols(false);
+            options.setAllowUnreachableSymbols(false);
+        } else {
+            options.setPedantic(false);
+            options.setAllowMultipleDefinitions(true);
+            options.setAllowUndefinedSymbols(false);   // this is just too problematic
+            options.setAllowUnproductiveSymbols(true);
+            options.setAllowUnreachableSymbols(true);
+        }
+
         options.setShowChart(cmain.showChart);
         options.setShowMarks(cmain.showMarks);
         options.setShowBnfNonterminals(cmain.showHiddenNonterminals);
@@ -233,16 +248,40 @@ public class Configuration {
             omitCsvHeaders = false;
         }
 
-        if (cmain.graphSvg != null) {
+        if (cmain.graphXml != null && cmain.forest != null) {
+            options.getLogger().error(logcategory, "The --graph-xml option is deprecated, using --forest");
+            cmain.graphXml = null;
+        } else if (cmain.graphXml != null) {
+            options.getLogger().error(logcategory, "The --graph-xml option is deprecated, use --forest");
+            cmain.forest = cmain.graphXml;
+            cmain.graphXml = null;
+        }
+
+        if (cmain.graphSvg != null && cmain.graph != null) {
+            options.getLogger().error(logcategory, "The --graph-svg option is deprecated, using --graph");
+            cmain.graphSvg = null;
+        } else if (cmain.graphSvg != null) {
+            options.getLogger().error(logcategory, "The --graph-svg option is deprecated, use --graph");
+            cmain.graph = cmain.graphSvg;
+            cmain.graphSvg = null;
+        }
+
+        if (cmain.graph != null) {
             if (options.getGraphviz() == null) {
-                options.getLogger().error(logcategory, "Cannot output SVG; GraphViz is not configured.");
-                cmain.graphSvg = null;
-            } else {
-                if (processor == null) {
-                    options.getLogger().error(logcategory, "Cannot output SVG; failed to find Saxon on the classpath.");
-                    cmain.graphSvg = null;
-                }
+                options.getLogger().error(logcategory, "Cannot output graph; GraphViz is not configured.");
+                cmain.graph = null;
             }
+        }
+
+        if (!cmain.graphSvgOptions.isEmpty() && !cmain.graphOptions.isEmpty()) {
+            options.getLogger().error(logcategory, "The --graph-svg-option option is deprecated, using --graph-option");
+        } else if (!cmain.graphSvgOptions.isEmpty()) {
+            options.getLogger().error(logcategory, "The --graph-svg-option option is deprecated, use --graph-option");
+            cmain.graphOptions.addAll(cmain.graphSvgOptions);
+        }
+
+        if (cmain.graph == null && !cmain.graphOptions.isEmpty()) {
+            options.getLogger().error(logcategory, "Ignoring--graph-option, --graph not selected");
         }
 
         String[] actualInput = null;
@@ -275,13 +314,13 @@ public class Configuration {
             input = sb.toString().trim();
             inputFile = null;
         } else {
-            if (cmain.inputFile == null) {
+            if (cmain.inputFile == null && !cmain.analyzeAmbiguity) {
                  if (cmain.showGrammar) {
                      input = null;
                      inputFile = null;
                  } else {
                      if (!cmain.version) {
-                         usage(jc, true);
+                         System.err.println("Usage: ... -g:input.ixml -o:output.xml (--help for more details)");
                      }
                      throw ConfigurationException.noInput();
                  }
@@ -317,9 +356,14 @@ public class Configuration {
         recordEnd = cmain.recordend;
         suppressOutput = cmain.suppressOutput;
         outputFile = cmain.outputFile;
-        graphXml = cmain.graphXml;
-        graphSvg = cmain.graphSvg;
+        forest = cmain.forest;
+        graph = cmain.graph;
         graphOptions = cmain.graphOptions;
+        if (cmain.graphFormat != null) {
+            graphFormat = cmain.graphFormat;
+        } else {
+            graphFormat = "svg";
+        }
         parse = cmain.parse;
 
         if (cmain.parseCount == null) {
@@ -379,14 +423,26 @@ public class Configuration {
         @Parameter(names = {"-g", "--grammar"}, description = "The input grammar")
         public String grammar = null;
 
+        @Parameter(names = {"--forest"}, description = "Output an XML description of the forest")
+        public String forest = null;
+
         @Parameter(names = {"--graph-xml"}, description = "Output an XML description of the forest")
         public String graphXml = null;
 
-        @Parameter(names = {"-G", "--graph-svg"}, description = "Output an SVG graph of the forest")
+        @Parameter(names = {"--graph-svg"}, description = "Output an SVG graph of the forest")
         public String graphSvg = null;
 
+        @Parameter(names = {"-G", "--graph"}, description = "Output a graph of the forest")
+        public String graph = null;
+
         @Parameter(names = {"--graph-svg-option"}, description = "Options (parameters) for the graph SVG stylesheet")
+        public List<String> graphSvgOptions = new ArrayList<>();
+
+        @Parameter(names = {"--graph-option"}, description = "Options (parameters) for the graph stylesheet")
         public List<String> graphOptions = new ArrayList<>();
+
+        @Parameter(names = {"--graph-format"}, description = "The graph output format (svg, png, etc.)")
+        public String graphFormat = null;
 
         @Parameter(names = {"-i", "--input"}, description = "The input")
         public String inputFile = null;

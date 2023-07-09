@@ -6,6 +6,7 @@ import org.nineml.coffeegrinder.parser.GearleyResult;
 import org.nineml.coffeepot.utils.ParserOptions;
 import org.xml.sax.InputSource;
 
+import javax.xml.transform.Source;
 import javax.xml.transform.sax.SAXSource;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -30,63 +31,30 @@ public class GraphOutputManager {
             return;
         }
 
-        if (config.graphXml != null) {
-            doc.getResult().getForest().serialize(config.graphXml);
+        if (config.forest != null) {
+            doc.getResult().getForest().serialize(config.forest);
         }
 
-        if (config.graphSvg != null) {
-            graphForest(doc.getResult(), config.options, config.graphSvg, doc.getResult().lastSelectedNodes());
+        if (config.graph != null) {
+            graphForest(config, doc);
         }
     }
 
-    private void graphForest(GearleyResult result, ParserOptions options, String output, Set<Integer> selectedNodes) {
+    private void graphForest(Configuration config, InvisibleXmlDocument doc) {
         String stylesheet = "/org/nineml/coffeegrinder/forest2dot.xsl";
         try {
             // Get the graph as XML
-            ByteArrayInputStream bais = new ByteArrayInputStream(result.getForest().serialize().getBytes(StandardCharsets.UTF_8));
-            DocumentBuilder builder = processor.newDocumentBuilder();
-            HashSet<String> knownopts = new HashSet<>();
-            HashMap<String,String> styleopts = new HashMap<>();
+            ByteArrayInputStream bais = new ByteArrayInputStream(doc.getResult().getForest().serialize().getBytes(StandardCharsets.UTF_8));
+            HashMap<String,String> styleopts = new HashMap<>(config.options.getGraphOptions());
 
             String comma = "";
             StringBuilder sb = new StringBuilder();
-            for (int id : selectedNodes) {
+            for (int id : doc.getResult().lastSelectedNodes()) {
                 sb.append(comma);
                 sb.append("id").append(id);
                 comma = ",";
             }
             styleopts.put("selected-nodes", sb.toString());
-
-            knownopts.add("alt-edge-color");
-            knownopts.add("alt-edge-style");
-            knownopts.add("ambiguity-font-color");
-            knownopts.add("edge-color");
-            knownopts.add("edge-pen-width");
-            knownopts.add("edge-style");
-            knownopts.add("elide-root");
-            knownopts.add("label-color");
-            knownopts.add("node-color");
-            knownopts.add("node-fill-color");
-            knownopts.add("node-font-color");
-            knownopts.add("node-font-name");
-            knownopts.add("node-pen-width");
-            knownopts.add("nonterminal-shape");
-            knownopts.add("priority-color");
-            knownopts.add("priority-size");
-            knownopts.add("rankdir");
-            knownopts.add("selected-depth");
-            knownopts.add("selected-node-color");
-            knownopts.add("selected-node-fill-color");
-            knownopts.add("selected-node-font-color");
-            knownopts.add("selected-node-font-name");
-            knownopts.add("selected-node-pen-width");
-            knownopts.add("selected-nodes");
-            knownopts.add("selected-root");
-            knownopts.add("show-priority");
-            knownopts.add("show-states");
-            knownopts.add("state-shape");
-            knownopts.add("subgraph-color");
-            knownopts.add("terminal-shape");
 
             for (String opt : config.graphOptions) {
                 final int pos;
@@ -111,20 +79,17 @@ public class GraphOutputManager {
                 if (name == null) {
                     config.stderr.println("Unparsable graph option: " + opt);
                 } else {
-                    if (!knownopts.contains(name)) {
-                        config.stderr.println("Unrecognized graph option: " + name);
-                    }
                     styleopts.put(name, value);
                 }
             }
 
-            graphXdm(builder.build(new SAXSource(new InputSource(bais))), options, stylesheet, styleopts, output);
+            graphXdm(config, new SAXSource(new InputSource(bais)), stylesheet, styleopts);
         } catch (Exception ex) {
             config.stderr.println("Failed to create SVG: " + ex.getMessage());
         }
     }
 
-    private void graphXdm(XdmNode document, ParserOptions options, String resource, Map<String,String> styleopts, String output) {
+    private void graphXdm(Configuration config, Source document, String resource, Map<String,String> styleopts) {
         try {
             // Transform the graph into dot
             InputStream stylesheet = getClass().getResourceAsStream(resource);
@@ -134,18 +99,22 @@ public class GraphOutputManager {
                 XsltCompiler compiler = processor.newXsltCompiler();
                 compiler.setSchemaAware(false);
                 XsltExecutable exec = compiler.compile(new SAXSource(new InputSource(stylesheet)));
-                XsltTransformer transformer = exec.load();
-                transformer.setInitialContextNode(document);
+                Xslt30Transformer transformer = exec.load30();
                 XdmDestination destination = new XdmDestination();
-                transformer.setDestination(destination);
 
+                Map<QName, XsltExecutable.ParameterDetails> paramMap = exec.getGlobalParameters();
+                HashMap<QName,XdmAtomicValue> xformOpts = new HashMap<>();
                 for (String key : styleopts.keySet()) {
-                    XdmValue value = new XdmAtomicValue(styleopts.get(key));
+                    XdmAtomicValue value = new XdmAtomicValue(styleopts.get(key));
                     QName name = new QName(key);
-                    transformer.setParameter(name, value);
+                    if (!paramMap.containsKey(name)) {
+                        config.stderr.printf("Unrecognized graph option: %s%n", key);
+                    }
+                    xformOpts.put(name, value);
                 }
+                transformer.setStylesheetParameters(xformOpts);
 
-                transformer.transform();
+                transformer.transform(document, destination);
 
                 // Store the dot file somewhere
                 File temp = File.createTempFile("jixp", ".dot");
@@ -153,7 +122,11 @@ public class GraphOutputManager {
                 dot.println(destination.getXdmNode().getStringValue());
                 dot.close();
 
-                String[] args = new String[] { options.getGraphviz(), "-Tsvg", temp.getAbsolutePath(), "-o", output};
+                String[] args = new String[] {
+                        config.options.getGraphviz(),
+                        "-T" + config.graphFormat,
+                        temp.getAbsolutePath(),
+                        "-o", config.graph};
                 Process proc = Runtime.getRuntime().exec(args);
                 proc.waitFor();
 
@@ -163,17 +136,17 @@ public class GraphOutputManager {
                     while ((ch = proc.getErrorStream().read()) >= 0) {
                         sb.appendCodePoint(ch);
                     }
-                    options.getLogger().error(logcategory, "Failed to write SVG: %s", sb.toString());
+                    config.options.getLogger().error(logcategory, "Failed to write %s: %s", config.graphFormat.toUpperCase(), sb);
                 } else {
-                    options.getLogger().trace(logcategory, "Wrote SVG: %s", output);
+                    config.options.getLogger().trace(logcategory, "Wrote %s: %s", config.graphFormat.toUpperCase(), config.graph);
                     if (!temp.delete()) {
-                        options.getLogger().warn(logcategory, "Failed to delete temporary file: %s", temp.getAbsolutePath());
+                        config.options.getLogger().warn(logcategory, "Failed to delete temporary file: %s", temp.getAbsolutePath());
                         temp.deleteOnExit();
                     }
                 }
             }
         } catch (Exception ex) {
-            config.stderr.println("Failed to write SVG: " + ex.getMessage());
+            config.stderr.printf("Failed to write %s: %s%n", config.graphFormat.toUpperCase(), ex.getMessage());
         }
     }
 }

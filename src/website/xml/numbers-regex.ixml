@@ -1,0 +1,8 @@
+{[+pragma n "https://nineml.org/ns/pragma/"]}
+
+   number-list = (number, -#a)+, number? .
+        number = hex | decimal .
+           hex = hex-digit+        {[n regex "[0-9a-fA-F]+"]} .
+       decimal = decimal-digit+    {[n regex "[0-9]+"]} .
+    -hex-digit = ["0"-"9" | "a"-"f" | "A"-"F" ] .
+-decimal-digit = ["0"-"9" ] .
