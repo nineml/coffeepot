@@ -165,6 +165,7 @@ other pragmas, this one has a different URI binding:
 
 <para>There following pragmas apply to a rules.</para>
 
+<!--
 <section xml:id="pragma-csv-heading">
 <title>csv-heading</title>
 
@@ -175,6 +176,7 @@ by this is used as the value of a column.</para>
 <synopsis linenumbering="unnumbered">{[nineml xmlns "Heading Title"]}</synopsis>
 
 </section>
+-->
 
 <section xml:id="pragma-discard-empty">
 <title>discard-empty</title>
@@ -187,22 +189,48 @@ serialized at all).</para>
 
 </section>
 
-<!--
-<section xml:id="pragma-combine">
-<title>combine</title>
-
-<para>Usage:</para>
-<synopsis linenumbering="unnumbered">{[nineml combine]}</synopsis>
-
-</section>
 <section xml:id="pragma-regex">
 <title>regex</title>
+
+<para>This pragma replaces the “right hand side” of a nonterminal with a regular expression.
+This is a “greedy match” and can greatly improve performance in some cases.</para>
 
 <para>Usage:</para>
 <synopsis linenumbering="unnumbered">{[nineml regex "regular expression"]}</synopsis>
 
+<para>For example:</para>
+
+<programlisting language="ixml"><xi:include href="numbers-regex.ixml" parse="text"/></programlisting>
+
+<para>This grammar will consume <code>hex</code> and <code>decimal</code> nonterminals with a
+regular expression.</para>
+
+<para>The regex pragma is a sharp tool and comes with a number of caveats.</para>
+
+<orderedlist>
+<listitem>
+<para>The regular expression is used in place of the right hand side specified in the grammar.
+No effort is made to determine if the original iXML rule (that will be used by a processor
+that doesn’t support the regex pragma) matches the same input as the regular expression.
+</para>
+</listitem>
+<listitem><para>The regular expression match is greedy. It will consume all of the characters
+that match. If this consumes “too much” input, the parse will fail. Consider this grammar:
+</para>
+<programlisting language="ixml"><xi:include href="aba.ixml" parse="text"/></programlisting>
+<para>It will match “aaaba” to produce “<code><![CDATA[<S>a<B>aab</B>a</S>]]></code>”.
+At first glance, this grammar may seem equivalent:</para>
+<programlisting language="ixml"><xi:include href="regex-toomuch.ixml" parse="text"/></programlisting>
+<para>But if regular expressions are used, this grammar will not match “aaaba”. The
+entire string “aaba” is consumed by the regular expression, leaving no “a” for the last
+terminal in S to match.
+</para></listitem>
+<listitem><para>The GLL parser doesn’t support multiple regular expressions that start at the
+same place. This is an implementation deficiency. It means that some ambiguous grammars cannot
+be parsed using the GLL parser and regular expressions.
+</para></listitem>
+</orderedlist>
 </section>
--->
 
 </section>
 
@@ -220,21 +248,17 @@ only to nonterminals.</para>
 <para>Usage:</para>
 <synopsis linenumbering="unnumbered">{[nineml rename newname]}</synopsis>
 
+<para>An alternative approach is to use the nonterminal renaming
+<link xlink:href="https://lists.w3.org/Archives/Public/public-ixml/2023Jun/0030.html">proposal</link>.
+This is an experimental feature. To use it, you must specify that the
+grammar version is “<literal>1.1-nineml</literal>”.</para>
 </section>
 
 <section xml:id="pragma-rewrite">
 <title>rewrite</title>
 
-<para>This pragma changes text output when the terminal. It applies
-only to terminals.</para>
-
-<para>Usage:</para>
-<synopsis linenumbering="unnumbered">{[nineml rewrite "new literal"]}</synopsis>
-
-<para>This pragma was invented before Invisible XML added
-<link xlink:href="https://invisiblexml.org/1.0/#L649">insertions</link>. The same effects
-can be obtained with insertions (by suppressing one terminal and inserting another).
-That is the preferred approach.</para>
+<para>This pragma is no longer supported. The same effect can be achieved
+with the standard insertions feature.</para>
 
 </section>
 
@@ -244,7 +268,7 @@ That is the preferred approach.</para>
 <para>This pragma associates a priority with a nonterminal.</para>
 
 <para>Usage:</para>
-<synopsis linenumbering="unnumbered">{[nineml priority 1.5]}</synopsis>
+<synopsis linenumbering="unnumbered">{[nineml priority 2]}</synopsis>
 
 <para>When an ambiguous parse is being serialized, there will be places in the
 output where a choice must be made between two or more alternatives. A priority
@@ -284,11 +308,13 @@ Found 2 possible parses.
 
 <screen><![CDATA[$ coffeepot --pretty-print -g:hex.ixml 42
 Found 2 possible parses.
-<number xmlns:ixml="http://invisiblexml.org/NS" ixml:state="ambiguous">
+<number>
    <decimal>42</decimal>
 </number>]]></screen>
 
-<para>The parse is still considered ambiguous because there were two possible choices.</para>
+<para>The parse is no longer considered ambiguous because no arbitrary choices were made.
+Use the <code linkend="_strict-ambiguity">--strict-ambiguity</code> option to mark
+the output ambiguous.</para>
 
 <note>
 <para>If a grammar is infinitely ambiguous, the same part of the parse may be serialized

@@ -1,0 +1,4 @@
+{[+pragma n "https://nineml.org/ns/pragma/"]}
+
+                    S = 'a', B, 'a' .
+{[n regex "[ab]+"]} B = ('a'|'b')+ . 

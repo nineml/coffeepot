@@ -1,0 +1,7 @@
+{[+pragma nineml "https://nineml.org/ns/pragma/"]}
+
+ number: hex | {[nineml priority 2]} decimal .
+ hex: hex-digit+ .
+ decimal: decimal-digit+ .
+-hex-digit: ["0"-"9" | "a"-"f" | "A"-"F" ] .
+-decimal-digit: ["0"-"9" ] .
