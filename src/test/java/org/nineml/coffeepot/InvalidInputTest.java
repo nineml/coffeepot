@@ -15,7 +15,7 @@ public class InvalidInputTest extends CoffeePotTest {
         try {
             OutputManager manager = main.commandLine(new String[] {"-g:src/test/resources/abc.ixml", "abx" });
             Assertions.assertEquals(1, manager.stringRecords.size());
-            Assertions.assertEquals("<fail xmlns:ixml=\"http://invisiblexml.org/NS\" ixml:state=\"failed\"><line>1</line><column>3</column><pos>2</pos><unexpected>b</unexpected><permitted>'c'</permitted><also-predicted>'a'</also-predicted></fail>",
+            Assertions.assertEquals("<fail xmlns:ixml='http://invisiblexml.org/NS' ixml:state='failed'><line>1</line><column>3</column><pos>2</pos><unexpected>b</unexpected><permitted>'c'</permitted><also-predicted>'a'</also-predicted></fail>",
                     manager.stringRecords.get(0));
         } catch (Exception ex) {
             fail();
