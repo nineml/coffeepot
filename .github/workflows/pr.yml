@@ -60,4 +60,4 @@ jobs:
         run: |
           git submodule init
           git submodule update
-          ./gradlew --debug dist website
+          ./gradlew dist website

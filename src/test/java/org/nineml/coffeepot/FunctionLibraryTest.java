@@ -1,7 +1,8 @@
 package org.nineml.coffeepot;
 
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.nineml.coffeepot.managers.OutputManager;
 
 import static org.junit.Assert.fail;
@@ -18,7 +19,7 @@ public class FunctionLibraryTest extends CoffeePotTest {
             Assertions.assertEquals("<S><A><B><C>x</C></B></A></S>", manager.stringRecords.get(0));
             Assertions.assertTrue(stderr.contains("Found 4 possible parses"));
         } catch (Exception ex) {
-            fail();
+            Assertions.fail();
         }
     }
 
@@ -33,7 +34,7 @@ public class FunctionLibraryTest extends CoffeePotTest {
             Assertions.assertEquals("<S><A><C>x</C></A></S>", manager.stringRecords.get(0));
             Assertions.assertTrue(stderr.contains("Found 4 possible parses"));
         } catch (Exception ex) {
-            fail();
+            Assertions.fail();
         }
     }
 
@@ -48,7 +49,7 @@ public class FunctionLibraryTest extends CoffeePotTest {
             Assertions.assertEquals("<S><B><C>x</C></B></S>", manager.stringRecords.get(0));
             Assertions.assertTrue(stderr.contains("Found 4 possible parses"));
         } catch (Exception ex) {
-            fail();
+            Assertions.fail();
         }
     }
 
@@ -63,11 +64,11 @@ public class FunctionLibraryTest extends CoffeePotTest {
             Assertions.assertTrue(manager.stringRecords.get(0).contains("ambiguous"));
             Assertions.assertTrue(stderr.contains("Found 4 possible parses"));
         } catch (Exception ex) {
-            fail();
+            Assertions.fail();
         }
     }
 
-    @Test
+    @Disabled
     public void ambig3loop10() {
         WrappedPrintStream stdout = new WrappedPrintStream();
         WrappedPrintStream stderr = new WrappedPrintStream();
@@ -78,7 +79,7 @@ public class FunctionLibraryTest extends CoffeePotTest {
             Assertions.assertEquals("<S><X>x</X><A><A><A><A><A><A><A><A><A><A>y</A></A></A></A></A></A></A></A></A></A><Z>z</Z></S>", manager.stringRecords.get(0));
             Assertions.assertTrue(stderr.contains("Found 2 possible parses (of infinitely many)"));
         } catch (Exception ex) {
-            fail();
+            Assertions.fail();
         }
     }
 

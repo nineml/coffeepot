@@ -81,12 +81,13 @@ dependencies {
     fileTree(dir: "${projectDir}/lib", include: '*.jar')
   )
   testImplementation (
-    [group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.4.2'],
-    [group: 'org.junit.platform', name: 'junit-platform-console-standalone', version: '1.7.1'],
+    [group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.9.2'],
+    [group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.9.2'],
+    [group: 'org.junit.platform', name: 'junit-platform-console-standalone', version: '1.7.1']
   )
   testRuntimeOnly (
-    [group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.4.2'],
-    [group: 'org.junit.vintage', name: 'junit-vintage-engine', version: '5.4.2'],
+    [group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.9.2'],
+    [group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.9.2'],
     [group: 'org.junit.platform', name: 'junit-platform-runner', version: '1.8.2']
   )
   documentation (
@@ -96,16 +97,16 @@ dependencies {
   )
 }
 
+test {
+  useJUnitPlatform()
+}
+
 ext {
   c_coffeepot = "coffeepot"
 }
 
 docker_container.configure {
   workingDir = "docker"
-}
-
-tasks.withType(Test) {
-  useJUnitPlatform()
 }
 
 public String dateTime() {
