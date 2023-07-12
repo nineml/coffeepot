@@ -68,7 +68,7 @@ public class FunctionLibraryTest extends CoffeePotTest {
         }
     }
 
-    @Disabled
+    @Test
     public void ambig3loop10() {
         WrappedPrintStream stdout = new WrappedPrintStream();
         WrappedPrintStream stderr = new WrappedPrintStream();
@@ -79,6 +79,7 @@ public class FunctionLibraryTest extends CoffeePotTest {
             Assertions.assertEquals("<S><X>x</X><A><A><A><A><A><A><A><A><A><A>y</A></A></A></A></A></A></A></A></A></A><Z>z</Z></S>", manager.stringRecords.get(0));
             Assertions.assertTrue(stderr.contains("Found 2 possible parses (of infinitely many)"));
         } catch (Exception ex) {
+            System.err.println(stderr);
             Assertions.fail();
         }
     }
