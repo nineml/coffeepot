@@ -248,18 +248,29 @@ public class VerboseTreeSelector extends PriorityTreeSelector {
                     exec = compiler.compile(expr);
                     selector = exec.load();
 
-                    XdmSequenceIterator<XdmNode> iter = node.axisIterator(Axis.CHILD, _children);
-                    while (iter.hasNext()) {
-                        XdmNode children = iter.next();
-                        selector.setContextItem(children);
-                        boolean match = selector.effectiveBooleanValue();
-                        if (match) {
-                            String selection = children.getAttributeValue(_id);
-                            if (choiceMap.containsKey(selection)) { // it has to, right?
+                    selector.setContextItem(node);
+                    XdmValue selection = selector.evaluate();
+
+                    if (selection.size() == 1 && selection instanceof XdmNode) {
+                        XdmNode selNode = (XdmNode) selection;
+                        // If the expression selects the ID attribute, make that work
+                        if (_id.equals(selNode.getNodeName()) && selNode.getNodeKind() == XdmNodeKind.ATTRIBUTE) {
+                            selNode = selNode.getParent();
+                        }
+                        if (_children.equals(selNode.getNodeName())) {
+                            String id = selNode.getAttributeValue(_id);
+                            if (choiceMap.containsKey(id)) { // it has to, right?
                                 options.getLogger().debug("Expression %s selected %s", expr, selection);
-                                selected = choiceMap.get(selection);
-                                break;
+                                selected = choiceMap.get(id);
                             }
+                        } else {
+                            options.getLogger().debug("Expression %s did not select an element named 'children'.", expr);
+                        }
+                    } else {
+                        if (selection.size() > 1) {
+                            options.getLogger().debug("Expression %s selected %d nodes", expr, selection.size());
+                        } else {
+                            options.getLogger().debug("Expression %s did not select an element named 'children'.", expr);
                         }
                     }
 

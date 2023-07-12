@@ -10,16 +10,28 @@
 
 <revhistory>
 <revision>
-<revnumber>3.0.0d</revnumber>
-<date>2023-07-11</date>
+<revnumber>3.0.03</revnumber>
+<date>2023-07-12</date>
 <revdescription>
 <para>This is a beta release for version 3.0.0. There are a lot of
 changes in this release, but most of them are “behind the scenes” for CoffeePot.</para>
+<para>Version 3.0.0e depends on CoffeeGrinder, CoffeeFilter, and
+CoffeeSacks 3.0.0e which fix a few bugs and make a few improvements.
+In CoffeePot, the way the output manager is configured has
+changed; the way XPath expressions are matched in the verbose tree selector has been improved;
+and some tests have been added/improved.
+</para>
+</revdescription>
+</revision>
+
+<revision>
+<revnumber>3.0.0d</revnumber>
+<date>2023-07-11</date>
+<revdescription>
 <para>Version 3.0.0d depends on CoffeeGrinder, CoffeeFilter, and CoffeeSacks 3.0.0d which fix a
 few bugs and make a few improvements.</para>
 </revdescription>
 </revision>
-
 <revision>
 <revnumber>3.0.0c</revnumber>
 <date>2023-07-09</date>
