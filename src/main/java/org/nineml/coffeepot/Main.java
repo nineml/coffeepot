@@ -72,41 +72,45 @@ class Main {
     }
 
     public OutputManager commandLine(String[] args) {
+        OutputManager manager = new OutputManager();
+
         try {
             config = new Configuration(stdout, stderr, args);
         } catch (ConfigurationException ex) {
             if (ex.errorCode == ConfigurationException.HELP) {
-                System.exit(0);
+                return manager;
             }
             if (ex.getMessage() != null) {
                 stderr.println(ex.getMessage());
             }
-            System.exit(2);
+            manager.setReturnCode(2);
+            return manager;
         } catch (Exception ex) {
             if (ex.getMessage() != null) {
                 stderr.println(ex.getMessage());
             }
-            System.exit(2);
+            manager.setReturnCode(2);
+            return manager;
         }
 
-        OutputManager manager = null;
+        manager.configure(config);
+
         try {
-            manager = process();
+            process(manager);
         } catch (Exception ex) {
             if (progress != null) {
                 stderr.println();
             }
             stderr.println(ex.getMessage());
-            System.exit(1);
+            manager.setReturnCode(1);
+            manager.setException(ex);
         }
 
         return manager;
     }
 
-    private OutputManager process() throws IOException {
+    private void process(OutputManager outputManager) throws IOException {
         options = config.options;
-
-        OutputManager outputManager = new OutputManager(config);
 
         final InvisibleXml invisibleXml = new InvisibleXml(options);
         final URI grammarURI;
@@ -140,13 +144,13 @@ class Main {
                     stderr.println(doc.getTree());
                 }
             }
-            return outputManager;
+            return;
         }
 
         showGrammar();
 
         if (config.inputFile == null && config.input == null) {
-            return outputManager;
+            return;
         }
 
         InputManager inputManager = new InputManager(config, parser);
@@ -200,8 +204,6 @@ class Main {
         if (config.timing && inputManager.records.size() > 1) {
             showTime(parseEnd - parseStart, "all input");
         }
-
-        return outputManager;
     }
 
     private void hygeineReport() {

@@ -24,30 +24,62 @@ import java.util.List;
 
 public class OutputManager {
     public static final String logcategory = "CoffeePot";
-    private final Configuration config;
     private boolean parseError = false;
     public final List<XdmValue> records = new ArrayList<>();
     public final List<String> stringRecords = new ArrayList<>();
+    private Configuration config = null;
     public boolean xdmResults = false;
     private int returnCode = 0;
+    private Exception thrown = null;
     private int firstParse = -1;
     private int parseCount = -1;
     private long totalParses = -1;
     private boolean infiniteParses = false;
 
-    public OutputManager(Configuration config) {
+    public void configure(Configuration config) {
+        if (config == null) {
+            throw new NullPointerException("OutputManager config must not be null");
+        }
+        if (this.config != null) {
+            throw new IllegalStateException("Cannot configure OutputManager twice");
+        }
         this.config = config;
     }
 
-    public boolean hadParseError() {
-        return parseError;
+    private void checkConfig() {
+        if (config == null) {
+            throw new IllegalStateException("Cannot use an unconfigured OutputManager");
+        }
+    }
+
+    public boolean isConfigured() {
+        return config != null;
+    }
+
+    public void setReturnCode(int code) {
+        returnCode = code;
     }
 
     public int getReturnCode() {
         return returnCode;
     }
 
+    public void setException(Exception ex) {
+        thrown = ex;
+    }
+
+    public Exception getException() {
+        return thrown;
+    }
+
+    public boolean hadParseError() {
+        checkConfig();
+        return parseError;
+    }
+
     public void addOutput(InvisibleXmlParser parser, InvisibleXmlDocument doc, String input) {
+        checkConfig();
+
         parseError = parseError || !doc.succeeded();
 
         if (doc.getNumberOfParses() > 1 || doc.isInfinitelyAmbiguous()) {
@@ -117,6 +149,8 @@ public class OutputManager {
     }
 
     public void getXdmResults(InvisibleXmlParser parser, InvisibleXmlDocument doc) {
+        checkConfig();
+
         try {
             ParserOptions opts = new ParserOptions(config.options);
             XmlTreeBuilder treeBuilder = null;
@@ -166,6 +200,8 @@ public class OutputManager {
     }
 
     public void getStringResults(InvisibleXmlParser parser, InvisibleXmlDocument doc) {
+        checkConfig();
+
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream output = new PrintStream(baos);
 
@@ -235,6 +271,8 @@ public class OutputManager {
     }
 
     public void publish() throws IOException {
+        checkConfig();
+
         if (config.suppressOutput) {
             return;
         }
@@ -247,6 +285,8 @@ public class OutputManager {
     }
 
     public String publication() {
+        checkConfig();
+
         if (config.suppressOutput) {
             return "";
         }
@@ -277,19 +317,23 @@ public class OutputManager {
                 if (firstParse != 1) {
                     sb.append("  \"firstParse\": ").append(firstParse).append(",\n");
                 }
-                sb.append("  \"parses\": ").append(parseCount).append(",\n");
-                sb.append("  \"totalParses\": ").append(totalParses).append(",\n");
+                if (parseCount > 1 || totalParses > 1) {
+                    sb.append("  \"parses\": ").append(parseCount).append(",\n");
+                    sb.append("  \"totalParses\": ").append(totalParses).append(",\n");
+                }
                 if (infiniteParses) {
                     sb.append("  \"infinitelyAmbiguous\": true,");
                 }
                 sb.append("  \"records\": [\n");
             } else {
-                sb.append("<ixml");
+                sb.append("<records");
                 if (firstParse != 1) {
                     sb.append(" firstParse=\"").append(firstParse).append("\"");
                 }
-                sb.append(" parses=\"").append(parseCount).append("\"");
-                sb.append(" totalParses=\"").append(totalParses).append("\"");
+                if (parseCount > 1 || totalParses > 1) {
+                    sb.append(" parses=\"").append(parseCount).append("\"");
+                    sb.append(" totalParses=\"").append(totalParses).append("\"");
+                }
                 if (infiniteParses) {
                     sb.append(" infinitelyAmbiguous=\"true\"");
                 }
@@ -314,7 +358,7 @@ public class OutputManager {
             if (outputJSON) {
                 sb.append("]\n}\n");
             } else {
-                sb.append("\n</ixml>\n");
+                sb.append("\n</records>\n");
             }
         }
 
