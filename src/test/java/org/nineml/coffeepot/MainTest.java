@@ -17,7 +17,7 @@ public class MainTest extends CoffeePotTest {
         try {
             OutputManager manager = main.commandLine(new String[] {"--help" });
             Assertions.assertEquals(0, manager.stringRecords.size());
-            Assertions.assertTrue(stdout.contains("Usage:"));
+            Assertions.assertTrue(stderr.contains("Usage:"));
             Assertions.assertEquals(0, manager.getReturnCode());
         } catch (Exception ex) {
             fail();
@@ -206,7 +206,7 @@ public class MainTest extends CoffeePotTest {
             Assertions.assertEquals(1, manager.stringRecords.size());
             String result = manager.stringRecords.get(0);
             Assertions.assertTrue(result.contains("<n:symbol"));
-            Assertions.assertTrue(result.contains("name=\"$$\""));
+            Assertions.assertTrue(result.contains("name='$$'"));
         } catch (Exception ex) {
             fail();
         }
