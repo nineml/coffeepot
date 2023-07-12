@@ -321,8 +321,10 @@ public class Configuration {
                  } else {
                      if (!cmain.version) {
                          System.err.println("Usage: ... -g:input.ixml -o:output.xml (--help for more details)");
+                         throw ConfigurationException.noInput();
                      }
-                     throw ConfigurationException.noInput();
+                     input = null;
+                     inputFile = null;
                  }
             } else {
                 input = null;

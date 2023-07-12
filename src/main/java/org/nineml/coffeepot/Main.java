@@ -60,7 +60,15 @@ class Main {
     public void run(String[] args) {
         try {
             OutputManager manager = commandLine(args);
-            manager.publish();
+
+            if (manager.getException() != null) {
+                throw manager.getException();
+            }
+
+            if (manager.isConfigured()) {
+                manager.publish();
+            }
+
             System.exit(manager.getReturnCode());
         } catch (Exception ex) {
             if (progress != null) {

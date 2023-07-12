@@ -2,8 +2,6 @@ package org.nineml.coffeepot.managers;
 
 import net.sf.saxon.s9api.*;
 import org.nineml.coffeefilter.InvisibleXmlDocument;
-import org.nineml.coffeegrinder.parser.GearleyResult;
-import org.nineml.coffeepot.utils.ParserOptions;
 import org.xml.sax.InputSource;
 
 import javax.xml.transform.Source;
@@ -14,7 +12,8 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class GraphOutputManager {
     public static final String logcategory = "CoffeePot";
