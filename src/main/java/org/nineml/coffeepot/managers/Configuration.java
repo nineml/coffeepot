@@ -36,6 +36,7 @@ public class Configuration {
     public final String recordStart;
     public final String recordEnd;
     public final boolean suppressOutput;
+    public final boolean unbuffered;
     public final String forest;
     public final String graph;
     public final String graphFormat;
@@ -357,6 +358,7 @@ public class Configuration {
         recordStart = cmain.recordstart;
         recordEnd = cmain.recordend;
         suppressOutput = cmain.suppressOutput;
+        unbuffered = cmain.unbuffered;
         outputFile = cmain.outputFile;
         forest = cmain.forest;
         graph = cmain.graph;
@@ -454,6 +456,9 @@ public class Configuration {
 
         @Parameter(names = {"--no-output"}, description = "Don't print the output")
         public boolean suppressOutput = false;
+
+        @Parameter(names = {"--unbuffered"}, description = "Don't buffer the output")
+        public boolean unbuffered = false;
 
         @Parameter(names = {"--omit-csv-headers"}, description = "Don't generate a CSV header row")
         public boolean omitCsvHeaders = false;

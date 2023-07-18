@@ -7,11 +7,12 @@ import net.sf.saxon.s9api.XdmValue;
 import org.nineml.coffeefilter.InvisibleXmlDocument;
 import org.nineml.coffeefilter.InvisibleXmlParser;
 import org.nineml.coffeefilter.trees.*;
+import org.nineml.coffeegrinder.trees.Arborist;
 import org.nineml.coffeegrinder.trees.NopTreeBuilder;
+import org.nineml.coffeepot.trees.VerboseAxe;
 import org.nineml.coffeepot.trees.XdmDataTree;
 import org.nineml.coffeepot.trees.XdmSimpleTree;
 import org.nineml.coffeepot.utils.ParserOptions;
-import org.nineml.coffeepot.trees.VerboseTreeSelector;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -19,8 +20,7 @@ import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class OutputManager {
     public static final String logcategory = "CoffeePot";
@@ -35,6 +35,7 @@ public class OutputManager {
     private int parseCount = -1;
     private long totalParses = -1;
     private boolean infiniteParses = false;
+    public Set<Integer> selectedNodes = new HashSet<>();
 
     public void configure(Configuration config) {
         if (config == null) {
@@ -103,23 +104,23 @@ public class OutputManager {
             firstParse = config.parse;
         }
 
-        VerboseTreeSelector treeSelector = new VerboseTreeSelector(config, parser, doc, input);
+        VerboseAxe axe = new VerboseAxe(config, parser, doc, input);
         for (String expr : config.choose) {
-            treeSelector.addExpression(expr);
+            axe.addExpression(expr);
         }
         if (config.functionLibrary != null) {
-            treeSelector.addFunctionLibrary(config.functionLibrary);
+            axe.addFunctionLibrary(config.functionLibrary);
         }
 
-        doc.setTreeSelector(treeSelector);
+        Arborist walker = doc.getResult().getArborist(axe);
         if (doc.succeeded()) {
             NopTreeBuilder nopBuilder = new NopTreeBuilder();
             for (int pos = 1; pos < firstParse; pos++) {
-                if (!doc.getResult().hasMoreTrees()) {
+                if (!walker.hasMoreTrees()) {
                     config.stderr.printf("There are only %d parses.%n", pos - 1);
                     return;
                 }
-                doc.getTree(nopBuilder);
+                walker.getTree(nopBuilder);
             }
         }
 
@@ -130,14 +131,19 @@ public class OutputManager {
         boolean done = false;
         while (!done) {
             if (xdmResults) {
-                getXdmResults(parser, doc);
+                getXdmResults(parser, doc, walker);
             } else {
-                getStringResults(parser, doc);
+                getStringResults(parser, doc, walker);
+            }
+
+            if (!config.suppressOutput && config.unbuffered) {
+                String record = stringRecords.remove(0);
+                System.out.println(record);
             }
 
             parseCount++;
             if (config.allParses) {
-                done = !doc.getResult().hasMoreTrees();
+                done = !walker.hasMoreTrees();
             } else {
                 done = parseCount == config.parseCount;
             }
@@ -146,30 +152,29 @@ public class OutputManager {
         if (parseCount > totalParses) {
             totalParses = parseCount;
         }
+
+        selectedNodes = Collections.unmodifiableSet(walker.getSelectedNodes());
     }
 
-    public void getXdmResults(InvisibleXmlParser parser, InvisibleXmlDocument doc) {
+    public void getXdmResults(InvisibleXmlParser parser, InvisibleXmlDocument doc, Arborist walker) {
         checkConfig();
 
         try {
             ParserOptions opts = new ParserOptions(config.options);
-            XmlTreeBuilder treeBuilder = null;
             SimpleTreeBuilder simpleBuilder = null;
 
             switch (config.outputFormat) {
                 case XML:
                     DocumentBuilder builder = config.processor.newDocumentBuilder();
                     BuildingContentHandler handler = builder.newBuildingContentHandler();
-                    treeBuilder = new XmlTreeBuilder(parser.getIxmlVersion(), config.options, handler);
-                    doc.getTree(treeBuilder);
+                    walker.getTree(doc.getAdapter(handler));
                     records.add(handler.getDocumentNode());
                     break;
                 case JSON_DATA:
                     opts.setAssertValidXmlNames(false);
                     opts.setAssertValidXmlCharacters(false);
                     DataTreeBuilder dataBuilder = new DataTreeBuilder(opts);
-                    treeBuilder = new XmlTreeBuilder(parser.getIxmlVersion(), opts, dataBuilder);
-                    doc.getTree(treeBuilder);
+                    walker.getTree(doc.getAdapter(dataBuilder));
                     XdmDataTree dtree = new XdmDataTree(config, dataBuilder.getTree());
                     records.add(dtree.json());
                     break;
@@ -177,8 +182,7 @@ public class OutputManager {
                     opts.setAssertValidXmlNames(false);
                     opts.setAssertValidXmlCharacters(false);
                     simpleBuilder = new SimpleTreeBuilder(opts);
-                    treeBuilder = new XmlTreeBuilder(parser.getIxmlVersion(), opts, simpleBuilder);
-                    doc.getTree(treeBuilder);
+                    walker.getTree(doc.getAdapter(simpleBuilder));
                     XdmSimpleTree stree = new XdmSimpleTree(config, simpleBuilder.getTree());
                     records.add(stree.json());
                     break;
@@ -186,8 +190,7 @@ public class OutputManager {
                     opts.setAssertValidXmlNames(false);
                     opts.setAssertValidXmlCharacters(false);
                     DataTreeBuilder csvBuilder = new DataTreeBuilder(opts);
-                    treeBuilder = new XmlTreeBuilder(parser.getIxmlVersion(), opts, csvBuilder);
-                    doc.getTree(treeBuilder);
+                    walker.getTree(doc.getAdapter(csvBuilder));
                     XdmDataTree csvtree = new XdmDataTree(config, csvBuilder.getTree());
                     records.add(csvtree.csv());
                     break;
@@ -199,13 +202,12 @@ public class OutputManager {
         }
     }
 
-    public void getStringResults(InvisibleXmlParser parser, InvisibleXmlDocument doc) {
+    public void getStringResults(InvisibleXmlParser parser, InvisibleXmlDocument doc, Arborist walker) {
         checkConfig();
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream output = new PrintStream(baos);
 
-        XmlTreeBuilder treeBuilder;
         DataTreeBuilder dataBuilder;
         SimpleTreeBuilder simpleBuilder;
         DataTree dataTree;
@@ -216,15 +218,21 @@ public class OutputManager {
         switch (config.outputFormat) {
             case XML:
                 StringTreeBuilder handler = new StringTreeBuilder(opts, output);
-                treeBuilder = new XmlTreeBuilder(parser.getIxmlVersion(), opts, handler);
-                doc.getTree(treeBuilder);
+                if (doc.succeeded()) {
+                    walker.getTree(doc.getAdapter(handler));
+                } else {
+                    doc.getTree(handler);
+                }
                 break;
             case JSON_DATA:
                 opts.setAssertValidXmlNames(false);
                 opts.setAssertValidXmlCharacters(false);
                 dataBuilder = new DataTreeBuilder(opts);
-                treeBuilder = new XmlTreeBuilder(parser.getIxmlVersion(), opts, dataBuilder);
-                doc.getTree(treeBuilder);
+                if (doc.succeeded()) {
+                    walker.getTree(doc.getAdapter(dataBuilder));
+                } else {
+                    doc.getTree(dataBuilder);
+                }
                 dataTree = dataBuilder.getTree();
                 output.print(dataTree.asJSON());
                 break;
@@ -232,8 +240,11 @@ public class OutputManager {
                 opts.setAssertValidXmlNames(false);
                 opts.setAssertValidXmlCharacters(false);
                 simpleBuilder = new SimpleTreeBuilder(opts);
-                treeBuilder = new XmlTreeBuilder(parser.getIxmlVersion(), opts, simpleBuilder);
-                doc.getTree(treeBuilder);
+                if (doc.succeeded()) {
+                    walker.getTree(doc.getAdapter(simpleBuilder));
+                } else {
+                    doc.getTree(simpleBuilder);
+                }
                 simpleTree = simpleBuilder.getTree();
                 output.print(simpleTree.asJSON());
                 break;
@@ -241,23 +252,31 @@ public class OutputManager {
                 opts.setAssertValidXmlNames(false);
                 opts.setAssertValidXmlCharacters(false);
                 dataBuilder = new DataTreeBuilder(opts);
-                treeBuilder = new XmlTreeBuilder(parser.getIxmlVersion(), opts, dataBuilder);
-                doc.getTree(treeBuilder);
-                dataTree = dataBuilder.getTree();
-                List<CsvColumn> columns = dataTree.prepareCsv();
-                if (columns == null) {
-                    StringTreeBuilder shandler = new StringTreeBuilder(opts, output);
-                    treeBuilder = new XmlTreeBuilder(parser.getIxmlVersion(), opts, shandler);
-                    doc.getTree(treeBuilder);
-                    try {
-                        config.stderr.println("Result cannot be serialized as CSV: " + baos.toString("UTF-8"));
-                        returnCode = 1;
-                    } catch (UnsupportedEncodingException ex) {
-                        // This can't happen.
+                if (doc.succeeded()) {
+                    walker.getTree(doc.getAdapter(dataBuilder));
+                    dataTree = dataBuilder.getTree();
+                    List<CsvColumn> columns = dataTree.prepareCsv();
+                    if (columns == null) {
+                        walker.reset();
+                        StringTreeBuilder shandler = new StringTreeBuilder(opts, output);
+                        walker.getTree(doc.getAdapter(shandler));
+                        try {
+                            config.stderr.println("Result cannot be serialized as CSV: " + baos.toString("UTF-8"));
+                            returnCode = 1;
+                        } catch (UnsupportedEncodingException ex) {
+                            // This can't happen.
+                        }
+                        return;
                     }
+                    output.print(dataTree.asCSV(columns, config.omitCsvHeaders));
+                } else {
+                    StringTreeBuilder sbuilder = new StringTreeBuilder(doc.getOptions());
+                    doc.getTree(sbuilder);
+                    config.stderr.print("Result cannot be serialized as CSV: ");
+                    config.stderr.println(sbuilder.getXml());
                     return;
                 }
-                output.print(dataTree.asCSV(columns, config.omitCsvHeaders));
+
                 break;
             default:
                 throw new RuntimeException("Unexpected output format!?");
@@ -273,7 +292,7 @@ public class OutputManager {
     public void publish() throws IOException {
         checkConfig();
 
-        if (config.suppressOutput) {
+        if (config.suppressOutput || config.unbuffered) {
             return;
         }
 

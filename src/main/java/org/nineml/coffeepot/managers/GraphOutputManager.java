@@ -2,6 +2,7 @@ package org.nineml.coffeepot.managers;
 
 import net.sf.saxon.s9api.*;
 import org.nineml.coffeefilter.InvisibleXmlDocument;
+import org.nineml.coffeegrinder.trees.Arborist;
 import org.xml.sax.InputSource;
 
 import javax.xml.transform.Source;
@@ -14,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class GraphOutputManager {
     public static final String logcategory = "CoffeePot";
@@ -25,7 +27,7 @@ public class GraphOutputManager {
         this.processor = config.processor;
     }
 
-    public void publish(InvisibleXmlDocument doc) {
+    public void publish(InvisibleXmlDocument doc, Set<Integer> selectedNodes) {
         if (processor == null) {
             return;
         }
@@ -35,11 +37,11 @@ public class GraphOutputManager {
         }
 
         if (config.graph != null) {
-            graphForest(config, doc);
+            graphForest(config, doc, selectedNodes);
         }
     }
 
-    private void graphForest(Configuration config, InvisibleXmlDocument doc) {
+    private void graphForest(Configuration config, InvisibleXmlDocument doc, Set<Integer> selectedNodes) {
         String stylesheet = "/org/nineml/coffeegrinder/forest2dot.xsl";
         try {
             // Get the graph as XML
@@ -48,7 +50,7 @@ public class GraphOutputManager {
 
             String comma = "";
             StringBuilder sb = new StringBuilder();
-            for (int id : doc.getResult().lastSelectedNodes()) {
+            for (int id : selectedNodes) {
                 sb.append(comma);
                 sb.append("id").append(id);
                 comma = ",";

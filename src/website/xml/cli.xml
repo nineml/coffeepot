@@ -380,6 +380,14 @@ and <code>prefix</code> states can be suppressed.
 </para>
 </listitem>
 </varlistentry>
+<varlistentry xml:id="_unbuffered">
+<term><option>--unbuffered</option></term>
+<listitem>
+<para>If this option is enabled, multiple parses will be output as soon as they’re available.
+The resulting output will not have a wrapper to assure well-formedness.
+</para>
+</listitem>
+</varlistentry>
 <varlistentry xml:id="_version">
 <term><option>--version</option></term>
 <listitem>
