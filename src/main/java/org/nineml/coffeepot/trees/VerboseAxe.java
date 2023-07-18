@@ -16,8 +16,11 @@ import net.sf.saxon.type.FunctionItemType;
 import org.nineml.coffeefilter.InvisibleXmlDocument;
 import org.nineml.coffeefilter.InvisibleXmlParser;
 import org.nineml.coffeegrinder.parser.Family;
-import org.nineml.coffeegrinder.parser.NonterminalSymbol;
-import org.nineml.coffeegrinder.trees.PriorityTreeSelector;
+import org.nineml.coffeegrinder.parser.ForestNode;
+import org.nineml.coffeegrinder.trees.Arborist;
+import org.nineml.coffeegrinder.trees.Axe;
+import org.nineml.coffeegrinder.trees.ParseTree;
+import org.nineml.coffeegrinder.trees.PriorityAxe;
 import org.nineml.coffeepot.managers.Configuration;
 import org.nineml.coffeepot.utils.ParserOptions;
 import org.nineml.coffeesacks.XmlForest;
@@ -35,7 +38,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
 
-public class VerboseTreeSelector extends PriorityTreeSelector {
+public class VerboseAxe extends PriorityAxe {
     public static final String logcategory = "CoffeePot";
 
     private static final QName _name = new QName("name");
@@ -57,8 +60,6 @@ public class VerboseTreeSelector extends PriorityTreeSelector {
     private static final QName _options = new QName("options");
     public static final String CPNS = "https://coffeepot.nineml.org/ns/functions";
     public static final StructuredQName CP_CHOOSE = new StructuredQName("cp", CPNS, "choose-alternative");
-    private final Stack<String> symbolStack = new Stack<>();
-    private final Stack<Integer> countStack = new Stack<>();
     private final Configuration config;
     private final Processor processor;
     private final XmlForest forest;
@@ -67,8 +68,10 @@ public class VerboseTreeSelector extends PriorityTreeSelector {
     private final List<String> expressions = new ArrayList<>();
     private String functionLibrary = null;
     private XdmMap accumulator = new XdmMap();
+    private boolean lastChoiceWasAmbiguous = false;
+    private boolean madeAmbiguousChoice = false;
 
-    public VerboseTreeSelector(Configuration config, InvisibleXmlParser parser, InvisibleXmlDocument document, String input) {
+    public VerboseAxe(Configuration config, InvisibleXmlParser parser, InvisibleXmlDocument document, String input) {
         this.config = config;
         this.processor = config.processor;
         this.options = config.options;
@@ -182,36 +185,17 @@ public class VerboseTreeSelector extends PriorityTreeSelector {
     }
 
     @Override
-    public void startNonterminal(NonterminalSymbol symbol, Map<String,String> attributes, int leftExtent, int rightExtent) {
-        if (symbolStack.isEmpty() || !symbol.getName().equals(symbolStack.peek())) {
-            symbolStack.push(symbol.getName());
-            countStack.push(1);
-        } else {
-            int count = countStack.pop() + 1;
-            countStack.push(count);
-        }
+    public boolean isSpecialist() {
+        return false;
     }
 
     @Override
-    public void endNonterminal(NonterminalSymbol symbol, Map<String,String> attributes, int leftExtent, int rightExtent) {
-        if (countStack.peek() == 1) {
-            symbolStack.pop();
-            countStack.pop();
-        } else {
-            int count = countStack.pop() - 1;
-            countStack.push(count);
-        }
-    }
-
-    @Override
-    public Family select(List<Family> choices, List<Family> otherChoices) {
-        Family selected = null;
+    public List<Family> select(ParseTree tree, ForestNode forestNode, int count, List<Family> choices) {
+        lastChoiceWasAmbiguous = false;
+        List<Family> selected = new ArrayList<>();
 
         HashMap<String,Family> choiceMap = new HashMap<>();
         for (Family choice : choices) {
-            choiceMap.put("C" + choice.id, choice);
-        }
-        for (Family choice : otherChoices) {
             choiceMap.put("C" + choice.id, choice);
         }
 
@@ -232,12 +216,6 @@ public class VerboseTreeSelector extends PriorityTreeSelector {
                 seq = seq.append(new XdmAtomicValue("C" + choice.id));
             }
             map = map.put(_available_choices, seq);
-
-            seq = XdmEmptySequence.getInstance();
-            for (Family choice : otherChoices) {
-                seq = seq.append(new XdmAtomicValue("C" + choice.id));
-            }
-            map = map.put(_other_choices, seq);
 
             for (XdmAtomicValue key : accumulator.keySet()) {
                 map = map.put(key, accumulator.get(key));
@@ -261,7 +239,7 @@ public class VerboseTreeSelector extends PriorityTreeSelector {
                             String id = selNode.getAttributeValue(_id);
                             if (choiceMap.containsKey(id)) { // it has to, right?
                                 options.getLogger().debug("Expression %s selected %s", expr, selection);
-                                selected = choiceMap.get(id);
+                                selected.add(choiceMap.get(id));
                             }
                         } else {
                             options.getLogger().debug("Expression %s did not select an element named 'children'.", expr);
@@ -274,7 +252,7 @@ public class VerboseTreeSelector extends PriorityTreeSelector {
                         }
                     }
 
-                    if (selected != null) {
+                    if (!selected.isEmpty()) {
                         break;
                     }
 
@@ -301,8 +279,9 @@ public class VerboseTreeSelector extends PriorityTreeSelector {
                     if (_selection.equals(key)) {
                         selection = newMap.get(key).getUnderlyingValue().getStringValue();
                     }
-                    if (!madeAmbiguousChoice && _ambiguous_choice.equals(key)) {
-                        madeAmbiguousChoice = newMap.get(key).getUnderlyingValue().effectiveBooleanValue();
+                    if (_ambiguous_choice.equals(key)) {
+                        lastChoiceWasAmbiguous = newMap.get(key).getUnderlyingValue().effectiveBooleanValue();
+                        madeAmbiguousChoice = madeAmbiguousChoice || lastChoiceWasAmbiguous;
                     }
                 }
                 accumulator = map;
@@ -312,7 +291,7 @@ public class VerboseTreeSelector extends PriorityTreeSelector {
                 }
 
                 if (choiceMap.containsKey(selection)) {
-                    selected = choiceMap.get(selection);
+                    selected.add(choiceMap.get(selection));
                 } else {
                     throw new IllegalArgumentException("choose-alternatives function returned an invalid selection: " + selection);
                 }
@@ -321,37 +300,29 @@ public class VerboseTreeSelector extends PriorityTreeSelector {
             throw new RuntimeException(e);
         }
 
-        if (selected == null) {
-            selected = super.select(choices, otherChoices);
+        if (selected.isEmpty()) {
+            selected = super.select(tree, forestNode, count, choices);
+            lastChoiceWasAmbiguous = super.wasAmbiguousSelection();
+            madeAmbiguousChoice = madeAmbiguousChoice || lastChoiceWasAmbiguous;
         }
 
-        if (!"none".equals(config.describeAmbiguityWith)) {
-            ArrayList<Family> allChoices = new ArrayList<>(choices);
-            allChoices.addAll(otherChoices);
-            switch (config.describeAmbiguityWith) {
-                case "text":
-                    textAmbiguity(node, selected, allChoices);
-                    break;
-                case "api-xml":
-                case "xml":
-                    xmlAmbiguity(node, selected, allChoices);
-                    break;
-                default:
-                    break;
-            }
-
+        switch (config.describeAmbiguityWith) {
+            case "text":
+                textAmbiguity(tree, node, selected.get(0));
+                break;
+            case "api-xml":
+            case "xml":
+                xmlAmbiguity(tree, node, selected.get(0));
+                break;
+            default:
+                break;
         }
 
         return selected;
     }
 
-    @Override
-    public void reset() {
-        // nop
-    }
-
-    private void textAmbiguity(XdmNode node, Family selection, List<Family> choices) {
-        config.stdout.println(choiceContext());
+    private void textAmbiguity(ParseTree tree, XdmNode node, Family selection) {
+        config.stdout.println(choiceContext(tree));
 
         String lhs = node.getAttributeValue(_name);
 
@@ -410,12 +381,27 @@ public class VerboseTreeSelector extends PriorityTreeSelector {
         }
     }
 
-    private void xmlAmbiguity(XdmNode node, Family selection,  List<Family> choices) {
-        config.stdout.printf("%s (selected C%s)%n", choiceContext(), selection.id);
+    private void xmlAmbiguity(ParseTree tree, XdmNode node, Family selection) {
+        config.stdout.printf("%s (selected C%s)%n", choiceContext(tree), selection.id);
         config.stdout.println(node);
     }
 
-    private String choiceContext() {
+    private String choiceContext(ParseTree tree) {
+        ArrayList<String> segments = new ArrayList<>();
+        // Work my way backwards up the tree...
+        ParseTree branch = tree;
+        String name = tree.vertex.node.symbol.toString();
+        while (branch.parent != null) {
+            int count = 0;
+            for (ParseTree child : branch.getChildren()) {
+                if (child.vertex.node.symbol != null) {
+                    count++; // bogus bogus bogus
+                }
+            }
+            branch = branch.parent;
+        }
+
+        /*
         StringBuilder sb = new StringBuilder();
         sb.append("At ");
         for (int pos = 0; pos < symbolStack.size(); pos++) {
@@ -426,5 +412,19 @@ public class VerboseTreeSelector extends PriorityTreeSelector {
             sb.append("]");
         }
         return sb.toString();
+
+         */
+
+        return "BROKEN";
+    }
+
+    @Override
+    public boolean wasAmbiguousSelection() {
+        return lastChoiceWasAmbiguous;
+    }
+
+    @Override
+    public void forArborist(Arborist arborist) {
+        // nop
     }
 }
