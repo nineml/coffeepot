@@ -26,10 +26,57 @@ progress-bar=tty</programlisting>
 following options are read from it:</para>
 
 <variablelist>
+<varlistentry><term><property>allow-multiple-definitions</property> (boolean)</term>
+  <term><property>allow-undefined-symbols</property> (boolean)</term>
+  <term><property>allow-unproductive-symbols</property> (boolean)</term>
+  <term><property>allow-unreachable-symbols</property> (boolean)</term>
+<listitem>
+<para>When the parser is not in “pedantic” mode, allow (or forbid)
+grammars with these conditions.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><property>ascii-only</property> (boolean)</term>
+<listitem>
+<para>Use only ASCII characters in messages such as the grammar or ambiguity descriptions.
+(Note: this has no effect on the output of the parse.)
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><property>assert-valid-xml-characters</property> (boolean)</term>
+<listitem>
+<para>Check that the output contains no invalid characters.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><property>assert-valid-xml-names</property> (boolean)</term>
+<listitem>
+<para>Check that the output contains no invalid XML element or attribute names.</para>
+</listitem>
+</varlistentry>
 <varlistentry><term><property>default-log-level</property> (string)</term>
 <listitem>
-<para>The default log level: “trace”, “debug”, “info”, “warning”, “error”,
-or “silent”. 
+<para>The default log level: <literal>trace</literal>,
+<literal>debug</literal>, <literal>info</literal>,
+<literal>warning</literal>, <literal>error</literal>,
+or <literal>silent</literal>. 
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><property>disable-pragmas</property> (string)</term>
+<listitem>
+<para>A comma-separated list of pragma names. These pragmas will be ignored.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><property>enable-pragmas</property> (string)</term>
+<listitem>
+<para>A comma-separated list of pragma names. These pragmas will be enabled.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><property>graph-options</property> (string)</term>
+<listitem>
+<para>A comma-separated list of graph options; each option must have
+the form name=value or name:value. These options will be passed to the
+stylesheet that generates diagrams of the parse forest.
 </para>
 </listitem>
 </varlistentry>
@@ -37,7 +84,13 @@ or “silent”.
 <listitem>
 <para>The location of the
 <link xlink:href="https://en.wikipedia.org/wiki/Graphviz">Graphviz</link> “dot”
-program that should be used for rendering SVG diagrams of graphs and trees.
+program that should be used for rendering diagrams of graphs.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><property>ignore-bom</property> (boolean)</term>
+<listitem>
+<para>Ignore a BOM at the start of an input document?
 </para>
 </listitem>
 </varlistentry>
@@ -55,6 +108,13 @@ ignored if it isn’t successfully parsed.
 </listitem>
 </varlistentry>
 <varlistentry>
+<term><property>parser</property> (string)</term>
+<listitem>
+<para>The parser to use: <literal>Earley</literal> or <literal>GLL</literal>.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry>
 <term><property>pedantic</property> (boolean)</term>
 <listitem>
 <para>By default, <application>CoffeePot</application> accepts
@@ -62,14 +122,6 @@ certain grammar extensions, such as pragmas. If <property>pedantic</property>
 is true,
 only grammars strictly conforming to the Invisible XML specification
 may be used.
-</para>
-</listitem>
-</varlistentry>
-<varlistentry><term><property>progress-bar</property> (boolean, or “tty”)</term>
-<listitem>
-<para>Setting the progress bar to true or false enables or disables it.
-Setting it to “tty” enables it only if the output is going to a “tty”, an
-interactive computer terminal.
 </para>
 </listitem>
 </varlistentry>
@@ -84,6 +136,72 @@ interactive computer terminal.
 <para>If true, line breaks and indentation will be added to the XML output
 so that it’s easier to read.
 </para>
+</listitem>
+</varlistentry>
+<varlistentry><term><property>progress-bar</property> (“on”, “off”, or “tty”)</term>
+<listitem>
+<para>Setting the progress bar to “on” or “off” enables or disables it.
+Setting it to “tty” enables it only if the output is going to a “tty”, an
+interactive computer terminal.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><property>progress-bar-characters</property> (string)</term>
+<listitem>
+<para>Sets the characters used to construct the progress bar when
+it is displayed.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><property>progress-bar-style</property> (string)</term>
+<listitem>
+<para>Sets the progress bar style. The style is just a name for
+a set of characters. The styles are:
+</para>
+<variablelist>
+<varlistentry><term><literal>ascii</literal></term>
+<term>or <literal>plain</literal></term>
+<listitem>
+<para>The characters <code>.#</code>.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>lines</literal></term>
+<listitem>
+<para>The characters <code>-=</code>.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>blocks</literal></term>
+<listitem>
+<para>The characters <code> ▏▎▍▌▋▊▉█</code>.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>shades</literal></term>
+<listitem>
+<para>The characters <code> ░▒▓█</code>.
+</para>
+</listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term><property>strict-ambiguity</property> (boolean)</term>
+<listitem>
+<para>If a grammar contains priority pragmas that uniquely determine
+the outcome of every potentially ambiguous choice, you have a choice about
+whether or not it is reported as ambiguous. If strict ambiguity is true,
+it will be reported as ambiguous.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term><property>suppress-states</property> (string)</term>
+<listitem>
+<para>An Invisible XML parse adds states to the root element to
+indicate features such as ambiguity or a prefix parse. The states in this
+comma-separated list will be suppressed.</para>
 </listitem>
 </varlistentry>
 <varlistentry><term><property>trailing-newline-on-output</property> (boolean)</term>

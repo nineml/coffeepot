@@ -366,6 +366,13 @@ the elements.
 </para>
 </listitem>
 </varlistentry>
+<varlistentry xml:id="_show-options">
+<term><option>--show-options</option></term>
+<listitem>
+<para>Show (and log) the parse options specified in the configuration.
+</para>
+</listitem>
+</varlistentry>
 <varlistentry xml:id="_strict-ambiguity" revisionflag="added">
 <term><option>--strict-ambiguity</option></term>
 <listitem>
