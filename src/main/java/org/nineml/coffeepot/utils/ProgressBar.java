@@ -52,8 +52,7 @@ public class ProgressBar implements ProgressMonitor {
     private StopWatch timer = null;
     private long lastUpdateTime = 0;
     private double lastUpdatePercent = 0.0;
-    private int highwater = 0;
-    private long highwaterTime = 0;
+    private int lastLength = 0;
 
     /**
      * Create a progress bar.
@@ -142,7 +141,7 @@ public class ProgressBar implements ProgressMonitor {
         long remaining = (long) ((totalSize - tokens) / tpms);
 
         if (showProgressBar) {
-            System.out.printf("%5.1f%% (%d t/s) %s %s     \r", percent * 100.0, (long) (tpms * 1000.0), bar(percent), timer.elapsed(remaining));
+            printProgress("%5.1f%% (%d t/s) %s %s", percent * 100.0, (long) (tpms * 1000.0), bar(percent), timer.elapsed(remaining));
         } else {
             options.getLogger().info(logcategory, "Parsed %,d tokens (%4.1f%% at %,d t/s)",
                     tokens, percent * 100.0, (long) (tpms * 1000.0));
@@ -179,10 +178,12 @@ public class ProgressBar implements ProgressMonitor {
         double tpms = (1.0*tokens) / duration;
         long remaining = (long) ((totalSize - tokens) / tpms);
 
-        String queue = size > 1 ? String.format("[queue: %,d]", size) : "";
+        // Performance of the GLL parser now seems to keep the queue size quite small.
+        // Let's only publish it if it gets large enough to be "interesting".
+        String queue = size > 25 ? String.format("[queue: %,d]", size) : "";
 
         if (showProgressBar) {
-            System.out.printf("%5.1f%% (%d t/s) %s %s %s    \r", percent * 100.0, (long) (tpms * 1000.0), bar(percent), timer.elapsed(remaining), queue);
+            printProgress("%5.1f%% (%d t/s) %s %s %s", percent * 100.0, (long) (tpms * 1000.0), bar(percent), timer.elapsed(remaining), queue);
         } else {
             options.getLogger().info(logcategory, "Parsed %,d tokens (%4.1f%% at %,d t/s)",
                     tokens, percent * 100.0, (long) (tpms * 1000.0));
@@ -232,7 +233,7 @@ public class ProgressBar implements ProgressMonitor {
             return;
         }
         if (istty) {
-            System.out.print("                                                                        \r");
+            printProgress("");
         }
     }
 
@@ -274,7 +275,7 @@ public class ProgressBar implements ProgressMonitor {
         long remaining = (long) ((totalSize - record) / tpms);
 
         if (showProgressBar) {
-            System.out.printf("%5.1f%% (%d r/s) %s %s     \r", percent * 100.0, (long) (tpms * 1000.0), bar(percent), timer.elapsed(remaining));
+            printProgress("%5.1f%% (%d r/s) %s %s", percent * 100.0, (long) (tpms * 1000.0), bar(percent), timer.elapsed(remaining));
         } else {
             options.getLogger().info(logcategory, "Parsed %,d records (%4.1f%% at %,d r/s)",
                     record, percent * 100.0, (long) (tpms * 1000.0));
@@ -288,7 +289,29 @@ public class ProgressBar implements ProgressMonitor {
             return;
         }
         if (istty) {
-            System.out.print("                                                                                               \r");
+            printProgress("");
         }
     }
+
+    private void printProgress(String format, Object... params) {
+        String output = String.format(format, params);
+        int newLength = output.length();
+
+        if (newLength < lastLength) {
+            int len = newLength;
+            StringBuilder sb = new StringBuilder();
+            sb.append(output);
+            sb.append(" ");
+            while (len < lastLength) {
+                sb.append("     ");
+                len += 5;
+            }
+            output = sb.toString();
+        }
+
+        lastLength = newLength;
+        System.out.print(output);
+        System.out.print("\r");
+    }
+
 }
