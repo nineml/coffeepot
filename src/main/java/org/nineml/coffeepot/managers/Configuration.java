@@ -48,6 +48,7 @@ public class Configuration {
     public final String functionLibrary;
     public final String describeAmbiguityWith;
     public final boolean omitCsvHeaders;
+    public final int repeat;
 
     public Configuration(String[] args) {
         this(System.out, System.err, args);
@@ -391,6 +392,27 @@ public class Configuration {
 
         choose = cmain.choose;
         functionLibrary = cmain.functionLibrary;
+
+        if (cmain.repeat < 1) {
+            throw ConfigurationException.configError("The --repeat count must be larger than 0");
+        }
+        repeat = cmain.repeat;
+
+        if ("on".equals(cmain.progressBar) || "off".equals(cmain.progressBar) || "tty".equals(cmain.progressBar)) {
+            // Sigh. I don't want to use 'true' and 'false' as the values because that's
+            // potentially confusing with other, actually boolean parameters.
+            final String value;
+            if ("tty".equals(cmain.progressBar)) {
+                value = cmain.progressBar;
+            } else {
+                value = String.valueOf("on".equals(cmain.progressBar));
+            }
+            options.setProgressBar(value);
+        } else {
+            if (cmain.progressBar != null) {
+                throw ConfigurationException.configError("Unexpected value for --progress-bar: " + cmain.progressBar);
+            }
+        }
     }
 
     private void usage(JCommander jc, boolean help) {
@@ -555,6 +577,12 @@ public class Configuration {
 
         @Parameter(names = {"--bnf"}, description = "Check if the grammar is a simple BNF grammar")
         public boolean bnf = false;
+
+        @Parameter(names = {"--repeat"}, description = "Run the parse several times (for performance testing)")
+        public Integer repeat = 1;
+
+        @Parameter(names = {"--progress-bar"}, description = "Specify the type of progress bar")
+        public String progressBar = null;
 
         @Parameter(description = "The input")
         public List<String> inputText = new ArrayList<>();

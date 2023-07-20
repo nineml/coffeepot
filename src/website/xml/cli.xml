@@ -290,6 +290,16 @@ that priority takes precedence.
 </para>
 </listitem>
 </varlistentry>
+<varlistentry xml:id="_progress-bar">
+<term><option>--progress-bar:<replaceable>value</replaceable></option></term>
+<listitem>
+<para>Allows you to specify that the progress bar should be <literal>on</literal>,
+<literal>off</literal>, or only on if the output is going to a
+<link xlink:href="https://en.wikipedia.org/wiki/Computer_terminal">TTY</link> (<literal>tty</literal>).
+The default for this option can be set in the
+<link linkend="configuration">configuration file</link>.</para>
+</listitem>
+</varlistentry>
 <varlistentry xml:id="_record-end">
 <term><option>--record-end:<replaceable>regular-expression</replaceable></option></term>
 <listitem>
@@ -315,6 +325,14 @@ by the regular expression provided at the start of each record.
 <option>--record-start</option> or <option>--record-end</option> is provided, the
 default separator is the record-ending regular expression “<code>\n</code>”.
 </para>
+</listitem>
+</varlistentry>
+<varlistentry xml:id="_repeat">
+<term><option>--repeat:<replaceable>number</replaceable></option></term>
+<listitem>
+<para>Repeat the parse <replaceable>number</replaceable> times. This option only really
+exists for performance testing. If both <option>--repeat</option> and <option>--time</option>
+are specified, a summary of total parse time over all repeats will be printed.</para>
 </listitem>
 </varlistentry>
 <varlistentry xml:id="_show-chart">
