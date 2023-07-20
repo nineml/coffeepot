@@ -38,6 +38,9 @@ class Main {
     InvisibleXmlParser parser;
     private Configuration config = null;
     private ParserOptions options = null;
+    private int iteration = 0;
+    private long accumulatedGrammarParseTime = 0;
+    private long accumulatedInputParseTime = 0;
 
     public static void main(String[] args) {
         Main main = new Main();
@@ -95,7 +98,16 @@ class Main {
         manager.configure(config);
 
         try {
-            process(manager);
+            if (config.repeat > 1) {
+                stderr.printf("Repeating the parse %d times%n", config.repeat);
+            }
+            for (iteration = 1; iteration <= config.repeat; iteration++) {
+                process(manager);
+            }
+            if (config.timing && config.repeat > 1) {
+                showTime(accumulatedGrammarParseTime, "grammar repeatedly");
+                showTime(accumulatedInputParseTime, "input repeatedly");
+            }
         } catch (Exception ex) {
             if (progress != null) {
                 stderr.println();
@@ -121,6 +133,7 @@ class Main {
             grammarURI = URIUtils.resolve(URIUtils.cwd(), config.grammar);
             options.getLogger().trace(logcategory, "Loading grammar: " + grammarURI);
             parser = invisibleXml.getParser(grammarURI, config.grammarEncoding);
+            accumulatedGrammarParseTime += parser.getParseTime();
             if (config.timing) {
                 showTime(parser.getParseTime(), config.grammar);
             }
@@ -175,6 +188,7 @@ class Main {
 
             options.getLogger().trace(logcategory, "Input: %s", record);
             InvisibleXmlDocument doc = parser.parse(record);
+            accumulatedInputParseTime += doc.parseTime();
 
             if (inputManager.records.size() == 1) {
                 if (config.timing) {
@@ -346,12 +360,17 @@ class Main {
     private void showTime(Long time, String filename) {
         String prefix = "Parsed in ";
         if (filename != null) {
-            prefix = "Parsed " + filename + " in ";
+            prefix = "Parsed " + filename + " in";
+        }
+        String suffix = "";
+        if (config.repeat > 1 && iteration <= config.repeat) {
+            // iteration > config.repeat after the last iteration...
+            suffix = String.format(" (iteration %d of %d)", iteration, config.repeat);
         }
         if (time > 1000) {
-            stderr.println(prefix + time / 1000 + "s");
+            stderr.printf("%s %ds%s%n", prefix, time / 1000, suffix);
         } else {
-            stderr.println(prefix + time  + "ms");
+            stderr.printf("%s %ds%s%n", prefix, time, suffix);
         }
     }
 
