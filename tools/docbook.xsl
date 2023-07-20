@@ -40,4 +40,34 @@
   <link rel="stylesheet" href="css/coffeepot.css"/>
 </xsl:template>
 
+<xsl:template match="db:option[not(@linkend)]" mode="m:docbook">
+  <xsl:variable name="optid"
+                select="if (contains(., ':'))
+                        then replace(substring-before(., ':'), '--', '_')
+                        else replace(., '--', '_')"/>
+
+  <xsl:choose>
+    <xsl:when test="id($optid) and ancestor::*[@xml:id=$optid]">
+      <xsl:next-match/>
+    </xsl:when>
+    <xsl:when test="id($optid)">
+      <a href="#{$optid}">
+        <xsl:next-match/>
+      </a>
+    </xsl:when>
+    <xsl:when test="$optid = '-jar' or $optid = '_help' or $optid = '_no-cache'
+                    or $optid = '_tree-svg' or $optid = '_tree-xml'">
+      <!-- I know these were removed... -->
+      <xsl:next-match/>
+    </xsl:when>
+    <xsl:when test="$optid != ''">
+      <xsl:message select="'Undocumented option: ' || $optid"/>
+      <xsl:next-match/>
+    </xsl:when>
+    <xsl:otherwise>
+      <xsl:next-match/>
+    </xsl:otherwise>
+  </xsl:choose>
+</xsl:template>
+
 </xsl:stylesheet>

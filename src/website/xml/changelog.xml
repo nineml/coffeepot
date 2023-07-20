@@ -10,11 +10,23 @@
 
 <revhistory>
 <revision>
-<revnumber>3.0.0f</revnumber>
-<date>2023-07-18</date>
+<revnumber>3.0.0g</revnumber>
+<date>2023-07-20</date>
 <revdescription>
 <para>This is a beta release for version 3.0.0. There are a lot of
 changes in this release, but most of them are “behind the scenes” for CoffeePot.</para>
+<para>Version 3.0.0g depends on CoffeeGrinder, CoffeeFilter, and
+CoffeeSacks 3.0.0g which provide a substantial improvement in GLL parser performance.
+</para>
+<para>This release also adds new <option>--repeat</option> and <option>--progress-bar</option>
+options and fixes a couple of display issues with the progress bar.</para>
+</revdescription>
+</revision>
+
+<revision>
+<revnumber>3.0.0f</revnumber>
+<date>2023-07-18</date>
+<revdescription>
 <orderedlist>
 <listitem>
 <para>Version 3.0.0f depends on CoffeeGrinder, CoffeeFilter, and
