@@ -1,8 +1,10 @@
 package org.nineml.coffeepot.utils;
 
+import org.nineml.coffeefilter.InvisibleXml;
 import org.nineml.logging.DefaultLogger;
 import org.nineml.logging.Logger;
 
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -173,30 +175,63 @@ public class ParserOptions extends org.nineml.coffeefilter.ParserOptions {
         }
     }
 
-    public void logOptions() {
-        String cat = "CoffeePotOptions";
+    public void showOptions(PrintStream stderr) {
         Logger logger = getLogger();
 
-        logger.error(cat, "Parser type: %s", getParserType());
-        logger.error(cat, "Return chart: %s", getReturnChart());
-        logger.error(cat, "Prefix parsing: %s", getPrefixParsing());
-        logger.error(cat, "Progress monitor: %s", getProgressMonitor());
-        logger.error(cat, "Ignore trailing whitespace: %s", getIgnoreTrailingWhitespace());
-        logger.error(cat, "Allow undefined symbols: %s", getAllowUndefinedSymbols());
-        logger.error(cat, "Allow unreachable symbols: %s", getAllowUnreachableSymbols());
-        logger.error(cat, "Allow unproductive symbols: %s", getAllowUnproductiveSymbols());
-        logger.error(cat, "Allow multiple definitions: %s", getAllowMultipleDefinitions());
-        logger.error(cat, "Pretty print: %s", getPrettyPrint());
-        logger.error(cat, "Show chart: %s", getShowChart());
-        logger.error(cat, "Assert valid XML names: %s", getAssertValidXmlNames());
-        logger.error(cat, "Assert Valid XML characters: %s", getAssertValidXmlCharacters());
-        logger.error(cat, "Pedantic: %s", getPedantic());
-        logger.error(cat, "Show marks: %s", getShowMarks());
-        logger.error(cat, "Show BNF nonterminals: %s", getShowBnfNonterminals());
-        logger.error(cat, "Ignore BOM: %s", getIgnoreBOM());
-        logger.error(cat, "Graphviz: %s", getGraphviz());
-        logger.error(cat, "Rule rewriter: %s", getRuleRewriter());
-        logger.error(cat, "ASCII only: %s", getAsciiOnly());
-        logger.error(cat, "Strict ambiguity: %s", getStrictAmbiguity());
+        show(stderr, logger, "Parser type: %s", getParserType());
+        show(stderr, logger, "Return chart: %s", getReturnChart());
+        show(stderr, logger, "Prefix parsing: %s", getPrefixParsing());
+        show(stderr, logger, "Progress monitor characters: %s", getProgressBarCharacters());
+        show(stderr, logger, "Ignore trailing whitespace: %s", getIgnoreTrailingWhitespace());
+        show(stderr, logger, "Allow undefined symbols: %s", getAllowUndefinedSymbols());
+        show(stderr, logger, "Allow unreachable symbols: %s", getAllowUnreachableSymbols());
+        show(stderr, logger, "Allow unproductive symbols: %s", getAllowUnproductiveSymbols());
+        show(stderr, logger, "Allow multiple definitions: %s", getAllowMultipleDefinitions());
+        show(stderr, logger, "Pretty print: %s", getPrettyPrint());
+        show(stderr, logger, "Show chart: %s", getShowChart());
+        show(stderr, logger, "Assert valid XML names: %s", getAssertValidXmlNames());
+        show(stderr, logger, "Assert Valid XML characters: %s", getAssertValidXmlCharacters());
+        show(stderr, logger, "Pedantic: %s", getPedantic());
+        show(stderr, logger, "Show marks: %s", getShowMarks());
+        show(stderr, logger, "Show BNF nonterminals: %s", getShowBnfNonterminals());
+        show(stderr, logger, "Ignore BOM: %s", getIgnoreBOM());
+        show(stderr, logger, "Graphviz: %s", getGraphviz());
+        show(stderr, logger, "Rule rewriter: %s", getRuleRewriter());
+        show(stderr, logger, "ASCII only: %s", getAsciiOnly());
+        show(stderr, logger, "Strict ambiguity: %s", getStrictAmbiguity());
+        show(stderr, logger, "Trailing newline on output: %s", getTrailingNewlineOnOutput());
+        show(stderr, logger, "Priority style: %s", getPriorityStyle());
+
+        if (getGraphOptions().isEmpty()) {
+            show(stderr, logger, "Graph options: null");
+        } else {
+            StringBuilder sb = new StringBuilder();
+            boolean first = true;
+            for (String key : getGraphOptions().keySet()) {
+                if (!first) {
+                    sb.append(", ");
+                }
+                sb.append(key).append("=").append(getGraphOptions().get(key));
+                first = false;
+            }
+            show(stderr, logger, "Graph options: %s", sb.toString());
+        }
+
+        for (String state : InvisibleXml.knownStates()) {
+            show(stderr, logger, "Suppressed state: %s: %s", state, isSuppressedState(state));
+        }
+
+        for (String pname : InvisibleXml.knownPragmas()) {
+            show(stderr, logger, "Pragma disabled: %s: %s", pname, pragmaDisabled(pname));
+        }
+
+
     }
+    
+    private void show(PrintStream stderr, Logger logger, String format, Object... value) {
+        stderr.printf(format, value);
+        stderr.println();
+        logger.info("CoffeePotOptions", format, value);
+    }
+    
 }

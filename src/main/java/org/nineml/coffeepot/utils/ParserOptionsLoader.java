@@ -28,24 +28,25 @@ public class ParserOptionsLoader {
         PROPERTY_NAMES.add("allow-undefined-symbols");
         PROPERTY_NAMES.add("allow-unproductive-symbols");
         PROPERTY_NAMES.add("allow-unreachable-symbols");
+        PROPERTY_NAMES.add("ascii-only");
         PROPERTY_NAMES.add("assert-valid-xml-names");
-        PROPERTY_NAMES.add("cache");
+        PROPERTY_NAMES.add("assert-valid-xml-characters");
         PROPERTY_NAMES.add("default-log-level");
+        PROPERTY_NAMES.add("disable-pragmas");
+        PROPERTY_NAMES.add("enable-pragmas");
+        PROPERTY_NAMES.add("graph-options");
         PROPERTY_NAMES.add("graphviz");
-        PROPERTY_NAMES.add("ignore-trailing-whitespace");
         PROPERTY_NAMES.add("ignore-bom");
+        PROPERTY_NAMES.add("ignore-trailing-whitespace");
         PROPERTY_NAMES.add("log-levels");
+        PROPERTY_NAMES.add("parser");
         PROPERTY_NAMES.add("pedantic");
         PROPERTY_NAMES.add("prefix-parsing");
         PROPERTY_NAMES.add("pretty-print");
         PROPERTY_NAMES.add("progress-bar");
-        PROPERTY_NAMES.add("suppress-states");
-        PROPERTY_NAMES.add("disable-pragmas");
-        PROPERTY_NAMES.add("enable-pragmas");
-        PROPERTY_NAMES.add("trailing-newline-on-output");
-        PROPERTY_NAMES.add("ascii-only");
         PROPERTY_NAMES.add("strict-ambiguity");
-        PROPERTY_NAMES.add("graph-options");
+        PROPERTY_NAMES.add("suppress-states");
+        PROPERTY_NAMES.add("trailing-newline-on-output");
     }
 
     private static final String propfn = "nineml.properties";
@@ -131,6 +132,7 @@ public class ParserOptionsLoader {
         options.setStrictAmbiguity(getBooleanProperty("strict-ambiguity", false));
         options.setPedantic(getBooleanProperty("pedantic"));
         options.setAssertValidXmlNames(getBooleanProperty("assert-valid-xml-names", true));
+        options.setAssertValidXmlCharacters(getBooleanProperty("assert-valid-xml-characters", true));
         options.setPrefixParsing(getBooleanProperty("prefix-parsing"));
 
         options.setAllowMultipleDefinitions(getBooleanProperty("allow-multiple-definitions"));
@@ -147,6 +149,18 @@ public class ParserOptionsLoader {
         if (value != null) {
             options.getLogger().setLogLevels(value);
         }
+
+        value = getProperty("parser", "Earley");
+        if ("Earley".equalsIgnoreCase(value) || "GLL".equalsIgnoreCase(value)) {
+            if ("Earley".equalsIgnoreCase(value)) {
+                options.setParserType("Earley");
+            } else {
+                options.setParserType("GLL");
+            }
+        } else {
+            options.getLogger().warn("CoffeePot", "Unrecognized parser option: %s", value);
+        }
+
 
         value = getProperty("suppress-states", null);
         if (value != null) {
@@ -182,28 +196,36 @@ public class ParserOptionsLoader {
             options.getLogger().warn("CoffeePot", "Unrecognized progress-bar option: %s", value);
         }
 
-        value = getProperty("progress-bar-style", "plain");
-        if (value != null) {
-            switch (value) {
-                case "ascii":
-                case "plain":
-                    options.setProgressBarCharacters(".#");
-                    break;
-                case "lines":
-                    options.setProgressBarCharacters("-=");
-                    break;
-                case "blocks":
-                    options.setProgressBarCharacters(" ▏▎▍▌▋▊▉█");
-                    break;
-                case "shades":
-                    options.setProgressBarCharacters(" ░▒▓█");
-                    break;
-                default:
-                    options.getLogger().warn("CoffeePot", "Unrecognized progress-bar-style: %s", value);
-            }
+        value = getProperty("progress-bar-characters", null);
+        if (value != null && getProperty("progress-bar-style", null) != null) {
+            options.getLogger().warn("CoffeePot", "The progress-bar-characters option supercedes progress-bar-style");
         }
 
-        //value = getProperty("progress-bar-characters", null);
+        if (value != null) {
+            options.setProgressBarCharacters(value);
+        } else {
+            value = getProperty("progress-bar-style", "plain");
+
+            if (value != null) {
+                switch (value) {
+                    case "ascii":
+                    case "plain":
+                        options.setProgressBarCharacters(".#");
+                        break;
+                    case "lines":
+                        options.setProgressBarCharacters("-=");
+                        break;
+                    case "blocks":
+                        options.setProgressBarCharacters(" ▏▎▍▌▋▊▉█");
+                        break;
+                    case "shades":
+                        options.setProgressBarCharacters(" ░▒▓█");
+                        break;
+                    default:
+                        options.getLogger().warn("CoffeePot", "Unrecognized progress-bar-style: %s", value);
+                }
+            }
+        }
 
         value = getProperty("graph-options", null);
         if (value != null) {

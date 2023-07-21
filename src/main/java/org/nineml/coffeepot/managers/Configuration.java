@@ -321,7 +321,7 @@ public class Configuration {
                      input = null;
                      inputFile = null;
                  } else {
-                     if (!cmain.version) {
+                     if (!cmain.version && !cmain.showOptions) {
                          System.err.println("Usage: ... -g:input.ixml -o:output.xml (--help for more details)");
                          throw ConfigurationException.noInput();
                      }
@@ -412,6 +412,10 @@ public class Configuration {
             if (cmain.progressBar != null) {
                 throw ConfigurationException.configError("Unexpected value for --progress-bar: " + cmain.progressBar);
             }
+        }
+
+        if (cmain.showOptions) {
+            options.showOptions(stderr);
         }
     }
 
@@ -583,6 +587,9 @@ public class Configuration {
 
         @Parameter(names = {"--progress-bar"}, description = "Specify the type of progress bar")
         public String progressBar = null;
+
+        @Parameter(names = {"--show-options"}, description = "Show the configured options for the parse")
+        public boolean showOptions = false;
 
         @Parameter(description = "The input")
         public List<String> inputText = new ArrayList<>();
