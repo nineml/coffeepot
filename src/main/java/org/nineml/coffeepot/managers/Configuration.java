@@ -367,7 +367,12 @@ public class Configuration {
         if (cmain.graphFormat != null) {
             graphFormat = cmain.graphFormat;
         } else {
-            graphFormat = "svg";
+            if (graph != null && graph.contains(".")) {
+                int pos = graph.lastIndexOf(".");
+                graphFormat = graph.substring(pos+1);
+            } else {
+                graphFormat = "svg";
+            }
         }
         parse = cmain.parse;
 
