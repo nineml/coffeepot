@@ -10,11 +10,24 @@
 
 <revhistory>
 <revision>
-<revnumber>3.0.0g</revnumber>
-<date>2023-07-20</date>
+<revnumber>3.0.0i</revnumber>
+<date>2023-07-22</date>
 <revdescription>
 <para>This is a beta release for version 3.0.0. There are a lot of
 changes in this release, but most of them are “behind the scenes” for CoffeePot.</para>
+<para>Version 3.0.0i depends on CoffeeGrinder, CoffeeFilter, and
+CoffeeSacks 3.0.0i.
+</para>
+<para>This release also uses the extension of the file used
+in <option>--graph</option> as the default graph format.
+</para>
+</revdescription>
+</revision>
+
+<revision>
+<revnumber>3.0.0g</revnumber>
+<date>2023-07-20</date>
+<revdescription>
 <para>Version 3.0.0g depends on CoffeeGrinder, CoffeeFilter, and
 CoffeeSacks 3.0.0g which provide a substantial improvement in GLL parser performance.
 </para>
@@ -22,7 +35,6 @@ CoffeeSacks 3.0.0g which provide a substantial improvement in GLL parser perform
 options and fixes a couple of display issues with the progress bar.</para>
 </revdescription>
 </revision>
-
 <revision>
 <revnumber>3.0.0f</revnumber>
 <date>2023-07-18</date>
@@ -128,7 +140,7 @@ xlink:href="https://www.brics.dk/grammar/">ambiguity analyzer</link>.
 <option linkend="_earley">--earley</option>,
 <option linkend="_gll">--gll</option>,
 <option linkend="_grammar-encoding">--grammar-encoding</option>,
-<option linkend="_graph-svg-option">--graph-svg-option</option>,
+<option>--graph-svg-option</option>,
 <option linkend="_omit-csv-headers">--omit-csv-headers</option>,
 <option linkend="_priority-style">--priority-style</option>,
 <option linkend="_show-hidden-nonterminals">--show-hidden-nonterminals</option>,
