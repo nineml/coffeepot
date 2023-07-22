@@ -203,27 +203,41 @@ This must be an encoding name recognized by Java. See also
 </para>
 </listitem>
 </varlistentry>
-<varlistentry xml:id="_graph-svg">
-<term><option>--graph-svg:<replaceable>file</replaceable></option></term>
+<varlistentry xml:id="_forest" revisionflag="changed">
+<term><option>--forest:<replaceable>file</replaceable></option></term>
 <listitem>
-<para>Output an SVG diagram of the parse forest to the file. This option
-will only work if GraphViz has <link linkend="configuration">been configured</link>.
+<para>Output an XML representation of the structure of the parse
+forest. This is intended as the input to visualization processes, like
+the SVG output.
 </para>
 </listitem>
 </varlistentry>
-<varlistentry xml:id="_graph-svg-option" revisionflag="added">
-<term><option>--graph-svg-option:<replaceable>option=value</replaceable></option></term>
+<varlistentry xml:id="_graph" revisionflag="changed">
+<term><option>--graph:<replaceable>file</replaceable></option></term>
+<listitem>
+<para>Output a diagram of the parse forest to the file. This option
+will only work if GraphViz has
+<link linkend="configuration">been configured</link>. See
+also <option>--graph-format</option>.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry xml:id="_graph-format" revisionflag="added">
+<term><option>--graph-format:<replaceable>format</replaceable></option></term>
+<listitem>
+<para>Specifies the graph file format. This must be a format
+recognized by GraphViz. If no format is provided, the default is
+taken from the extension of the <option>--graph</option> file.
+(This option has no effect if <option>--graph</option> is not
+specified.)
+</para>
+</listitem>
+</varlistentry>
+<varlistentry xml:id="_graph-option" revisionflag="changed">
+<term><option>--graph-option:<replaceable>option=value</replaceable></option></term>
 <listitem>
 <para>Passes the specified <code>$option</code> with <literal>value</literal> to the stylesheet 
 that generates the SVG. See <xref linkend="diagrams"/>.
-</para>
-</listitem>
-</varlistentry>
-<varlistentry xml:id="_graph-xml">
-<term><option>--graph-xml:<replaceable>file</replaceable></option></term>
-<listitem>
-<para>Output an XML representation of the structure of the parse forest.
-This is intended as the input to visualization processes, like the SVG output.
 </para>
 </listitem>
 </varlistentry>
