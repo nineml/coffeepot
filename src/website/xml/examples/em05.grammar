@@ -1,6 +1,0 @@
-       $$ ::= s
-        s ::= a, $1_b-plus, a
-        a ::= 'a'
-        b ::= 'b'
-$1_b-plus ::= b
-$1_b-plus ::= b, $1_b-plus

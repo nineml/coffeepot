@@ -1,3 +1,0 @@
-s: a, b**'.', a .        { match "aa", "aba", "ab.ba", "ab.b.ba" ... }
-a: 'a' .
-b: 'b' .

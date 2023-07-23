@@ -1,3 +1,0 @@
-s: a, b, a ; b, a, b .  { match "aba" or "bab" }
-a: 'a' .
-b: 'b' .

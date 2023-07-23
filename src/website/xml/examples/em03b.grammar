@@ -1,6 +1,0 @@
-          $$ ::= s
-           s ::= a, $1_b-optionⁿ
-           a ::= 'a'
-           b ::= 'b'
-$1_b-optionⁿ ::= ε
-$1_b-optionⁿ ::= b, a

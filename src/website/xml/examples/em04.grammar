@@ -1,8 +1,0 @@
-        $$ ::= s
-         s ::= a, $1_b-starⁿ, a
-         a ::= 'a'
-         b ::= 'b'
-$1_b-starⁿ ::= ε
-$1_b-starⁿ ::= $2_b-plus
- $2_b-plus ::= b
- $2_b-plus ::= b, $2_b-plus

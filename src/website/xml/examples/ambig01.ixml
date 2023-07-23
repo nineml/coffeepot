@@ -1,3 +1,0 @@
-product         =  dessert-topping | floor-wax .
-dessert-topping = "custard" | "cream" | "Shimmer" .
-floor-wax       = "paste-wax" | "quick-shine" | "Shimmer" .
